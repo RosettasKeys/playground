@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Breathing Prism | Fidget Toy Garden</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <style>
+    body.toy-page {
+      overflow: hidden;
+      background: #030407;
+    }
+
+    #prism-mount {
+      position: fixed;
+      inset: 0;
+      display: block;
+      width: 100vw;
+      height: 100vh;
+      touch-action: none;
+      cursor: none;
+    }
+
+    .cursor-dot {
+      position: fixed;
+      pointer-events: none;
+      z-index: 10;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.85);
+      transform: translate(-50%, -50%);
+      mix-blend-mode: screen;
+    }
+
+    .squeeze-bar {
+      position: fixed;
+      bottom: 58px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      pointer-events: none;
+      z-index: 6;
+      opacity: 0.7;
+    }
+
+    .squeeze-bar span {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.45);
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .squeeze-track {
+      width: 96px;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255, 255, 255, 0.1);
+      position: relative;
+    }
+
+    .squeeze-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      border-radius: 2px;
+      transition: background 0.3s;
+    }
+
+    .squeeze-thumb {
+      position: absolute;
+      top: 50%;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.7);
+      transform: translate(-50%, -50%);
+    }
+  </style>
+</head>
+
+<body class="toy-page">
+  <nav class="toy-nav" aria-label="Toy controls">
+    <a class="back-link" href="../fidgetToy-index.html">Home</a>
+    <button class="sound-toggle" type="button" aria-label="Toggle sound" aria-pressed="false">♪</button>
+  </nav>
+
+  <canvas id="prism-mount" aria-label="Interactive 3D breathing prism with rainbow light dispersion"></canvas>
+  <div class="cursor-dot" id="cursor-dot"></div>
+
+  <div class="squeeze-bar" id="squeeze-bar">
+    <span>squeeze</span>
+    <div class="squeeze-track">
+      <div class="squeeze-fill" id="squeeze-fill"></div>
+      <div class="squeeze-thumb" id="squeeze-thumb"></div>
+    </div>
+    <span>stretch</span>
+  </div>
+
+  <div class="toy-status" aria-live="polite">
+    <p>Move to tilt &nbsp;·&nbsp; Click+drag to aim beam &nbsp;·&nbsp; Scroll to squeeze/stretch</p>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+
+  <script>
+    // ── Renderer ─────────────────────────────────────────────────────
+    const canvas = document.getElementById('prism-mount');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 0.82;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x030407);
+    scene.fog = new THREE.FogExp2(0x030407, 0.008);
+
+    const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 200);
+    camera.position.set(0, 0.8, 11);
+    camera.lookAt(0, -0.2, 0);
+
+    // ── Bloom ────────────────────────────────────────────────────────
+    const composer = new THREE.EffectComposer(renderer);
+    composer.addPass(new THREE.RenderPass(scene, camera));
+    const bloomPass = new THREE.UnrealBloomPass(
+      new THREE.Vector2(window.innerWidth, window.innerHeight),
+      0.6,   // strength
+      0.3,   // radius — tight so colors don't bleed into each other
+      0.22   // threshold
+    );
+    composer.addPass(bloomPass);
+
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      composer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // ── Prism geometry ───────────────────────────────────────────────
+    function buildPrismGeometry(triH, depth) {
+      const r = triH * (2 / 3);
+      const a0 = Math.PI / 2;
+      const v = [0, 1, 2].map(i => {
+        const ang = a0 + i * (Math.PI * 2 / 3);
+        return [Math.cos(ang) * r, Math.sin(ang) * r];
+      });
+      const zF = depth / 2, zB = -depth / 2;
+      const positions = new Float32Array([
+        v[0][0], v[0][1], zF, v[1][0], v[1][1], zF, v[2][0], v[2][1], zF,
+        v[0][0], v[0][1], zB, v[1][0], v[1][1], zB, v[2][0], v[2][1], zB,
+      ]);
+      const indices = [0, 1, 2, 3, 5, 4, 0, 3, 4, 0, 4, 1, 1, 4, 5, 1, 5, 2, 2, 5, 3, 2, 3, 0];
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      geo.setIndex(indices);
+      geo.computeVertexNormals();
+      geo.setAttribute('uv', new THREE.BufferAttribute(
+        new Float32Array([0.5, 1, 0, 0, 1, 0, 0.5, 1, 0, 0, 1, 0]), 2
+      ));
+      return geo;
+    }
+
+    // ── Materials & prism mesh ────────────────────────────────────────
+    const glassMat = new THREE.MeshPhysicalMaterial({
+      color: 0xd0eeff, transmission: 0.96, roughness: 0.04,
+      metalness: 0.0, reflectivity: 0.9,
+      transparent: true, opacity: 0.92,
+      side: THREE.DoubleSide, envMapIntensity: 2.2,
+    });
+    const edgeMat = new THREE.LineBasicMaterial({ color: 0xaaddff, transparent: true, opacity: 0.55 });
+
+    let prismGeo = buildPrismGeometry(2.2, 1.1);
+    const prism = new THREE.Mesh(prismGeo, glassMat);
+    prism.castShadow = prism.receiveShadow = true;
+    scene.add(prism);
+
+    let edgeGeo = new THREE.EdgesGeometry(prismGeo);
+    const edges = new THREE.LineSegments(edgeGeo, edgeMat);
+    prism.add(edges);
+
+    const internalGlow = new THREE.PointLight(0xc0ddff, 0.5, 5, 2);
+    prism.add(internalGlow);
+
+    // ── Environment map ──────────────────────────────────────────────
+    const pmremGen = new THREE.PMREMGenerator(renderer);
+    pmremGen.compileCubemapShader();
+    const envScene = new THREE.Scene();
+    envScene.background = new THREE.Color(0x030407);
+    [0xff2244, 0xff7700, 0xffdd00, 0x33ee66, 0x00ccff, 0x4455ff, 0xcc00ff].forEach((c, i) => {
+      const l = new THREE.PointLight(c, 2.0, 40);
+      const a = (i / 7) * Math.PI * 2;
+      l.position.set(Math.cos(a) * 14, Math.sin(a) * 9, Math.sin(a * 1.3) * 12);
+      envScene.add(l);
+    });
+    envScene.add(new THREE.AmbientLight(0x102030, 3));
+    const cubeRT = new THREE.WebGLCubeRenderTarget(128);
+    const cubeCam = new THREE.CubeCamera(0.1, 100, cubeRT);
+    envScene.add(cubeCam);
+    cubeCam.update(renderer, envScene);
+    scene.environment = pmremGen.fromCubemap(cubeRT.texture).texture;
+    pmremGen.dispose();
+
+    // ── Lighting ─────────────────────────────────────────────────────
+    scene.add(new THREE.AmbientLight(0x080c18, 4));
+
+    const beamLight = new THREE.SpotLight(0xffffff, 3, 30, Math.PI / 10, 0.3, 1.5);
+    beamLight.position.set(-5, 1, 4);
+    beamLight.target.position.set(0, 0, 0);
+    beamLight.castShadow = true;
+    scene.add(beamLight);
+    scene.add(beamLight.target);
+
+    // Input beam: a converging wedge coming from the left.
+    // Wide end far left, narrows to a point at the left face entry.
+    // Use a cone geometry (wide base, zero tip) instead of a cylinder.
+    const INPUT_LEN = 7.0;
+    const inputRayGeo = new THREE.CylinderGeometry(0.0, 0.09, INPUT_LEN, 12, 1, true);
+    // Translate so tip (zero-radius end = top of cylinder) is at y=0
+    // CylinderGeometry: top radius first arg, so top=0.0 is the tip.
+    // Center is at y=0 by default, translate so tip sits at local origin:
+    inputRayGeo.translate(0, -INPUT_LEN / 2, 0); // tip at y=0, base extends in -Y
+    const inputRayMat = new THREE.MeshBasicMaterial({
+      color: 0xffffff, transparent: true, opacity: 0.38,
+      blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide,
+    });
+    const inputRay = new THREE.Mesh(inputRayGeo, inputRayMat);
+    // rotation.z = -PI/2 maps local -Y → world -X (extends left)
+    inputRay.rotation.z = -Math.PI / 2;
+    inputRay.rotation.x = 0.08; // slight downward tilt
+    const r0 = 2.2 * (2 / 3);
+    inputRay.position.set(
+      -(Math.sqrt(3) / 4 * r0),
+      r0 * 0.55,
+      0
+    );
+    prism.add(inputRay);
+
+    // ── Spectral wedge — single triangle-fan mesh, parented to prism ─
+    // Apex at right-face midpoint, fans right+down. Vertex colors give
+    // the continuous spectrum gradient. No per-ray rotation math.
+    // squeeze changes fan angle by moving the far vertices each frame.
+
+    const WEDGE_LEN = 9.0;   // how far the fan extends
+    const WEDGE_SEGS = 32;    // triangle count across the fan
+    const EXIT_LOCAL = new THREE.Vector3(0.72, 0.18, 0); // right face midpoint
+
+    // Colors: pure spectrum, no white — additive blending handles brightness
+    const WEDGE_COLORS = [
+      [1.0, 0.13, 0.25],  // red
+      [1.0, 0.47, 0.0],   // orange
+      [1.0, 0.87, 0.0],   // yellow
+      [0.13, 0.93, 0.27], // green
+      [0.0, 0.73, 1.0],  // cyan
+      [0.2, 0.27, 1.0],  // blue
+      [0.8, 0.0, 1.0],  // violet
+    ];
+
+    // Build geometry: apex vertex + WEDGE_SEGS+1 arc vertices
+    // Total triangles: WEDGE_SEGS, each sharing the apex
+    const wedgeVertCount = 1 + (WEDGE_SEGS + 1);
+    const wedgePositions = new Float32Array(wedgeVertCount * 3);
+    const wedgeColors = new Float32Array(wedgeVertCount * 3);
+    const wedgeIndices = [];
+
+    // Apex vertex (index 0) — black, colors only appear at the arc
+    wedgePositions[0] = 0; wedgePositions[1] = 0; wedgePositions[2] = 0;
+    wedgeColors[0] = 0; wedgeColors[1] = 0; wedgeColors[2] = 0;
+
+    // Arc vertices (indices 1..WEDGE_SEGS+1)
+    for (let i = 0; i <= WEDGE_SEGS; i++) {
+      const t = i / WEDGE_SEGS;
+      const vi = (1 + i) * 3;
+      // positions filled in animate() — just init to zero
+      wedgePositions[vi] = WEDGE_LEN; wedgePositions[vi + 1] = 0; wedgePositions[vi + 2] = 0;
+      // color: interpolate through WEDGE_COLORS array
+      const ci = t * (WEDGE_COLORS.length - 1);
+      const ci0 = Math.floor(ci), ci1 = Math.min(ci0 + 1, WEDGE_COLORS.length - 1);
+      const cf = ci - ci0;
+      const c0 = WEDGE_COLORS[ci0], c1 = WEDGE_COLORS[ci1];
+      wedgeColors[vi] = c0[0] + (c1[0] - c0[0]) * cf;
+      wedgeColors[vi + 1] = c0[1] + (c1[1] - c0[1]) * cf;
+      wedgeColors[vi + 2] = c0[2] + (c1[2] - c0[2]) * cf;
+    }
+
+    for (let i = 0; i < WEDGE_SEGS; i++) {
+      wedgeIndices.push(0, 1 + i, 2 + i);
+    }
+
+    const wedgeGeo = new THREE.BufferGeometry();
+    const wedgePosAttr = new THREE.BufferAttribute(wedgePositions, 3);
+    wedgePosAttr.setUsage(THREE.DynamicDrawUsage);
+    wedgeGeo.setAttribute('position', wedgePosAttr);
+    wedgeGeo.setAttribute('color', new THREE.BufferAttribute(wedgeColors, 3));
+    wedgeGeo.setIndex(wedgeIndices);
+
+    const wedgeMat = new THREE.MeshBasicMaterial({
+      vertexColors: true,
+      transparent: true,
+      opacity: 0,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      side: THREE.DoubleSide,
+    });
+
+    const wedgeMesh = new THREE.Mesh(wedgeGeo, wedgeMat);
+    wedgeMesh.position.copy(EXIT_LOCAL);
+    prism.add(wedgeMesh);
+
+    // Helper: update arc vertex positions based on current squeeze/breath
+    function updateWedge(sqz, breath) {
+      const halfAngle = 0.38 * sqz;       // half the fan opening angle
+      const BASE_DOWN = 0.38;              // tilt the whole fan downward
+      const len = WEDGE_LEN * (0.9 + breath * 0.1);
+
+      for (let i = 0; i <= WEDGE_SEGS; i++) {
+        const t = i / WEDGE_SEGS;
+        // angle from -halfAngle to +halfAngle, then shifted down by BASE_DOWN
+        const angle = (t - 0.5) * 2 * halfAngle - BASE_DOWN;
+        const vi = (1 + i) * 3;
+        wedgePositions[vi] = Math.cos(angle) * len;  // X: right
+        wedgePositions[vi + 1] = Math.sin(angle) * len;  // Y: up/down
+        wedgePositions[vi + 2] = 0;
+      }
+      wedgePosAttr.needsUpdate = true;
+      wedgeGeo.computeBoundingSphere();
+    }
+
+    // ── State ────────────────────────────────────────────────────────
+    let mouse = { x: 0, y: 0 };
+    let squeeze = 1.0, targetSqueeze = 1.0;
+    let breathT = 0, pulse = 0;
+    let prismH = 2.2, prismD = 1.1;
+    let lightAngleX = 0, lightAngleY = 0;
+    let rayOpacity = 0;
+    let prismTiltX = 0, prismTiltZ = 0;
+    let beamDragging = false;
+    const cursorDot = document.getElementById('cursor-dot');
+
+    // ── Input ────────────────────────────────────────────────────────
+    canvas.addEventListener('mousemove', e => {
+      mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+      mouse.y = (e.clientY / window.innerHeight) * 2 - 1;
+      cursorDot.style.left = e.clientX + 'px';
+      cursorDot.style.top = e.clientY + 'px';
+    });
+    canvas.addEventListener('mousedown', () => { beamDragging = true; pulse = 0.5; if (navigator.vibrate) navigator.vibrate(20); });
+    canvas.addEventListener('mouseup', () => { beamDragging = false; });
+    canvas.addEventListener('mouseleave', () => { beamDragging = false; });
+    canvas.addEventListener('wheel', e => {
+      e.preventDefault();
+      targetSqueeze = Math.max(0.45, Math.min(1.85, targetSqueeze - e.deltaY * 0.0018));
+    }, { passive: false });
+
+    let lastPinchDist = null;
+    canvas.addEventListener('touchstart', e => {
+      if (e.touches.length === 1) { beamDragging = true; pulse = 0.5; if (navigator.vibrate) navigator.vibrate(20); }
+      if (e.touches.length === 2) lastPinchDist = Math.hypot(e.touches[1].clientX - e.touches[0].clientX, e.touches[1].clientY - e.touches[0].clientY);
+    });
+    canvas.addEventListener('touchmove', e => {
+      e.preventDefault();
+      if (e.touches.length === 1) {
+        mouse.x = (e.touches[0].clientX / window.innerWidth) * 2 - 1;
+        mouse.y = (e.touches[0].clientY / window.innerHeight) * 2 - 1;
+      }
+      if (e.touches.length === 2 && lastPinchDist) {
+        const d = Math.hypot(e.touches[1].clientX - e.touches[0].clientX, e.touches[1].clientY - e.touches[0].clientY);
+        targetSqueeze = Math.max(0.45, Math.min(1.85, targetSqueeze * (d / lastPinchDist)));
+        lastPinchDist = d;
+      }
+    }, { passive: false });
+    canvas.addEventListener('touchend', () => { beamDragging = false; lastPinchDist = null; });
+
+    // ── Squeeze UI ───────────────────────────────────────────────────
+    const squeezeFill = document.getElementById('squeeze-fill');
+    const squeezeThumb = document.getElementById('squeeze-thumb');
+    const squeezeBar = document.getElementById('squeeze-bar');
+    function updateSqueezeUI() {
+      const pct = (squeeze - 0.45) / (1.85 - 0.45);
+      const px = pct * 96;
+      squeezeThumb.style.left = px + 'px';
+      squeezeFill.style.width = px + 'px';
+      squeezeFill.style.background = squeeze < 0.85 ? 'rgba(100,180,255,0.75)' : squeeze > 1.20 ? 'rgba(255,160,80,0.75)' : 'rgba(180,255,200,0.6)';
+      squeezeBar.style.opacity = Math.min(0.85, 0.25 + Math.abs(squeeze - 1.0) * 3);
+    }
+
+    // ── Geometry rebuild ─────────────────────────────────────────────
+    function rebuildPrism(sqz) {
+      const newH = 2.2 * sqz, newD = 1.1 / sqz * 0.85 + 0.18;
+      if (Math.abs(newH - prismH) < 0.05 && Math.abs(newD - prismD) < 0.05) return;
+      prismH = newH; prismD = newD;
+      prism.remove(edges);
+      prismGeo.dispose(); edgeGeo.dispose();
+      prismGeo = buildPrismGeometry(prismH, prismD);
+      prism.geometry = prismGeo;
+      edgeGeo = new THREE.EdgesGeometry(prismGeo);
+      edges.geometry = edgeGeo;
+      prism.add(edges);
+
+      // Reposition wedge apex to match new right-face midpoint.
+      const r = prismH * (2 / 3);
+      const exitX = (0 + Math.sqrt(3) / 2 * r) / 2;
+      const exitY = (r * 2 / 3 + (-r / 2)) / 2;
+      wedgeMesh.position.set(exitX, exitY, 0);
+
+      // Reposition input beam to upper portion of left face (higher than rainbow exit)
+      inputRay.position.set(-(Math.sqrt(3) / 4 * r), r * 0.55, 0);
+    }
+
+    // ── Sound ────────────────────────────────────────────────────────
+    let audioCtx, masterGain, harmonics = [], soundOn = false;
+    document.querySelector('.sound-toggle').addEventListener('click', function () {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        masterGain = audioCtx.createGain();
+        masterGain.gain.value = 0;
+        masterGain.connect(audioCtx.destination);
+        const lfo = audioCtx.createOscillator(), lfoG = audioCtx.createGain();
+        lfo.frequency.value = 0.11; lfoG.gain.value = 0.12;
+        lfo.connect(lfoG);
+        [[1, 0.09], [2, 0.04], [3, 0.018], [5, 0.008]].forEach(([ratio, amp]) => {
+          const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+          o.type = 'sine'; o.frequency.value = 196 * ratio; g.gain.value = amp;
+          lfoG.connect(g.gain); o.connect(g); g.connect(masterGain); o.start();
+          harmonics.push({ osc: o, gain: g, ratio, base: amp });
+        });
+        lfo.start();
+      }
+      soundOn = !soundOn;
+      this.setAttribute('aria-pressed', soundOn);
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      masterGain.gain.setTargetAtTime(soundOn ? 1 : 0, audioCtx.currentTime, 0.8);
+    });
+    function updateSound(breath) {
+      if (!soundOn || !audioCtx || !harmonics.length) return;
+      const base = 190 + breath * 38 + squeeze * 14;
+      harmonics.forEach(({ osc, gain, ratio, base: b }) => {
+        osc.frequency.setTargetAtTime(base * ratio, audioCtx.currentTime, 1.2);
+        gain.gain.setTargetAtTime(b * (0.6 + breath * 0.4), audioCtx.currentTime, 0.9);
+      });
+    }
+
+    // ── Animate ──────────────────────────────────────────────────────
+    const clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const delta = clock.getDelta();
+      breathT += delta * 0.38;
+      pulse *= 0.91;
+
+      squeeze += (targetSqueeze - squeeze) * 0.06;
+      rebuildPrism(squeeze);
+      updateSqueezeUI();
+
+      const breath = (Math.sin(breathT) + 1) / 2;
+      const breathScale = 1 + breath * 0.04 + pulse * 0.06;
+      prism.scale.set(1 - breath * 0.015 + pulse * 0.04, breathScale, 1 + breath * 0.02);
+
+      // Prism tilts with mouse only — no idle Y spin (breaks ray alignment)
+      prismTiltX += (mouse.y * 0.22 - prismTiltX) * 0.04;
+      prismTiltZ += (mouse.x * -0.16 - prismTiltZ) * 0.04;
+      prism.rotation.y = 0;
+      prism.rotation.x = prismTiltX;
+      prism.rotation.z = Math.sin(breathT * 0.4) * 0.04 + prismTiltZ;
+
+      // Beam tracks mouse — responsive when dragging, gentle otherwise
+      const beamRate = beamDragging ? 0.18 : 0.03;
+      const beamRange = beamDragging ? 3.5 : 1.8;
+      lightAngleX += (mouse.x * beamRange - lightAngleX) * beamRate;
+      lightAngleY += (mouse.y * -beamRange * 0.55 - lightAngleY) * beamRate;
+      beamLight.position.set(-4 + lightAngleX * 1.6, 1 + lightAngleY * 1.2, 4);
+      beamLight.intensity = 2.5 + breath * 1.2 + pulse * 3;
+
+      inputRayMat.opacity = 0.30 + breath * 0.10 + (beamDragging ? 0.12 : 0);
+
+      internalGlow.intensity = 0.3 + breath * 0.4 + pulse * 0.8;
+
+      // Spectral wedge: update geometry + opacity
+      rayOpacity = Math.min(1, rayOpacity + delta * 0.5);
+      updateWedge(squeeze, breath);
+      wedgeMat.opacity = (0.28 + breath * 0.12 + pulse * 0.15) * rayOpacity;
+
+      // Glass tint breathes through hues
+      const hue = breathT * 0.1;
+      glassMat.color.setRGB(
+        (0.78 + Math.sin(hue) * 0.18) * 0.82,
+        (0.88 + Math.sin(hue + 2.1) * 0.08) * 0.90,
+        0.98 + Math.sin(hue + 4.2) * 0.02
+      );
+      glassMat.roughness = 0.03 + (1 - breath) * 0.04;
+      glassMat.envMapIntensity = 1.8 + breath * 0.8 + pulse * 1.0;
+      edgeMat.opacity = 0.40 + breath * 0.35 + pulse * 0.15;
+
+      updateSound(breath);
+      composer.render();
+    }
+
+    animate();
+  </script>
+</body>
+
+</html>

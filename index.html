@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rosetta's Garden of Keys</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400&display=swap" rel="stylesheet">
+  <style>
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #04091a;
+    }
+
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      display: block;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="canvas" aria-label="Rosetta's Garden of Keys — interactive portfolio">
+    <p>Welcome to Rosetta's Garden of Keys. Please enable a modern browser to experience this portfolio.</p>
+  </canvas>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ── State ────────────────────────────────────────────────────────────────
+      const canvas = document.getElementById('canvas');
+      let ctx, W, H;
+      let animId = null;
+      const mouse = { x: -999, y: -999 };
+      let wonder = [];      // star-field particles
+      let agEmbers = [];    // fire embers
+      let bgImage = null;
+
+      // ── Node definitions ─────────────────────────────────────────────────────
+      // href: navigation target | data-label: shown when href is '#'
+      const NODES = [
+        {
+          id: 'ecards',
+          label: 'E-Cards',
+          sub: 'motion for occasions',
+          style: 'drop',
+          ph: 0.5,
+          href: 'ecards/card-index.html',
+        },
+        {
+          id: 'fidget',
+          label: 'Fidget Toys',
+          sub: 'sensory toys in code',
+          style: 'star',
+          ph: 1.8,
+          href: 'fidgetToy/fidgetToy-index.html'
+        },
+        {
+          id: 'spring',
+          label: 'Spring of Ages',
+          sub: 'a site as memory',
+          style: 'flower',
+          ph: 2.1,
+          href: 'https://sites.google.com/view/springofages/home'
+        }
+      ];
+
+      // ── Init ─────────────────────────────────────────────────────────────────
+      function init() {
+        bgImage = new Image();
+        bgImage.src = './background-illustration.png';
+
+        resize();
+        window.addEventListener('resize', resize);
+
+        canvas.addEventListener('mousemove', e => {
+          mouse.x = e.clientX;
+          mouse.y = e.clientY;
+        });
+        canvas.addEventListener('mouseleave', () => {
+          mouse.x = -999;
+          mouse.y = -999;
+        });
+        canvas.addEventListener('touchmove', e => {
+          e.preventDefault();
+          mouse.x = e.touches[0].clientX;
+          mouse.y = e.touches[0].clientY;
+        }, { passive: false });
+        canvas.addEventListener('touchend', () => {
+          mouse.x = -999;
+          mouse.y = -999;
+        });
+
+        // ── Click / tap navigation ───────────────────────────────────────────
+        canvas.addEventListener('click', e => {
+          const cx = e.clientX, cy = e.clientY;
+          for (const nd of nodePositions()) {
+            const dx = cx - nd.x, dy = cy - nd.y;
+            if (Math.sqrt(dx * dx + dy * dy) < 52) {
+              if (nd.href && nd.href !== '#') {
+                window.location.href = nd.href;
+              }
+              // '#' nodes: no navigation (coming soon)
+              break;
+            }
+          }
+        });
+        canvas.addEventListener('touchend', e => {
+          if (e.changedTouches.length === 0) return;
+          const t0 = e.changedTouches[0];
+          const cx = t0.clientX, cy = t0.clientY;
+          for (const nd of nodePositions()) {
+            const dx = cx - nd.x, dy = cy - nd.y;
+            if (Math.sqrt(dx * dx + dy * dy) < 52) {
+              if (nd.href && nd.href !== '#') {
+                window.location.href = nd.href;
+              }
+              break;
+            }
+          }
+        });
+
+        loop();
+      }
+
+      function resize() {
+        W = canvas.width = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+        ctx = canvas.getContext('2d');
+        initParticles();
+      }
+
+      // Compute node screen positions fresh each frame (or on resize)
+      function nodePositions() {
+        return NODES.map(nd => Object.assign({}, nd, {
+          x: W * (nd.id === 'ecards' ? 0.25 : nd.id === 'fidget' ? 0.52 : 0.49),
+          y: H * (nd.id === 'ecards' ? 0.40 : nd.id === 'fidget' ? 0.57 : 0.77)
+        }));
+      }
+
+      // ── Particle initialisation ──────────────────────────────────────────────
+      function initParticles() {
+        // Star-field: 28 drifting points
+        wonder = [];
+        for (let i = 0; i < 28; i++) {
+          wonder.push({
+            x: Math.random() * W,
+            y: Math.random() * H,
+            vx: (Math.random() - 0.5) * 0.13,
+            vy: (Math.random() - 0.5) * 0.13,
+            r: Math.random() * 1.2 + 0.2,
+            o: Math.random() * 0.16 + 0.04,
+            h: 185 + Math.floor(Math.random() * 65)
+          });
+        }
+        // Embers: 55 particles near dragon egg
+        agEmbers = [];
+        for (let i = 0; i < 55; i++) agEmbers.push(freshEmber(true));
+      }
+
+      function freshEmber(init) {
+        const ex = W * 0.84, ey = H * 0.76;
+        return {
+          x: ex + (Math.random() - 0.5) * 110,
+          y: init ? ey + Math.random() * H * 0.22 : ey + 50,
+          vx: (Math.random() - 0.5) * 0.55,
+          vy: -(Math.random() * 1.2 + 0.4),
+          r: Math.random() * 2.1 + 0.4,
+          life: init ? Math.random() : 1,
+          decay: Math.random() * 0.005 + 0.0025
+        };
+      }
+
+      // ── Animation loop ───────────────────────────────────────────────────────
+      function loop() {
+        animId = requestAnimationFrame(loop);
+        draw(Date.now() / 1000);
+      }
+
+      function draw(t) {
+        if (!ctx) return;
+        const m = mouse;
+
+        // 1 · Background illustration (cover-scaled)
+        drawBackground();
+
+        // 2 · Dark edge vignette
+        const vig = ctx.createRadialGradient(
+          W * 0.5, H * 0.5, H * 0.3,
+          W * 0.5, H * 0.5, H * 0.82
+        );
+        vig.addColorStop(0, 'transparent');
+        vig.addColorStop(1, 'rgba(0,0,0,0.22)');
+        ctx.fillStyle = vig;
+        ctx.fillRect(0, 0, W, H);
+
+        // 3 · Atmospheric glows
+        // Fire flicker
+        const fp = Math.sin(t * 2.2) * 0.07 + 0.93;
+        const fireG = ctx.createRadialGradient(W * 0.84, H * 0.82, 0, W * 0.84, H * 0.82, H * 0.15);
+        fireG.addColorStop(0, `rgba(255,72,5,${0.1 * fp})`);
+        fireG.addColorStop(1, 'transparent');
+        ctx.fillStyle = fireG;
+        ctx.fillRect(0, 0, W, H);
+
+        // Wisp ambient
+        const wsp = Math.sin(t * 1.4) * 0.08 + 0.92;
+        const wspG = ctx.createRadialGradient(W * 0.5, H * 0.46, 0, W * 0.5, H * 0.46, H * 0.1);
+        wspG.addColorStop(0, `rgba(220,210,145,${0.12 * wsp})`);
+        wspG.addColorStop(1, 'transparent');
+        ctx.fillStyle = wspG;
+        ctx.fillRect(0, 0, W, H);
+
+        // 4 · Star-field particles
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        for (const p of wonder) {
+          const dx = m.x - p.x, dy = m.y - p.y;
+          const d = Math.sqrt(dx * dx + dy * dy);
+          if (d < 130 && d > 0) {
+            p.vx += dx * 0.000012;
+            p.vy += dy * 0.000012;
+          }
+          p.vx *= 0.998; p.vy *= 0.998;
+          p.x += p.vx; p.y += p.vy;
+          if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
+          if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = `hsla(${p.h},42%,48%,${p.o})`;
+          ctx.fill();
+        }
+        ctx.restore();
+
+        // 5 · Wisp
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        drawWisp(t, m);
+        ctx.restore();
+
+        // 6 · Fire embers
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        for (const e of agEmbers) {
+          const dx = m.x - e.x, dy = m.y - e.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 90 && dist > 0) {
+            e.vx += (e.x - m.x) * 0.00008;
+            e.vy += (e.y - m.y) * 0.00006;
+          }
+          e.x += e.vx; e.y += e.vy;
+          e.vx *= 0.999;
+          e.life -= e.decay;
+          if (e.life <= 0 || e.y < H * 0.28) Object.assign(e, freshEmber(false));
+          ctx.beginPath();
+          ctx.arc(e.x, e.y, e.r * e.life, 0, Math.PI * 2);
+          ctx.fillStyle = `hsla(${5 + e.life * 42},100%,55%,${e.life * 0.55})`;
+          ctx.fill();
+        }
+        ctx.restore();
+
+        // 7 · Interactive nodes
+        const nodes = nodePositions();
+        let anyCursor = false;
+
+        for (const nd of nodes) {
+          const dx = m.x - nd.x, dy = m.y - nd.y;
+          const d = Math.sqrt(dx * dx + dy * dy);
+          const active = d < 52;
+          if (active) anyCursor = true;
+
+          if (nd.style === 'drop') drawDropNode(nd, t, active);
+          if (nd.style === 'star') drawStarNode(nd, t, active);
+          if (nd.style === 'flower') drawFlowerNode(nd, t, active);
+
+          // 8 · Node hover labels
+          if (active) {
+            const a = Math.min(1, (52 - d) / 18);
+            ctx.textAlign = 'left';
+            ctx.font = '400 18px "Space Mono", monospace';
+            ctx.fillStyle = `rgba(215,225,255,${a})`;
+            ctx.fillText(nd.label, nd.x + 15, nd.y + 4);
+            ctx.font = '400 15px "Space Mono", monospace';
+            ctx.fillStyle = `rgba(170,185,220,${a * 0.52})`;
+            // Show "coming soon" subtitle for placeholder nodes
+            const subText = nd['data-label'] ? nd['data-label'] : nd.sub;
+            ctx.fillText(subText, nd.x + 15, nd.y + 22);
+          }
+        }
+
+        canvas.style.cursor = anyCursor ? 'pointer' : 'default';
+      }
+
+      // ── Background ───────────────────────────────────────────────────────────
+      function drawBackground() {
+        if (bgImage && bgImage.complete && bgImage.naturalWidth > 0) {
+          const iw = bgImage.naturalWidth, ih = bgImage.naturalHeight;
+          const scale = Math.max(W / iw, H / ih);
+          const dw = iw * scale, dh = ih * scale;
+          ctx.drawImage(bgImage, (W - dw) / 2, (H - dh) / 2, dw, dh);
+        } else {
+          ctx.fillStyle = '#04091a';
+          ctx.fillRect(0, 0, W, H);
+        }
+      }
+
+      // ── Wisp (16-arm dandelion light) ────────────────────────────────────────
+      function drawWisp(t, m) {
+        const wx = W * 0.5, wy = H * 0.46;
+        const mdx = m.x - wx, mdy = m.y - wy;
+        const dist = Math.sqrt(mdx * mdx + mdy * mdy);
+        const attract = (dist < 210 && dist > 0) ? (210 - dist) / 210 * 0.13 : 0;
+        const nx = dist > 0 ? mdx / dist : 0;
+        const ny = dist > 0 ? mdy / dist : 0;
+
+        for (let i = 0; i < 16; i++) {
+          const base = (i / 16) * Math.PI * 2;
+          const curl = Math.sin(t * 0.28 + i * 0.62) * 0.88;
+          const len = (48 + Math.sin(t * 0.5 + i) * 10) * (0.82 + 0.18 * Math.sin(t * 0.72 + i * 1.1));
+          const mid = base + curl * 0.32 + attract * nx * 0.44;
+          const end = base + curl * 0.82 + attract * nx * 0.70;
+          const cpx = wx + Math.cos(mid) * len * 0.52 + attract * mdx * 0.08;
+          const cpy = wy + Math.sin(mid) * len * 0.52 + attract * mdy * 0.08;
+          const epx = wx + Math.cos(end) * len + attract * mdx * 0.16;
+          const epy = wy + Math.sin(end) * len + attract * mdy * 0.16;
+
+          ctx.beginPath();
+          ctx.moveTo(wx, wy);
+          ctx.quadraticCurveTo(cpx, cpy, epx, epy);
+          const wG = ctx.createLinearGradient(wx, wy, epx, epy);
+          wG.addColorStop(0, `rgba(195,185,112,${0.42 + Math.sin(t + i * 0.65) * 0.06})`);
+          wG.addColorStop(0.55, 'rgba(90,110,200,0.14)');
+          wG.addColorStop(1, 'transparent');
+          ctx.strokeStyle = wG;
+          ctx.lineWidth = 1.1;
+          ctx.stroke();
+        }
+
+        // Central glow
+        const cg = ctx.createRadialGradient(wx, wy, 0, wx, wy, 24);
+        cg.addColorStop(0, `rgba(240,235,165,${0.78 + Math.sin(t * 1.55) * 0.07})`);
+        cg.addColorStop(0.3, 'rgba(160,175,255,0.22)');
+        cg.addColorStop(1, 'transparent');
+        ctx.fillStyle = cg;
+        ctx.beginPath();
+        ctx.arc(wx, wy, 24, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Orbiting sparkles
+        for (let i = 0; i < 10; i++) {
+          const sa = (i / 10) * Math.PI * 2 + t * 0.2 + i * 0.82;
+          const sr = 16 + 10 * Math.sin(t * 0.64 + i * 1.2);
+          ctx.beginPath();
+          ctx.arc(wx + Math.cos(sa) * sr, wy + Math.sin(sa) * sr, 0.9, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(235,225,130,${0.32 + 0.18 * Math.sin(t * 1.7 + i)})`;
+          ctx.fill();
+        }
+      }
+
+      // ── E-Cards node: hanging willow teardrop glow ───────────────────────────
+      function drawDropNode(nd, t, active) {
+        const { x, y, ph } = nd;
+        const bob = Math.sin(t * 0.72 + ph) * 3.5;
+        const cy = y + bob;
+        const size = active ? 10.5 : 8.5;
+        const br = active ? 0.68 : 0.38;
+
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+
+        // Outer glow
+        const og = ctx.createRadialGradient(x, cy, 0, x, cy, size * 2.6);
+        og.addColorStop(0, `rgba(72,148,215,${br * 0.38})`);
+        og.addColorStop(1, 'transparent');
+        ctx.fillStyle = og;
+        ctx.beginPath();
+        ctx.arc(x, cy, size * 2.6, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Teardrop shape — pointed bottom, rounded top
+        ctx.beginPath();
+        ctx.moveTo(x, cy + size * 0.65);
+        ctx.bezierCurveTo(x - size * 0.5, cy + size * 0.2, x - size * 0.55, cy - size * 0.28, x, cy - size * 0.52);
+        ctx.bezierCurveTo(x + size * 0.55, cy - size * 0.28, x + size * 0.5, cy + size * 0.2, x, cy + size * 0.65);
+        ctx.closePath();
+
+        const dg = ctx.createRadialGradient(x, cy - size * 0.08, 0, x, cy, size * 0.65);
+        dg.addColorStop(0, `rgba(190,238,255,${br})`);
+        dg.addColorStop(0.4, `rgba(82,150,238,${br * 0.75})`);
+        dg.addColorStop(1, `rgba(42,92,195,${br * 0.28})`);
+        ctx.fillStyle = dg;
+        ctx.fill();
+        ctx.strokeStyle = `rgba(135,205,255,${br * 0.5})`;
+        ctx.lineWidth = 0.65;
+        ctx.stroke();
+
+        ctx.restore();
+      }
+
+      // ── Fidget Toys node: diffraction star glow ──────────────────────────────
+      function drawStarNode(nd, t, active) {
+        const { x, y } = nd;
+        const scale = active ? 1.38 : 1.0;
+        const tw = (0.88 + Math.sin(t * 2.9) * 0.06 + Math.sin(t * 4.3 + 1.1) * 0.04 + Math.sin(t * 7.1 + 2.5) * 0.02) * scale;
+
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+
+        // Blue-white halo
+        const halo = ctx.createRadialGradient(x, y, 0, x, y, 20);
+        halo.addColorStop(0, `rgba(155,170,255,${0.14 * tw})`);
+        halo.addColorStop(1, 'transparent');
+        ctx.fillStyle = halo;
+        ctx.beginPath();
+        ctx.arc(x, y, 20, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.lineCap = 'round';
+
+        // 4 primary spikes
+        const primary = [
+          [0, 28],
+          [Math.PI * 0.5, 22],
+          [Math.PI, 28],
+          [Math.PI * 1.5, 22]
+        ];
+        for (const [a, len] of primary) {
+          const ex = x + Math.cos(a) * len * tw;
+          const ey = y + Math.sin(a) * len * tw;
+          const sg = ctx.createLinearGradient(x, y, ex, ey);
+          sg.addColorStop(0, `rgba(248,250,255,${0.72 * tw})`);
+          sg.addColorStop(0.12, `rgba(210,222,255,${0.36 * tw})`);
+          sg.addColorStop(0.48, `rgba(180,195,255,${0.11 * tw})`);
+          sg.addColorStop(1, 'transparent');
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(ex, ey);
+          ctx.strokeStyle = sg;
+          ctx.lineWidth = 0.78;
+          ctx.stroke();
+        }
+
+        // 4 diagonal secondary spikes
+        for (let i = 0; i < 4; i++) {
+          const a = Math.PI * 0.25 + i * Math.PI * 0.5;
+          const len = 13 * tw;
+          const ex = x + Math.cos(a) * len;
+          const ey = y + Math.sin(a) * len;
+          const sg = ctx.createLinearGradient(x, y, ex, ey);
+          sg.addColorStop(0, `rgba(235,240,255,${0.26 * tw})`);
+          sg.addColorStop(1, 'transparent');
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.lineTo(ex, ey);
+          ctx.strokeStyle = sg;
+          ctx.lineWidth = 0.45;
+          ctx.stroke();
+        }
+
+        // White radial core
+        const core = ctx.createRadialGradient(x, y, 0, x, y, 3.5);
+        core.addColorStop(0, `rgba(255,255,255,${0.97 * tw})`);
+        core.addColorStop(0.38, `rgba(225,232,255,${0.65 * tw})`);
+        core.addColorStop(1, 'transparent');
+        ctx.fillStyle = core;
+        ctx.beginPath();
+        ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+      }
+
+      // ── Spring of Ages node: lavender lotus bloom ────────────────────────────
+      function drawFlowerNode(nd, t, active) {
+        const { x, y, ph } = nd;
+        const pulse = Math.sin(t * 0.78 + ph) * 0.09 + 0.91;
+        const br = active ? 0.24 : 0.11;
+
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+
+        const fg = ctx.createRadialGradient(x, y, 0, x, y, 26 * pulse);
+        fg.addColorStop(0, `rgba(200,132,225,${br * 1.9})`);
+        fg.addColorStop(0.42, `rgba(155,90,195,${br})`);
+        fg.addColorStop(1, 'transparent');
+        ctx.fillStyle = fg;
+        ctx.beginPath();
+        ctx.arc(x, y, 26 * pulse, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Central dot
+        ctx.beginPath();
+        ctx.arc(x, y, 2.2, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(232,188,250,${0.52 + (active ? 0.32 : 0)})`;
+        ctx.fill();
+
+        ctx.restore();
+      }
+
+      // ── Boot ─────────────────────────────────────────────────────────────────
+      init();
+
+    })();
+  </script>
+</body>
+
+</html>

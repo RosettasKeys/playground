@@ -1,0 +1,1722 @@
+<!doctype html>
+<html lang="en">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Lora:ital,wght@0,400..700;1,400..700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deck of Cards - Rosetta's Garden</title>
+    <style>
+        :root {
+            --color-burgundy-dark: #120103;
+            --color-burgundy-medium: #2a080c;
+            --color-burgundy-light: #520e15;
+            --color-gold: #d4af37;
+            --color-gold-dark: #aa841c;
+            --color-parchment: #fbf8eb;
+            --color-parchment-dark: #f3edd3;
+            --color-suit-red: #c52d2f;
+            --color-suit-black: #1a1a1a;
+            
+            --scale-factor: 1.0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            overflow-x: hidden;
+            overflow-y: auto;
+            font-family: 'Lora', serif;
+            background: var(--color-burgundy-dark);
+            color: var(--color-parchment);
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="%23d4af37"><path d="M7 10l5 5 5-5z"/></svg>'), auto;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            /* Velvet texture overlay with diamond chess board checks */
+            background:
+                radial-gradient(circle at 50% 30%, rgba(82, 14, 21, 0.85) 0%, rgba(18, 1, 3, 0.98) 80%),
+                repeating-linear-gradient(45deg, rgba(212, 175, 55, 0.015) 0px, rgba(212, 175, 55, 0.015) 1px, transparent 1px, transparent 12px),
+                repeating-linear-gradient(-45deg, rgba(212, 175, 55, 0.015) 0px, rgba(212, 175, 55, 0.015) 1px, transparent 1px, transparent 12px);
+            z-index: -1;
+            box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.9);
+        }
+
+        /* Floating particles */
+        .particle {
+            position: absolute;
+            opacity: 0.15;
+            animation: float 18s infinite linear;
+            pointer-events: none;
+            user-select: none;
+            z-index: 0;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0) translateX(0) rotate(0deg);
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 0.25;
+            }
+
+            90% {
+                opacity: 0.25;
+            }
+
+            100% {
+                transform: translateY(-100vh) translateX(60px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* Main container */
+        .garden {
+            min-height: calc(100vh - 220px);
+            padding: 2rem;
+            position: relative;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2.5rem;
+            align-content: start;
+            z-index: 10;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding-bottom: 6rem;
+        }
+
+        /* Card Container - handles perspective & sizing & alice scale */
+        .card-container {
+            perspective: 1000px;
+            width: 280px;
+            height: 380px;
+            transform: scale(var(--scale-factor, 1));
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1;
+        }
+
+        .card-container:hover {
+            transform: scale(calc(var(--scale-factor, 1) * 1.06));
+            z-index: 100;
+        }
+
+        /* Card container jitter warning */
+        .card-container.warning-jitter {
+            animation: cardContainerJitter 0.15s linear infinite !important;
+        }
+
+        @keyframes cardContainerJitter {
+            0%, 100% { transform: scale(var(--scale-factor, 1)) translate(0, 0); }
+            25% { transform: scale(var(--scale-factor, 1)) translate(-4px, 3px); }
+            75% { transform: scale(var(--scale-factor, 1)) translate(4px, -3px); }
+        }
+
+        /* Playing Card structure - handles rotation, flips, dizzy spin */
+        .playing-card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease, border-color 0.3s ease;
+            transform: rotate(var(--rotation, 0deg));
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .playing-card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .playing-card.dizzy {
+            animation: spinDizzy 1.8s linear infinite !important;
+            border-color: #ff0055 !important;
+            box-shadow: 0 20px 50px rgba(255, 0, 85, 0.5), inset 0 0 20px rgba(255, 0, 85, 0.2) !important;
+        }
+
+        @keyframes spinDizzy {
+            0% { transform: rotateY(var(--rotY, 0deg)) rotateZ(0deg) translateY(-12px); }
+            100% { transform: rotateY(var(--rotY, 0deg)) rotateZ(360deg) translateY(-12px); }
+        }
+
+        /* Jitter warning for dizzy card near timed out */
+        .playing-card.warning-state {
+            border-color: #ff0044 !important;
+            box-shadow: 0 0 35px rgba(255, 0, 68, 0.8), inset 0 0 20px rgba(255, 0, 68, 0.3) !important;
+        }
+
+        /* Shatter collapse animation */
+        .playing-card.smashed {
+            animation: cardShatter 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards !important;
+            pointer-events: none;
+        }
+
+        @keyframes cardShatter {
+            0% { transform: rotateY(var(--rotY, 0deg)) scale(1) rotateZ(0deg); opacity: 1; }
+            15% { transform: rotateY(var(--rotY, 0deg)) scale(1.15) rotateZ(10deg); filter: brightness(2) contrast(1.5); }
+            100% { transform: rotateY(var(--rotY, 0deg)) translateY(120vh) rotateZ(360deg) scale(0.1); opacity: 0; }
+        }
+
+        .card-container:hover .playing-card:not(.dizzy) {
+            box-shadow: 0 20px 45px rgba(212, 175, 55, 0.35);
+        }
+
+        /* Card faces (Front & Back) */
+        .card-face {
+            position: absolute;
+            inset: 0;
+            backface-visibility: hidden;
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-sizing: border-box;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--color-gold);
+        }
+
+        /* Inner border line on both faces */
+        .card-face::after {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            bottom: 10px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 8px;
+            pointer-events: none;
+        }
+
+        .card-front {
+            background: radial-gradient(circle at 50% 50%, var(--color-parchment) 0%, var(--color-parchment-dark) 100%);
+            z-index: 2;
+        }
+
+        .card-back {
+            background: radial-gradient(circle at 50% 50%, #170406 0%, #0d0102 100%);
+            /* Gold lattice watermark pattern on back */
+            background-image:
+                radial-gradient(circle at 50% 50%, rgba(212, 175, 55, 0.05) 0%, transparent 80%),
+                repeating-linear-gradient(45deg, rgba(212, 175, 55, 0.02) 0px, rgba(212, 175, 55, 0.02) 1px, transparent 1px, transparent 15px),
+                repeating-linear-gradient(-45deg, rgba(212, 175, 55, 0.02) 0px, rgba(212, 175, 55, 0.02) 1px, transparent 1px, transparent 15px);
+            transform: rotateY(180deg);
+            z-index: 1;
+            color: var(--color-parchment);
+        }
+
+        .card-back::after {
+            border-color: rgba(212, 175, 55, 0.25);
+        }
+
+        /* Card indices in corners */
+        .card-corner {
+            position: absolute;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            line-height: 1;
+            font-family: 'Cinzel Decorative', serif;
+            font-weight: bold;
+            font-size: 1.2rem;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        .card-corner.top-left {
+            top: 18px;
+            left: 18px;
+        }
+
+        .card-corner.bottom-right {
+            bottom: 18px;
+            right: 18px;
+            transform: rotate(180deg);
+        }
+
+        .card-corner .rank {
+            margin-bottom: 2px;
+        }
+
+        /* Center Suit Watermark */
+        .center-suit-watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 11rem;
+            opacity: 0.05;
+            user-select: none;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Card Body */
+        .card-body {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+            padding: 1.5rem 0.5rem 0.5rem 0.5rem;
+        }
+
+        .card-title {
+            font-family: 'Cinzel Decorative', serif;
+            color: var(--color-burgundy-dark);
+            font-size: 1.35rem;
+            margin-bottom: 0.8rem;
+            font-weight: 700;
+            line-height: 1.2;
+            text-shadow: 0.5px 0.5px 0px rgba(255, 255, 255, 0.8);
+        }
+
+        .card-desc {
+            color: rgba(30, 20, 20, 0.85);
+            font-size: 1.00rem;
+            line-height: 1.4;
+            margin-bottom: 1.5rem;
+            font-style: italic;
+        }
+
+        .card-btn {
+            color: var(--color-parchment);
+            text-decoration: none;
+            font-family: 'Cinzel Decorative', serif;
+            font-size: 0.85rem;
+            font-weight: bold;
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            transition: all 0.25s ease;
+            border: 1px solid transparent;
+            align-self: center;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            z-index: 10;
+        }
+
+        .card-btn:hover {
+            color: var(--color-parchment) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+            filter: brightness(1.2);
+        }
+
+        /* Specs elements on back face */
+        .specs-body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+            padding: 1.2rem 0.3rem;
+            z-index: 2;
+        }
+
+        .specs-title {
+            font-family: 'Cinzel Decorative', serif;
+            color: var(--color-gold);
+            font-size: 1.15rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+
+        .specs-divider {
+            width: 45px;
+            height: 1px;
+            background: var(--color-gold);
+            margin: 0.7rem 0;
+            opacity: 0.5;
+        }
+
+        .specs-text {
+            font-family: 'Space Mono', 'Courier New', monospace;
+            font-size: 0.86rem;
+            line-height: 1.55;
+            color: rgba(251, 248, 235, 0.8);
+            margin-bottom: 0.8rem;
+            text-align: left;
+            word-break: break-word;
+        }
+
+        .specs-footer {
+            font-family: 'Cinzel Decorative', serif;
+            font-size: 0.65rem;
+            color: var(--color-gold);
+            opacity: 0.45;
+            font-style: italic;
+            letter-spacing: 1px;
+            margin-top: auto;
+        }
+
+        /* Mother's Day special card styling (Queen of Hearts) */
+        .playing-card .card-face.mothers-day-front {
+            background: radial-gradient(circle at 50% 50%, #fff0f5 0%, #ffe4e1 100%);
+            border: 2.5px double var(--color-suit-red);
+            box-shadow: 0 10px 25px rgba(255, 105, 180, 0.25), inset 0 0 20px rgba(255, 105, 180, 0.05);
+        }
+
+        .playing-card .card-face.mothers-day-front::after {
+            border-color: rgba(255, 105, 180, 0.4);
+        }
+
+        .playing-card .card-face.mothers-day-front .card-title {
+            color: #b01050;
+        }
+
+        .playing-card .card-face.mothers-day-front .card-desc {
+            color: rgba(80, 20, 40, 0.85);
+        }
+
+        .playing-card .card-face.mothers-day-front::before {
+            content: '🌸';
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 1.2rem;
+            opacity: 0.4;
+            animation: floatFlower 3s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes floatFlower {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            50% {
+                transform: translateY(-4px) rotate(10deg);
+            }
+        }
+
+        /* Title block */
+        .title-container {
+            text-align: center;
+            padding: 3rem 1rem 1.5rem 1rem;
+            position: relative;
+            z-index: 10;
+        }
+
+        .main-title {
+            font-family: 'Cinzel Decorative', serif;
+            font-size: 4rem;
+            color: var(--color-gold);
+            text-shadow: 0 4px 15px rgba(0, 0, 0, 0.6), 0 0 20px rgba(212, 175, 55, 0.25);
+            letter-spacing: 2px;
+            font-weight: 700;
+            display: inline-block;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: rgba(251, 248, 235, 0.65);
+            margin-top: 0.5rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-family: 'Cinzel Decorative', serif;
+        }
+
+        /* Alice scaling controls styling */
+        .alice-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            align-items: center;
+        }
+
+        .control-btn {
+            background: rgba(26, 8, 10, 0.85);
+            color: var(--color-gold);
+            border: 1px solid var(--color-gold);
+            padding: 0.45rem 1.1rem;
+            font-family: 'Cinzel Decorative', serif;
+            font-size: 0.8rem;
+            font-weight: bold;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .control-btn:hover {
+            color: var(--color-parchment);
+            background: var(--color-gold-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 12px rgba(212, 175, 55, 0.4);
+        }
+
+        .control-btn.drink-me {
+            border-color: #0af2ff;
+            color: #0af2ff;
+            background: rgba(10, 242, 255, 0.05);
+        }
+
+        .control-btn.drink-me:hover {
+            background: #0af2ff;
+            color: var(--color-burgundy-dark);
+            box-shadow: 0 5px 12px rgba(10, 242, 255, 0.4);
+        }
+
+        .control-btn.eat-me {
+            border-color: #ff69b4;
+            color: #ff69b4;
+            background: rgba(255, 105, 180, 0.05);
+        }
+
+        .control-btn.eat-me:hover {
+            background: #ff69b4;
+            color: white;
+            box-shadow: 0 5px 12px rgba(255, 105, 180, 0.4);
+        }
+
+        /* Floating Key Navigation on Bottom Left */
+        .nav-back-float {
+            position: fixed;
+            bottom: 2rem;
+            left: 2rem;
+            z-index: 1000;
+            animation: drift-reverse 6s ease-in-out infinite;
+        }
+
+        @keyframes drift-reverse {
+
+            0%,
+            100% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            50% {
+                transform: translateY(-8px) rotate(-3deg);
+            }
+        }
+
+        .back-key-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            background: rgba(26, 8, 10, 0.85);
+            color: var(--color-gold);
+            border: 2px solid var(--color-gold);
+            padding: 0.65rem 1.3rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-family: 'Cinzel Decorative', serif;
+            font-size: 0.9rem;
+            font-weight: bold;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .back-key-btn:hover {
+            transform: scale(1.08);
+            background: var(--color-gold);
+            color: var(--color-burgundy-dark);
+            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.5);
+        }
+
+        .back-key-btn:hover .gold-key {
+            transform: rotate(45deg);
+        }
+
+        .gold-key {
+            transition: transform 0.3s ease;
+        }
+
+        /* Spark trails */
+        .spark-suit {
+            position: fixed;
+            pointer-events: none;
+            z-index: 10000;
+            animation: sparkle 1s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+            text-shadow: 0 0 6px currentColor;
+            transform: translate(-50%, -50%);
+            user-select: none;
+        }
+
+        @keyframes sparkle {
+            0% {
+                transform: translate(-50%, -50%) scale(1.2) translateY(0);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translate(-50%, -50%) scale(0.2) translateY(-40px) rotate(90deg);
+                opacity: 0;
+            }
+        }
+
+        /* Cheshire Cat overlay styles (GLITCH & CREEPY) */
+        .cheshire-cat-overlay {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(1);
+            width: 480px;
+            height: 270px;
+            z-index: 9999;
+            pointer-events: none;
+            opacity: 0;
+            display: none;
+            filter: drop-shadow(0 0 15px #ff0055) drop-shadow(0 0 35px rgba(255, 0, 85, 0.4));
+        }
+
+        .cheshire-cat-overlay.visible {
+            display: block;
+            animation: cheshireAppear 1.5s forwards, cheshireHover 6s ease-in-out infinite 1.5s, cheshireGlitch 4s linear infinite 2s;
+        }
+
+        @keyframes cheshireAppear {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+            100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        @keyframes cheshireHover {
+            0%, 100% { transform: translate(-50%, -50%) scale(1) translateY(0); }
+            50% { transform: translate(-50%, -50%) scale(1.03) translateY(-20px); }
+        }
+
+        @keyframes cheshireGlitch {
+            0%, 95%, 100% { clip-path: inset(0 0 0 0); filter: hue-rotate(0deg) drop-shadow(0 0 15px #ff0055); transform: translate(-50%, -50%) skew(0); }
+            96% { clip-path: inset(15% -20px 70% 0); transform: translate(-50%, -50%) skew(8deg) scaleX(1.1); filter: hue-rotate(90deg) drop-shadow(0 0 25px #0af2ff); }
+            97% { clip-path: inset(65% -20px 5% 0); transform: translate(-50%, -50%) skew(-8deg) scaleX(0.9); filter: hue-rotate(180deg) drop-shadow(0 0 25px #adff2f); }
+            98% { clip-path: inset(0 0 0 0); transform: translate(-50%, -50%) skew(0); }
+        }
+
+        .cat-eye, .cat-pupil, .cat-pupil-inner {
+            transition: opacity 1.8s ease;
+        }
+
+        .cat-mouth, .cat-teeth {
+            transition: opacity 2.2s ease;
+        }
+
+        .cheshire-cat-overlay.fade-eyes .cat-eye,
+        .cheshire-cat-overlay.fade-eyes .cat-pupil,
+        .cheshire-cat-overlay.fade-eyes .cat-pupil-inner {
+            opacity: 0;
+        }
+
+        .cheshire-cat-overlay.fade-mouth .cat-mouth,
+        .cheshire-cat-overlay.fade-mouth .cat-teeth {
+            opacity: 0;
+        }
+
+        /* Jabberwocky slash overlay styles */
+        .jabberwocky-slash-overlay {
+            position: fixed;
+            z-index: 10001;
+            pointer-events: none;
+            display: none;
+            width: 280px;
+            height: 380px;
+            filter: drop-shadow(0 0 15px #ff0044) drop-shadow(0 0 30px rgba(255, 0, 68, 0.6));
+        }
+
+        .jabberwocky-slash-overlay.slashed {
+            display: block;
+            animation: clawSlash 0.5s ease-out forwards;
+        }
+
+        @keyframes clawSlash {
+            0% { opacity: 0; transform: scale(1.15) skewX(-15deg); }
+            15% { opacity: 1; transform: scale(1.0) skewX(-15deg); }
+            80% { opacity: 1; }
+            100% { opacity: 0; transform: scale(0.9) skewX(-15deg); }
+        }
+
+        .slash-line {
+            stroke-dasharray: 200;
+            stroke-dashoffset: 200;
+            animation: slashDraw 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+
+        @keyframes slashDraw {
+            to { stroke-dashoffset: 0; }
+        }
+
+        /* Screen Shake */
+        body.shake-active {
+            animation: screenShake 0.6s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes screenShake {
+            10%, 90% { transform: translate3d(-3px, -2px, 0); }
+            20%, 80% { transform: translate3d(6px, 4px, 0); }
+            30%, 50%, 70% { transform: translate3d(-10px, -5px, 0); }
+            40%, 60% { transform: translate3d(10px, 5px, 0); }
+        }
+
+        /* Easter Egg overlays */
+        .hidden-message {
+            opacity: 0;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2.8rem;
+            color: var(--color-gold);
+            text-shadow: 0 0 25px rgba(212, 175, 55, 0.8), 0 0 10px rgba(0, 0, 0, 0.9);
+            font-family: 'Cinzel Decorative', serif;
+            text-align: center;
+            font-weight: bold;
+            pointer-events: none;
+            z-index: 10000;
+            transition: opacity 0.5s ease;
+        }
+
+        .hidden-message.revealed {
+            opacity: 1;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+
+            50% {
+                transform: translate(-50%, -50%) scale(1.06);
+            }
+        }
+
+        .konami-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(82, 14, 21, 0.35);
+            backdrop-filter: blur(2px);
+            pointer-events: none;
+            z-index: 9998;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .konami-overlay.active {
+            opacity: 1;
+        }
+
+        /* 3D falling cards */
+        .falling-card-node {
+            position: fixed;
+            top: -150px;
+            width: 85px;
+            height: 125px;
+            z-index: 9999;
+            pointer-events: none;
+            perspective: 600px;
+            animation: fallDown linear forwards;
+        }
+
+        .card-inner-falling {
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, var(--color-parchment) 0%, var(--color-parchment-dark) 100%);
+            border: 1.5px solid var(--color-gold);
+            border-radius: 8px;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 8px;
+            font-family: 'Cinzel Decorative', serif;
+            font-size: 0.85rem;
+            font-weight: bold;
+            box-sizing: border-box;
+            transform-style: preserve-3d;
+        }
+
+        .suit-top {
+            text-align: left;
+            line-height: 1;
+        }
+
+        .suit-center {
+            font-size: 2.2rem;
+            text-align: center;
+            margin-top: 12px;
+            line-height: 1;
+        }
+
+        .suit-bottom {
+            text-align: right;
+            transform: rotate(180deg);
+            line-height: 1;
+        }
+
+        @keyframes fallDown {
+            0% {
+                transform: translateY(0) rotateX(var(--rot-start-x)) rotateY(var(--rot-start-y)) rotateZ(0deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(calc(100vh + 250px)) rotateX(var(--rot-end-x)) rotateY(var(--rot-end-y)) rotateZ(360deg);
+                opacity: 0.4;
+            }
+        }
+
+        /* Title Click Animation */
+        .title-clicked {
+            animation: shake 0.6s ease-out !important;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0) scale(1);
+            }
+
+            20%,
+            60% {
+                transform: translateX(-12px) rotate(-2deg);
+            }
+
+            40%,
+            80% {
+                transform: translateX(12px) rotate(2deg);
+            }
+        }
+
+        /* Scrolling footer bar */
+        .scrolling-text {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(18, 1, 3, 0.9);
+            border-top: 1px solid rgba(212, 175, 55, 0.2);
+            padding: 0.6rem;
+            overflow: hidden;
+            white-space: nowrap;
+            color: rgba(251, 248, 235, 0.45);
+            font-size: 0.85rem;
+            font-family: 'Cinzel Decorative', serif;
+            z-index: 1000;
+        }
+
+        .scrolling-text span {
+            display: inline-block;
+            animation: scroll 35s linear infinite;
+        }
+
+        @keyframes scroll {
+            0% {
+                transform: translateX(100%);
+            }
+
+            100% {
+                transform: translateX(-100%);
+            }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .main-title {
+                font-size: 2.6rem;
+            }
+
+            .garden {
+                padding: 1rem;
+                gap: 1.5rem;
+            }
+
+            .card-container {
+                width: 250px;
+                height: 350px;
+            }
+
+            .nav-back-float {
+                position: static;
+                display: flex;
+                justify-content: center;
+                margin: 1.5rem auto;
+                animation: none;
+                z-index: 10;
+            }
+
+            .nav-back-float {
+                margin-top: 2rem;
+                margin-bottom: 4rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="konami-overlay" id="konamiOverlay"></div>
+
+    <div class="hidden-message" id="hiddenMessage">
+        You found the secret! 🎉
+    </div>
+
+    <!-- Cheshire Cat overlay container (Creepier & Jagged) -->
+    <div class="cheshire-cat-overlay" id="cheshireCat">
+        <svg viewBox="0 0 400 220" class="cheshire-svg">
+            <!-- Eyes (Glowing toxic yellow-green paths) -->
+            <path class="cat-eye" d="M 100 90 C 115 65, 145 65, 160 90 C 145 115, 115 115, 100 90 Z" fill="#adff2f" />
+            <!-- Glowing Red pupil core -->
+            <ellipse class="cat-pupil" cx="130" cy="90" rx="4" ry="13" fill="#ff0055" />
+            <ellipse class="cat-pupil-inner" cx="130" cy="90" rx="1.5" ry="10" fill="var(--color-burgundy-dark)" />
+            
+            <path class="cat-eye" d="M 240 90 C 255 65, 285 65, 300 90 C 285 115, 255 115, 240 90 Z" fill="#adff2f" />
+            <!-- Glowing Red pupil core -->
+            <ellipse class="cat-pupil" cx="270" cy="90" rx="4" ry="13" fill="#ff0055" />
+            <ellipse class="cat-pupil-inner" cx="270" cy="90" rx="1.5" ry="10" fill="var(--color-burgundy-dark)" />
+
+            <!-- Mouth (Black cavity with glowing crimson border) -->
+            <path class="cat-mouth" d="M 80 120 C 130 195, 270 195, 320 120 C 270 145, 130 145, 80 120 Z" fill="#0f0204" stroke="#ff0055" stroke-width="4" />
+            
+            <!-- Sharp, Jagged, Interlocking Teeth -->
+            <!-- Upper Teeth (pointing down) -->
+            <path class="cat-teeth" fill="var(--color-parchment)" d="
+                M 85 122 L 95 132 L 105 125 L 115 137 L 125 128 L 135 142 L 145 132 L 155 147 L 165 135 L 175 150 L 185 138 L 195 152 L 205 152 L 215 138 L 225 150 L 235 135 L 245 147 L 255 132 L 265 142 L 275 128 L 285 137 L 295 125 L 305 132 L 315 122 Z
+            " />
+            <!-- Lower Teeth (pointing up) -->
+            <path class="cat-teeth" fill="var(--color-parchment)" d="
+                M 85 122 L 95 138 L 105 130 L 115 145 L 125 135 L 135 152 L 140 140 L 155 160 L 165 145 L 175 168 L 185 150 L 195 172 L 205 172 L 215 150 L 225 168 L 235 145 L 245 160 L 255 140 L 265 152 L 275 135 L 285 145 L 295 130 L 305 138 L 315 122 Z
+            " />
+        </svg>
+    </div>
+
+    <!-- Jabberwocky Slash overlay container -->
+    <div class="jabberwocky-slash-overlay" id="jabberwockySlash">
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none" style="width: 100%; height: 100%;">
+            <!-- Three glowing jagged claw slashes -->
+            <path d="M 20 15 L 75 85" stroke="#ff0044" stroke-width="5" stroke-linecap="round" class="slash-line line-1" />
+            <path d="M 45 10 L 90 75" stroke="#ff0044" stroke-width="5" stroke-linecap="round" class="slash-line line-2" />
+            <path d="M 5 25 L 60 95" stroke="#ff0044" stroke-width="5" stroke-linecap="round" class="slash-line line-3" />
+        </svg>
+    </div>
+
+    <div class="title-container">
+        <h1 class="main-title" id="mainTitle">Deck of Cards</h1>
+        <p class="subtitle">may you retain your head</p>
+
+        <div class="alice-controls">
+            <button id="drinkMeBtn" class="control-btn drink-me" title="Drink this to shrink the cards!">🧪 Drink
+                Me</button>
+            <button id="resetSizeBtn" class="control-btn reset-size" title="Return to normal size">Normal</button>
+            <button id="eatMeBtn" class="control-btn eat-me" title="Eat this to grow the cards!">🍰 Eat Me</button>
+        </div>
+    </div>
+
+    <div class="garden" id="garden">
+        <!-- Cards will be populated by JavaScript -->
+    </div>
+
+    <div class="scrolling-text">
+        <span>♣️ "Curiouser and curiouser!" • ♦️ Try clicking the title... • ♠️ Click main title to restore smashed cards! • ♥️ "We're all mad here!" • ♣️ Konami Code triggers the storm! </span>
+    </div>
+
+    <div class="nav-back-float">
+        <a href="../index.html" class="back-key-btn" title="Unlock the door back to the main Garden">
+            <svg class="gold-key" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                <path fill="currentColor"
+                    d="M12.63 2a5.45 5.45 0 0 0-5.3 4c-.1.35-.05.7.13.97l-.2.2A6.95 6.95 0 0 0 6 12v3H3v3H0v4h4v-3h3v-3h3v-2.07c1.37.5 2.92.3 4.14-.6a5.46 5.46 0 0 0-1.65-9.33ZM15.5 8a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z" />
+            </svg>
+            <span class="back-text">Go Back</span>
+        </a>
+    </div>
+
+    <script>
+        // Ecard data with tech specs
+        const ecardData = [
+            {
+                title: 'Simple Stranger Things Card',
+                description: 'Stranger Things Birthday Card',
+                link: 'strangerThingsBdayCard-Simple/birthday-card-st.html',
+                suit: '♠',
+                rank: '10',
+                techSpecs: 'Uses an HTML5 Canvas starfield simulation and Web Audio API synthesis. Renders a low-frequency Upside Down portal buzz (38Hz sub-bass oscillator modulated by an LFO) layered with bandpass-filtered noise.'
+            },
+            {
+                title: 'Birthday card - Stranger Things - Game',
+                description: 'Stranger Things themed birthday card game',
+                link: 'BirthdayCardGame/strangerThingsBdayGame.html',
+                suit: '♠',
+                rank: 'J',
+                techSpecs: 'Interactive three-stage game script: Sequential light wall decryptor, vector SVG redstone circuit debugger (needs End Crystal component), and Creeper math riddle. Unlocks 3D card scene with full synth audio.'
+            },
+            {
+                title: '🌸 Happy Mother\'s Day',
+                description: 'A beautiful tribute to the special women in your life',
+                link: 'mDayCard/mDayCard.html',
+                color: '#ff69b4',
+                isMothersDay: true,
+                suit: '♥',
+                rank: 'Q',
+                techSpecs: 'Simulates a retro MOM.SYS terminal console. Features randomized character glitches, interactive diagnostic matrix logs, custom typewriter & chime audio feedback, and a 3D animated pulsing CSS heart.'
+            },
+        ];
+
+        // Additional whimsical cards with hatter-themed tech specs
+        const whimsicalCards = [
+            {
+                title: 'The Mad Tea Party',
+                description: 'A curious celebration where time stands still.',
+                link: '#',
+                suit: '♣',
+                rank: '10',
+                techSpecs: 'Endless-time layout listener. Simulates continuous tea-time states by capturing click triggers, interrupting standard layout redirection, and displaying Hatter\'s quote alert: "Time is stopped here!"'
+            },
+            {
+                title: 'The Cheshire Grin',
+                description: 'Now you see it, now you don\'t.',
+                link: '#',
+                suit: '♦',
+                rank: 'A',
+                techSpecs: 'CSS opacity transformation chain. Binds to container hover transitions to execute visibility fades on parent cards, leaving only the absolute-positioned glowing neon grin visible.'
+            },
+            {
+                title: 'The Red Queen\'s Croquet',
+                description: 'Mind your head and watch the flamingos!',
+                link: '#',
+                suit: '♥',
+                rank: 'K',
+                techSpecs: 'Physics event simulation script. Hooks collision detectors onto vector graphic elements to propel hedgehog components through a high-friction grid-based playfield wrapper.'
+            },
+            {
+                title: 'Down the Rabbit Hole',
+                description: 'Adventures in a land of complete nonsense.',
+                link: '#',
+                suit: '♠',
+                rank: 'A',
+                techSpecs: 'Recursive 3D transform loop. Uses CSS perspective scaling and continuous keyframes to create a zooming viewport tunnel, rendering the visual illusion of an infinite vertical descent.'
+            }
+        ];
+
+        const garden = document.getElementById('garden');
+        const mainTitle = document.getElementById('mainTitle');
+        const hiddenMessage = document.getElementById('hiddenMessage');
+        const konamiOverlay = document.getElementById('konamiOverlay');
+        const drinkMeBtn = document.getElementById('drinkMeBtn');
+        const eatMeBtn = document.getElementById('eatMeBtn');
+        const resetSizeBtn = document.getElementById('resetSizeBtn');
+
+        // Helper to resolve rank and suit for dynamic items
+        function getSuitAndRank(data) {
+            if (data.suit && data.rank) {
+                return { suit: data.suit, rank: data.rank };
+            }
+            const suits = ['♥', '♦', '♣', '♠'];
+            const ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+            return {
+                suit: suits[Math.floor(Math.random() * suits.length)],
+                rank: ranks[Math.floor(Math.random() * ranks.length)]
+            };
+        }
+
+        // Create a card element structured like a playing card with 3D Flip
+        function createCard(data) {
+            const container = document.createElement('div');
+            container.className = 'card-container';
+
+            const { suit, rank } = getSuitAndRank(data);
+            const isRed = (suit === '♥' || suit === '♦');
+            const suitColor = isRed ? 'var(--color-suit-red)' : 'var(--color-suit-black)';
+
+            // Random rotation for organic/shuffled aesthetic
+            const rotation = (Math.random() * 5 - 2.5).toFixed(1);
+            container.style.setProperty('--rotation', `${rotation}deg`);
+
+            // Check if mothers day
+            const frontClass = data.isMothersDay ? 'card-face card-front mothers-day-front' : 'card-face card-front';
+
+            // Apply card front & back structure
+            container.innerHTML = `
+                <div class="playing-card">
+                    <!-- FRONT FACE -->
+                    <div class="${frontClass}" style="border-color: ${suitColor}">
+                        <!-- Corner Indicators -->
+                        <div class="card-corner top-left" style="color: ${suitColor}">
+                            <span class="rank">${rank}</span>
+                            <span class="suit">${suit}</span>
+                        </div>
+                        <div class="card-corner bottom-right" style="color: ${suitColor}">
+                            <span class="rank">${rank}</span>
+                            <span class="suit">${suit}</span>
+                        </div>
+
+                        <!-- Central suit symbol watermark -->
+                        <div class="center-suit-watermark" style="color: ${suitColor}">${suit}</div>
+
+                        <!-- Content -->
+                        <div class="card-body">
+                            <h3 class="card-title">${data.title}</h3>
+                            <p class="card-desc">${data.description}</p>
+                            <a href="${data.link}" class="card-btn" style="background-color: ${suitColor}; border-color: ${suitColor}">Explore →</a>
+                        </div>
+                    </div>
+
+                    <!-- BACK FACE (Specs) -->
+                    <div class="card-face card-back" style="border-color: var(--color-gold)">
+                        <!-- Corner Indicators (Mini keys) -->
+                        <div class="card-corner top-left" style="color: var(--color-gold)">
+                            <span class="suit">🔑</span>
+                        </div>
+                        <div class="card-corner bottom-right" style="color: var(--color-gold)">
+                            <span class="suit">🔑</span>
+                        </div>
+
+                        <!-- Central keyhole watermark -->
+                        <div class="center-suit-watermark" style="color: var(--color-gold); font-size: 8rem; opacity: 0.05;">🗝️</div>
+
+                        <!-- Specs Content -->
+                        <div class="specs-body">
+                            <h4 class="specs-title">System Specs</h4>
+                            <div class="specs-divider"></div>
+                            <p class="specs-text">${data.techSpecs}</p>
+                            <span class="specs-footer">[ Click to flip ]</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            const card = container.querySelector('.playing-card');
+            let shakeCount = 0;
+            let dizzyTimer = null;
+
+            // Click to flip (avoiding explore button click)
+            container.addEventListener('click', (e) => {
+                if (e.target.closest('.card-btn')) {
+                    return;
+                }
+                
+                // Clear any running timers
+                if (dizzyTimer) {
+                    clearTimeout(dizzyTimer);
+                    dizzyTimer = null;
+                }
+                
+                // Remove warning/dizzy classes
+                container.classList.remove('warning-jitter');
+                card.classList.remove('warning-state');
+                
+                if (card.classList.contains('dizzy')) {
+                    // Reset spinning card
+                    card.classList.remove('dizzy');
+                    shakeCount = 0;
+                    playLandingSound();
+                } else {
+                    card.classList.toggle('flipped');
+                    shakeCount = 0;
+                }
+                
+                setTimeout(checkAllCardsFlipped, 500);
+            });
+
+            // Double click animation trigger
+            container.addEventListener('dblclick', (e) => {
+                if (e.target.closest('.card-btn')) return;
+
+                // Prevent double click from double flipping (cancels the second toggle)
+                card.classList.toggle('flipped');
+
+                shakeCount++;
+
+                if (shakeCount >= 5) {
+                    // Trigger dizzy spinning break!
+                    const isFlipped = card.classList.contains('flipped');
+                    card.style.setProperty('--rotY', isFlipped ? '180deg' : '0deg');
+                    card.classList.add('dizzy');
+                    playDizzySound();
+
+                    hiddenMessage.textContent = "Instability detected! 🌀";
+                    hiddenMessage.style.fontSize = '2.8rem';
+                    hiddenMessage.classList.add('revealed');
+                    setTimeout(() => hiddenMessage.classList.remove('revealed'), 2000);
+
+                    // Set timers for warning and Jabberwocky attack
+                    dizzyTimer = setTimeout(() => {
+                        // Enter warning state (jitter container)
+                        container.classList.add('warning-jitter');
+                        card.classList.add('warning-state');
+                        hiddenMessage.textContent = "The Jabberwocky draws near! 🐉";
+                        hiddenMessage.style.fontSize = '2.2rem';
+                        hiddenMessage.classList.add('revealed');
+                        setTimeout(() => hiddenMessage.classList.remove('revealed'), 1500);
+
+                        // Second timer: Attack!
+                        dizzyTimer = setTimeout(() => {
+                            triggerJabberwockyAttack(container, card);
+                        }, 2000); // 2 seconds in warning state (total 5s)
+
+                    }, 3000); // 3 seconds in normal dizzy spin
+                } else {
+                    card.style.animation = 'none';
+                    card.offsetHeight; // Reflow
+                    card.style.animation = 'dance 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97) both';
+                }
+            });
+
+            // Prevent link click from registering as double click
+            const btn = container.querySelector('.card-btn');
+            btn.addEventListener('click', (e) => {
+                if (data.link === '#') {
+                    e.preventDefault();
+                    hiddenMessage.textContent = "Time is stopped here!";
+                    hiddenMessage.style.fontSize = '2.8rem';
+                    hiddenMessage.classList.add('revealed');
+                    setTimeout(() => hiddenMessage.classList.remove('revealed'), 2000);
+                }
+            });
+
+            return container;
+        }
+
+        // Add dance keyframes dynamically
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes dance {
+                10%, 90% { transform: rotate(var(--rotation, 0deg)) translate3d(-1px, 0, 0); }
+                20%, 80% { transform: rotate(calc(var(--rotation, 0deg) + 6deg)) translate3d(2px, 0, 0) scale(1.04); }
+                30%, 50%, 70% { transform: rotate(calc(var(--rotation, 0deg) - 6deg)) translate3d(-4px, 0, 0) scale(1.04); }
+                40%, 60% { transform: rotate(calc(var(--rotation, 0deg) + 4deg)) translate3d(4px, 0, 0); }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Initialize cards
+        function initCards() {
+            const allCards = [...ecardData, ...whimsicalCards];
+
+            allCards.forEach((cardData) => {
+                garden.appendChild(createCard(cardData));
+            });
+
+            createParticles();
+        }
+
+        // Create Alice/Suit particles in background
+        function createParticles() {
+            const symbols = ['♥', '♦', '♣', '♠', '🔑', '☕', '🍄'];
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.textContent = symbols[Math.floor(Math.random() * symbols.length)];
+                particle.style.left = `${Math.random() * 100}%`;
+                particle.style.top = `${Math.random() * 100 + 100}%`;
+                particle.style.fontSize = `${Math.random() * 15 + 15}px`;
+                particle.style.animationDuration = `${Math.random() * 12 + 12}s`;
+                particle.style.animationDelay = `${Math.random() * 5}s`;
+
+                const colors = ['var(--color-suit-red)', 'var(--color-gold)', '#ffffff', 'var(--color-suit-black)'];
+                particle.style.color = colors[Math.floor(Math.random() * colors.length)];
+                particle.style.textShadow = `0 0 8px currentColor`;
+
+                document.body.appendChild(particle);
+            }
+        }
+
+        // Cheshire Cat detection logic
+        let isCheshireTriggered = false;
+
+        function checkAllCardsFlipped() {
+            const allCards = document.querySelectorAll('.playing-card');
+            const flippedCards = document.querySelectorAll('.playing-card.flipped');
+            
+            if (allCards.length > 0 && flippedCards.length === allCards.length) {
+                if (!isCheshireTriggered) {
+                    triggerCheshireCat();
+                }
+            } else {
+                if (isCheshireTriggered && flippedCards.length < allCards.length) {
+                    resetCheshireState();
+                }
+            }
+        }
+
+        function triggerCheshireCat() {
+            isCheshireTriggered = true;
+            const cheshire = document.getElementById('cheshireCat');
+            
+            cheshire.classList.remove('fade-eyes', 'fade-mouth');
+            cheshire.style.display = 'block';
+            
+            setTimeout(() => {
+                cheshire.classList.add('visible');
+                playCreepyCheshireLaugh();
+            }, 50);
+
+            // Phase 1: Fade out eyes after 4.2 seconds
+            setTimeout(() => {
+                cheshire.classList.add('fade-eyes');
+            }, 4200);
+
+            // Phase 2: Fade out mouth after 7.5 seconds
+            setTimeout(() => {
+                cheshire.classList.add('fade-mouth');
+            }, 7500);
+
+            // Phase 3: Hide completely after 10.5 seconds
+            setTimeout(() => {
+                cheshire.classList.remove('visible');
+                cheshire.style.display = 'none';
+            }, 10500);
+        }
+
+        function resetCheshireState() {
+            isCheshireTriggered = false;
+            const cheshire = document.getElementById('cheshireCat');
+            cheshire.classList.remove('visible', 'fade-eyes', 'fade-mouth');
+            cheshire.style.display = 'none';
+        }
+
+        // Jabberwocky Attack execution
+        function triggerJabberwockyAttack(container, card) {
+            // Stop any further timers
+            container.classList.remove('warning-jitter');
+            card.classList.remove('warning-state');
+            card.classList.remove('dizzy');
+            
+            // Get bounding coordinates of card
+            const rect = container.getBoundingClientRect();
+            const slash = document.getElementById('jabberwockySlash');
+            
+            // Position slash overlay exactly over the card
+            slash.style.top = `${rect.top + window.scrollY}px`;
+            slash.style.left = `${rect.left + window.scrollX}px`;
+            slash.style.width = `${rect.width}px`;
+            slash.style.height = `${rect.height}px`;
+            
+            // Trigger slash visual
+            slash.classList.remove('slashed');
+            slash.offsetHeight; // Reflow
+            slash.classList.add('slashed');
+            
+            // Play audio growl & slash impact
+            playJabberwockySmashSound();
+            
+            // Trigger body screen shake
+            document.body.classList.remove('shake-active');
+            document.body.offsetHeight; // Reflow
+            document.body.classList.add('shake-active');
+            
+            setTimeout(() => {
+                document.body.classList.remove('shake-active');
+            }, 600);
+            
+            // Set card face Y-rot variable for shatter anim
+            const isFlipped = card.classList.contains('flipped');
+            card.style.setProperty('--rotY', isFlipped ? '180deg' : '0deg');
+            
+            // Trigger shatter
+            card.classList.add('smashed');
+            
+            // Remove container after animation finishes
+            setTimeout(() => {
+                container.remove();
+                
+                // Show broken realm alert banner
+                hiddenMessage.textContent = "Beware the Jabberwock! Click the title to restore.";
+                hiddenMessage.style.fontSize = '1.8rem';
+                hiddenMessage.classList.add('revealed');
+                setTimeout(() => hiddenMessage.classList.remove('revealed'), 4000);
+            }, 700);
+        }
+
+        // Synthesize creepy, glitchy, detuned cat chuckle growl laugh
+        function playCreepyCheshireLaugh() {
+            let AC;
+            try {
+                AC = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) {
+                return;
+            }
+            if (AC.state === 'suspended') AC.resume();
+
+            const now = AC.currentTime;
+            const chuckleFrequencies = [220, 190, 170, 150, 130, 110, 80];
+            const delays = [0, 0.15, 0.3, 0.44, 0.56, 0.7, 0.86];
+
+            const mainGain = AC.createGain();
+            mainGain.gain.setValueAtTime(0.24, now);
+            mainGain.connect(AC.destination);
+
+            chuckleFrequencies.forEach((freq, idx) => {
+                const t = now + delays[idx];
+                
+                // Detuned dual-sawtooth chuckle chorus
+                [-6, 6].forEach(detune => {
+                    const osc = AC.createOscillator();
+                    const gain = AC.createGain();
+                    
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(freq, t);
+                    osc.frequency.linearRampToValueAtTime(freq * 0.75, t + 0.15);
+                    osc.detune.setValueAtTime(detune, t);
+                    
+                    gain.gain.setValueAtTime(0, t);
+                    gain.gain.linearRampToValueAtTime(0.18, t + 0.02);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.14);
+                    
+                    osc.connect(gain);
+                    gain.connect(mainGain);
+                    
+                    osc.start(t);
+                    osc.stop(t + 0.16);
+                });
+            });
+
+            // Sub-bass growl finale
+            const subOsc = AC.createOscillator();
+            const subGain = AC.createGain();
+            subOsc.type = 'sawtooth';
+            subOsc.frequency.setValueAtTime(70, now + 0.86);
+            subOsc.frequency.linearRampToValueAtTime(40, now + 1.6);
+            
+            subGain.gain.setValueAtTime(0, now + 0.86);
+            subGain.gain.linearRampToValueAtTime(0.25, now + 0.9);
+            subGain.gain.exponentialRampToValueAtTime(0.001, now + 1.6);
+            
+            subOsc.connect(subGain);
+            subGain.connect(mainGain);
+            subOsc.start(now + 0.86);
+            subOsc.stop(now + 1.7);
+        }
+
+        // Synthesize dragon growl and explosive card crash sound
+        function playJabberwockySmashSound() {
+            let AC;
+            try {
+                AC = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) {
+                return;
+            }
+            if (AC.state === 'suspended') AC.resume();
+
+            const now = AC.currentTime;
+            const mainGain = AC.createGain();
+            mainGain.gain.setValueAtTime(0.35, now);
+            mainGain.connect(AC.destination);
+
+            // 1. Dragon Roar (Sawtooth with LFO flutter)
+            const roarOsc = AC.createOscillator();
+            const roarGain = AC.createGain();
+            roarOsc.type = 'sawtooth';
+            roarOsc.frequency.setValueAtTime(160, now);
+            roarOsc.frequency.exponentialRampToValueAtTime(65, now + 0.65);
+
+            const lfo = AC.createOscillator();
+            const lfoGain = AC.createGain();
+            lfo.frequency.value = 28;
+            lfoGain.gain.value = 20;
+
+            lfo.connect(lfoGain);
+            lfoGain.connect(roarOsc.frequency);
+
+            roarGain.gain.setValueAtTime(0.01, now);
+            roarGain.gain.linearRampToValueAtTime(0.35, now + 0.1);
+            roarGain.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
+
+            roarOsc.connect(roarGain);
+            roarGain.connect(mainGain);
+
+            lfo.start(now);
+            roarOsc.start(now);
+            lfo.stop(now + 0.65);
+            roarOsc.stop(now + 0.65);
+
+            // 2. Explosion Smash (Filtered white noise + sub punch)
+            const crashOsc = AC.createOscillator();
+            const crashGain = AC.createGain();
+            crashOsc.type = 'triangle';
+            crashOsc.frequency.setValueAtTime(90, now + 0.12);
+            crashOsc.frequency.linearRampToValueAtTime(25, now + 0.65);
+
+            crashGain.gain.setValueAtTime(0, now + 0.12);
+            crashGain.gain.linearRampToValueAtTime(0.45, now + 0.16);
+            crashGain.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
+
+            crashOsc.connect(crashGain);
+            crashGain.connect(mainGain);
+            crashOsc.start(now + 0.12);
+            crashOsc.stop(now + 0.65);
+
+            // Noise crash generator
+            try {
+                const bufferSize = AC.sampleRate * 0.55;
+                const buffer = AC.createBuffer(1, bufferSize, AC.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+                const noiseNode = AC.createBufferSource();
+                noiseNode.buffer = buffer;
+
+                const noiseGain = AC.createGain();
+                const filter = AC.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.setValueAtTime(280, now + 0.12);
+                filter.Q.setValueAtTime(1.2, now);
+
+                noiseGain.gain.setValueAtTime(0, now + 0.12);
+                noiseGain.gain.linearRampToValueAtTime(0.4, now + 0.15);
+                noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+
+                noiseNode.connect(filter);
+                filter.connect(noiseGain);
+                noiseGain.connect(mainGain);
+
+                noiseNode.start(now + 0.12);
+                noiseNode.stop(now + 0.65);
+            } catch (e) {
+                // Fallback buffer fail
+            }
+        }
+
+        // Synthesize rising spin pitch sweep
+        function playDizzySound() {
+            let AC;
+            try {
+                AC = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) {
+                return;
+            }
+            if (AC.state === 'suspended') AC.resume();
+
+            const now = AC.currentTime;
+            const osc = AC.createOscillator();
+            const gain = AC.createGain();
+
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(220, now);
+            osc.frequency.exponentialRampToValueAtTime(1200, now + 0.6);
+
+            gain.gain.setValueAtTime(0.15, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+
+            osc.connect(gain);
+            gain.connect(AC.destination);
+            osc.start(now);
+            osc.stop(now + 0.6);
+        }
+
+        // Synthesize card snap landing pitch slide
+        function playLandingSound() {
+            let AC;
+            try {
+                AC = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) {
+                return;
+            }
+            if (AC.state === 'suspended') AC.resume();
+
+            const now = AC.currentTime;
+            const osc = AC.createOscillator();
+            const gain = AC.createGain();
+
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(400, now);
+            osc.frequency.exponentialRampToValueAtTime(120, now + 0.25);
+
+            gain.gain.setValueAtTime(0.12, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+
+            osc.connect(gain);
+            gain.connect(AC.destination);
+            osc.start(now);
+            osc.stop(now + 0.25);
+        }
+
+        // Alice scaling handlers (Eat Me / Drink Me)
+        drinkMeBtn.addEventListener('click', () => {
+            document.documentElement.style.setProperty('--scale-factor', '0.75');
+            hiddenMessage.textContent = "Shrunk! 🧪";
+            hiddenMessage.classList.add('revealed');
+            setTimeout(() => hiddenMessage.classList.remove('revealed'), 1200);
+        });
+
+        eatMeBtn.addEventListener('click', () => {
+            document.documentElement.style.setProperty('--scale-factor', '1.2');
+            hiddenMessage.textContent = "Grown! 🍰";
+            hiddenMessage.classList.add('revealed');
+            setTimeout(() => hiddenMessage.classList.remove('revealed'), 1200);
+        });
+
+        resetSizeBtn.addEventListener('click', () => {
+            document.documentElement.style.setProperty('--scale-factor', '1.0');
+            hiddenMessage.textContent = "Normal size 🍷";
+            hiddenMessage.classList.add('revealed');
+            setTimeout(() => hiddenMessage.classList.remove('revealed'), 1200);
+        });
+
+        // Easter egg: Title click shake, quote cycle & deck restoration
+        let titleClickCount = 0;
+        const aliceQuotes = [
+            "Persistence pays off! 🌟",
+            "Why, sometimes I've believed as many as six impossible things before breakfast.",
+            "Off with their heads! 👑",
+            "Curiouser and curiouser!",
+            "We're all mad here. I'm mad. You're mad."
+        ];
+
+        mainTitle.addEventListener('click', () => {
+            titleClickCount++;
+            mainTitle.classList.add('title-clicked');
+
+            setTimeout(() => {
+                mainTitle.classList.remove('title-clicked');
+            }, 600);
+
+            // Restoration check
+            const currentContainers = document.querySelectorAll('.card-container');
+            const totalDefaultCards = ecardData.length + whimsicalCards.length;
+
+            if (currentContainers.length < totalDefaultCards) {
+                garden.innerHTML = '';
+                initCards();
+
+                hiddenMessage.textContent = "The realm has been restored! ✨";
+                hiddenMessage.style.fontSize = '2.4rem';
+                hiddenMessage.classList.add('revealed');
+                setTimeout(() => hiddenMessage.classList.remove('revealed'), 2000);
+                return;
+            }
+
+            if (titleClickCount % 3 === 0) {
+                const quote = aliceQuotes[Math.floor(Math.random() * aliceQuotes.length)];
+                hiddenMessage.textContent = quote;
+                hiddenMessage.style.fontSize = quote.length > 25 ? '1.6rem' : '2.8rem';
+                hiddenMessage.classList.add('revealed');
+                setTimeout(() => {
+                    hiddenMessage.classList.remove('revealed');
+                }, 3200);
+            }
+        });
+
+        // Konami code card storm
+        const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a'];
+        let konamiIndex = 0;
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === konamiCode[konamiIndex]) {
+                konamiIndex++;
+                if (konamiIndex === konamiCode.length) {
+                    activateKonami();
+                    konamiIndex = 0;
+                }
+            } else {
+                konamiIndex = 0;
+            }
+        });
+
+        // Trigger storm of cards
+        function activateKonami() {
+            konamiOverlay.classList.add('active');
+
+            // Trigger card cascade
+            for (let i = 0; i < 90; i++) {
+                setTimeout(() => {
+                    createFallingCard();
+                }, i * 65);
+            }
+
+            hiddenMessage.textContent = "♠️ You Shuffled the Realm! ♦️";
+            hiddenMessage.style.fontSize = '2.8rem';
+            hiddenMessage.classList.add('revealed');
+
+            setTimeout(() => {
+                konamiOverlay.classList.remove('active');
+                hiddenMessage.classList.remove('revealed');
+                document.querySelectorAll('.falling-card-node').forEach(el => el.remove());
+            }, 8500);
+        }
+
+        function createFallingCard() {
+            const card = document.createElement('div');
+            card.className = 'falling-card-node';
+
+            const { suit, rank } = getSuitAndRank({});
+            const isRed = (suit === '♥' || suit === '♦');
+            const color = isRed ? 'var(--color-suit-red)' : 'var(--color-suit-black)';
+
+            card.style.left = `${Math.random() * 100}%`;
+            card.style.animationDuration = `${Math.random() * 3 + 2.5}s`;
+            card.style.animationDelay = `${Math.random() * 0.4}s`;
+
+            const rotX = Math.random() * 360;
+            const rotY = Math.random() * 360;
+            card.style.setProperty('--rot-start-x', `${rotX}deg`);
+            card.style.setProperty('--rot-start-y', `${rotY}deg`);
+            card.style.setProperty('--rot-end-x', `${rotX + 360 + Math.random() * 360}deg`);
+            card.style.setProperty('--rot-end-y', `${rotY + 360 + Math.random() * 360}deg`);
+
+            card.innerHTML = `
+                <div class="card-inner-falling" style="color: ${color}">
+                    <div class="suit-top">${rank}${suit}</div>
+                    <div class="suit-center">${suit}</div>
+                    <div class="suit-bottom">${rank}${suit}</div>
+                </div>
+            `;
+
+            document.body.appendChild(card);
+        }
+
+        // Mouse move sparks trail
+        let lastMouseMove = 0;
+        document.addEventListener('mousemove', (e) => {
+            const now = Date.now();
+            if (now - lastMouseMove < 80) return;
+            lastMouseMove = now;
+
+            createSpark(e.clientX, e.clientY);
+        });
+
+        function createSpark(x, y) {
+            const spark = document.createElement('div');
+            spark.className = 'spark-suit';
+
+            const suits = ['♥', '♦', '♣', '♠'];
+            spark.textContent = suits[Math.floor(Math.random() * suits.length)];
+
+            const isRed = (spark.textContent === '♥' || spark.textContent === '♦');
+            spark.style.color = isRed ? 'var(--color-suit-red)' : 'var(--color-gold)';
+
+            spark.style.left = `${x}px`;
+            spark.style.top = `${y}px`;
+            spark.style.fontSize = `${Math.random() * 12 + 10}px`;
+
+            document.body.appendChild(spark);
+
+            setTimeout(() => spark.remove(), 1000);
+        }
+
+        // Boot
+        initCards();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pressure Fracture | Fidget Toy Garden</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <style>
+    body.toy-page {
+      overflow: hidden;
+      background: #030407;
+    }
+
+    #fracture-canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+      touch-action: none;
+      cursor: crosshair;
+    }
+  </style>
+</head>
+
+<body class="toy-page">
+  <nav class="toy-nav" aria-label="Toy controls">
+    <a class="back-link" href="../fidgetToy-index.html">← Home</a>
+    <button class="sound-toggle" type="button" aria-label="Toggle sound" aria-pressed="false">♪</button>
+  </nav>
+  <canvas id="fracture-canvas" aria-label="Glass surface that fractures on hold and release"></canvas>
+  <div class="toy-status">
+    <p id="status-text">Hold to charge. Drag to aim. Release to shatter. The glass always heals.</p>
+  </div>
+  <script>
+    const canvas = document.getElementById('fracture-canvas');
+    const ctx = canvas.getContext('2d');
+    const statusEl = document.getElementById('status-text');
+
+    let W, H;
+    let fractures = [];
+    let shockwaves = [];
+    let glassLines = [];
+    let dragTraces = [];
+
+    let holdStart = null;
+    let pressX = 0, pressY = 0;   // fixed anchor — where the hold began, never moves
+    let liveX = 0, liveY = 0;     // follows the cursor while held, drives the lean
+    let dragPath = [];
+    let statusTimeout = null;
+
+    const MAX_HOLD = 2200;
+
+    // ── HELPERS ──────────────────────────────────────────────────────────
+    function angleDiff(a, b) {
+      return ((b - a + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
+    }
+
+    // ── HAPTIC ───────────────────────────────────────────────────────────
+    function hapticPulse(ms = 5) {
+      if (navigator.vibrate) navigator.vibrate(ms);
+    }
+
+    function hapticShatter(power) {
+      if (!navigator.vibrate) return;
+      if (power < 0.15) navigator.vibrate(8);
+      else if (power < 0.4) navigator.vibrate([10, 8, 15]);
+      else if (power < 0.7) navigator.vibrate([15, 5, 20, 8, 25]);
+      else navigator.vibrate([20, 5, 30, 8, 40, 5, 20]);
+    }
+
+    // ── SOUND ────────────────────────────────────────────────────────────
+    let audio = null;
+    let soundEnabled = false;
+    const soundToggle = document.querySelector('.sound-toggle');
+
+    function makeAudio() {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return null;
+      const ac = new AudioCtx();
+      const master = ac.createGain();
+      master.gain.value = 0.72;
+      master.connect(ac.destination);
+
+      const fill = len => {
+        const b = ac.createBuffer(1, Math.ceil(ac.sampleRate * len), ac.sampleRate);
+        const d = b.getChannelData(0);
+        for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+        return b;
+      };
+      return {
+        ac, master,
+        noiseBuf: fill(0.72),
+        resBuf: fill(0.52),
+        crackBuf: fill(0.09), // short buffer reused for every crackle tick
+      };
+    }
+
+    async function toggleSound() {
+      if (!audio) audio = makeAudio();
+      if (!audio) { setStatus('This browser does not support Web Audio.', 4000); return; }
+      if (audio.ac.state === 'suspended') await audio.ac.resume();
+      soundEnabled = !soundEnabled;
+      soundToggle.setAttribute('aria-pressed', String(soundEnabled));
+      soundToggle.textContent = soundEnabled ? '♫' : '♪';
+      setStatus(soundEnabled ? 'Sound on.' : 'Sound off.', 3000);
+    }
+
+    // Short icy crackle tick — reuses crackBuf, no per-call allocation.
+    function playCrackle(intensity = 0.3) {
+      if (!soundEnabled || !audio) return;
+      const { ac, master, crackBuf } = audio;
+      const now = ac.currentTime;
+
+      const src = ac.createBufferSource();
+      src.buffer = crackBuf;
+
+      const hp = ac.createBiquadFilter();
+      hp.type = 'highpass';
+      hp.frequency.value = 3200 + Math.random() * 2800;
+
+      const gain = ac.createGain();
+      const stopAt = now + 0.028 + intensity * 0.038;
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.14 + intensity * 0.18, now + 0.002);
+      gain.gain.exponentialRampToValueAtTime(0.0001, stopAt);
+
+      src.connect(hp);
+      hp.connect(gain);
+      gain.connect(master);
+      src.onended = () => { try { src.disconnect(); hp.disconnect(); gain.disconnect(); } catch (_) { } };
+      src.start(now);
+      src.stop(stopAt + 0.01);
+    }
+
+    // Full shatter: impact tink + noise burst + low body + settling crackle cascade.
+    function playShatter(power) {
+      if (!soundEnabled || !audio) return;
+      const { ac, master, noiseBuf, resBuf, crackBuf } = audio;
+      const now = ac.currentTime;
+
+      function autoClean(src, nodes, stopAt) {
+        src.onended = () => nodes.forEach(n => { try { n.disconnect(); } catch (_) { } });
+        src.start(now);
+        src.stop(stopAt);
+      }
+
+      // Layer 1: Impact tink
+      const tinkFreq = 2400 + power * 2600;
+      const tink = ac.createOscillator();
+      const tinkGain = ac.createGain();
+      tink.type = 'sine';
+      tink.frequency.setValueAtTime(tinkFreq, now);
+      tink.frequency.exponentialRampToValueAtTime(tinkFreq * 0.35, now + 0.09);
+      tinkGain.gain.setValueAtTime(0.28 + power * 0.38, now);
+      tinkGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.11);
+      tink.connect(tinkGain);
+      tinkGain.connect(master);
+      autoClean(tink, [tink, tinkGain], now + 0.15);
+
+      // Layer 2: Noise burst
+      const noise = ac.createBufferSource();
+      noise.buffer = noiseBuf;
+      const hiPass = ac.createBiquadFilter();
+      hiPass.type = 'highpass';
+      hiPass.frequency.value = 2800 - power * 1200;
+      const noiseGain = ac.createGain();
+      const noiseStop = now + 0.1 + power * 0.45;
+      noiseGain.gain.setValueAtTime(0.0001, now);
+      noiseGain.gain.exponentialRampToValueAtTime(0.45 + power * 0.4, now + 0.004);
+      noiseGain.gain.exponentialRampToValueAtTime(0.0001, noiseStop);
+      noise.connect(hiPass);
+      hiPass.connect(noiseGain);
+      noiseGain.connect(master);
+      autoClean(noise, [noise, hiPass, noiseGain], noiseStop + 0.05);
+
+      // Layer 3: Low resonance body
+      if (power > 0.25) {
+        const res = ac.createBufferSource();
+        res.buffer = resBuf;
+        const resFilt = ac.createBiquadFilter();
+        resFilt.type = 'bandpass';
+        resFilt.frequency.value = 900 + (1 - power) * 700;
+        resFilt.Q.value = 2.5;
+        const resGain = ac.createGain();
+        const resStop = now + 0.2 + power * 0.35;
+        resGain.gain.setValueAtTime(0.0001, now);
+        resGain.gain.exponentialRampToValueAtTime((power - 0.25) * 0.3, now + 0.018);
+        resGain.gain.exponentialRampToValueAtTime(0.0001, resStop);
+        res.connect(resFilt);
+        resFilt.connect(resGain);
+        resGain.connect(master);
+        autoClean(res, [res, resFilt, resGain], resStop + 0.05);
+      }
+
+      // Layer 4: Settling crackle cascade — ice-like aftershocks
+      const afterCount = 2 + Math.floor(power * 5);
+      for (let i = 0; i < afterCount; i++) {
+        const delay = 0.04 + Math.random() * 0.22 * power;
+        const cr = ac.createBufferSource();
+        cr.buffer = crackBuf;
+        const crHp = ac.createBiquadFilter();
+        crHp.type = 'highpass';
+        crHp.frequency.value = 2800 + Math.random() * 3500;
+        const crGain = ac.createGain();
+        const crStop = now + delay + 0.032;
+        crGain.gain.setValueAtTime(0.0001, now + delay);
+        crGain.gain.exponentialRampToValueAtTime(0.06 + Math.random() * 0.13, now + delay + 0.003);
+        crGain.gain.exponentialRampToValueAtTime(0.0001, crStop);
+        cr.connect(crHp);
+        crHp.connect(crGain);
+        crGain.connect(master);
+        cr.onended = () => { try { cr.disconnect(); crHp.disconnect(); crGain.disconnect(); } catch (_) { } };
+        cr.start(now + delay);
+        cr.stop(crStop + 0.01);
+      }
+    }
+
+    soundToggle.addEventListener('click', toggleSound);
+
+    // ── GLASS TEXTURE ────────────────────────────────────────────────────
+    function buildGlass() {
+      glassLines = [];
+      const pts = [];
+      const count = Math.floor((W * H) / 7000);
+      for (let i = 0; i < count; i++) {
+        pts.push([Math.random() * W, Math.random() * H]);
+      }
+      for (let i = 0; i < 14; i++) {
+        pts.push([Math.random() * W, 0], [Math.random() * W, H],
+          [0, Math.random() * H], [W, Math.random() * H]);
+      }
+      const maxD2 = 130 * 130;
+      for (let i = 0; i < pts.length; i++) {
+        for (let j = i + 1; j < pts.length; j++) {
+          const dx = pts[i][0] - pts[j][0];
+          const dy = pts[i][1] - pts[j][1];
+          if (dx * dx + dy * dy < maxD2) glassLines.push([pts[i], pts[j]]);
+        }
+      }
+    }
+
+    function drawGlass() {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(54, 247, 255, 0.034)';
+      ctx.lineWidth = 0.4;
+      ctx.shadowBlur = 0;
+      for (const [a, b] of glassLines) {
+        ctx.beginPath();
+        ctx.moveTo(a[0], a[1]);
+        ctx.lineTo(b[0], b[1]);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    // ── DRAG TRACE ───────────────────────────────────────────────────────
+    // Glowing path left by a drag, fades over time like a stress scar.
+    class DragTrace {
+      constructor(path, power) {
+        this.path = path.map(p => ({ x: p.x, y: p.y }));
+        this.power = power;
+        this.born = performance.now();
+        this.lifetime = 1400 + power * 2800;
+      }
+
+      draw(now) {
+        if (this.path.length < 2) return;
+        const t = (now - this.born) / this.lifetime;
+        if (t >= 1) return;
+        const alpha = Math.max(0, 1 - t) * 0.6;
+        const color = this.power > 0.6 ? '#ff4fd8' : '#36f7ff';
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.2;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 10;
+        ctx.lineJoin = 'round';
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(this.path[0].x, this.path[0].y);
+        for (const p of this.path) ctx.lineTo(p.x, p.y);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      get dead() { return performance.now() - this.born > this.lifetime; }
+    }
+
+    // ── FRACTURE ─────────────────────────────────────────────────────────
+    // biasAngle: direction to cluster arms toward (null = radial)
+    // biasMagnitude: 0–1, how strongly to pull arms toward the bias direction
+    class Fracture {
+      constructor(x, y, power, biasAngle = null, biasMagnitude = 0) {
+        this.x = x;
+        this.y = y;
+        this.power = power;
+        this.biasAngle = biasAngle;
+        this.biasMagnitude = biasMagnitude;
+        this.lines = [];
+        this.born = performance.now();
+        this.lifetime = 2500 + power * 6500;
+        this._generate();
+      }
+
+      _generate() {
+        const armCount = Math.floor(4 + this.power * 12);
+        const maxReach = 55 + this.power * Math.min(W, H) * 0.62;
+        for (let i = 0; i < armCount; i++) {
+          let angle = (Math.PI * 2 / armCount) * i + (Math.random() - 0.5) * 1.3;
+          if (this.biasAngle !== null && this.biasMagnitude > 0) {
+            // Pull arms toward drag direction (forward) and opposite (backward)
+            const forward = this.biasAngle;
+            const backward = this.biasAngle + Math.PI;
+            const dForward = Math.abs(angleDiff(angle, forward));
+            const dBackward = Math.abs(angleDiff(angle, backward));
+            const target = dForward < dBackward ? forward : backward;
+            angle -= angleDiff(angle, target) * this.biasMagnitude * 0.58;
+          }
+          this._arm(this.x, this.y, angle, maxReach * (0.45 + Math.random() * 0.55), 0);
+        }
+      }
+
+      _arm(x, y, angle, remaining, depth) {
+        if (remaining < 5 || depth > 5) return;
+        const segLen = Math.min(remaining, 12 + Math.random() * 32);
+        const a = angle + (Math.random() - 0.5) * 0.55;
+        const x2 = x + Math.cos(a) * segLen;
+        const y2 = y + Math.sin(a) * segLen;
+
+        const color = depth === 0 ? (Math.random() > 0.5 ? '#36f7ff' : '#ff4fd8')
+          : depth === 1 ? (Math.random() > 0.5 ? '#36f7ff' : '#ffd166')
+            : (Math.random() > 0.5 ? '#b8ff5d' : '#ffd166');
+
+        this.lines.push({ x1: x, y1: y, x2, y2, depth, color });
+        this._arm(x2, y2, a, remaining - segLen, depth);
+
+        if (depth < 4 && remaining > 28 && Math.random() < 0.64 - depth * 0.12) {
+          const sign = Math.random() > 0.5 ? 1 : -1;
+          this._arm(x2, y2, a + sign * (0.32 + Math.random() * 0.78),
+            remaining * (0.22 + Math.random() * 0.42), depth + 1);
+        }
+      }
+
+      _alpha(now) {
+        const age = now - this.born;
+        if (age < 120) return age / 120;
+        const rem = this.lifetime - age;
+        if (rem < 1800) return Math.max(0, rem / 1800);
+        return 1;
+      }
+
+      draw(now) {
+        const a = this._alpha(now);
+        if (a <= 0) return;
+        ctx.save();
+        ctx.globalAlpha = a;
+        for (const l of this.lines) {
+          ctx.beginPath();
+          ctx.moveTo(l.x1, l.y1);
+          ctx.lineTo(l.x2, l.y2);
+          ctx.strokeStyle = l.color;
+          ctx.lineWidth = Math.max(0.3, 2.2 - l.depth * 0.38);
+          ctx.shadowColor = l.color;
+          ctx.shadowBlur = Math.max(1, 14 - l.depth * 2.8);
+          ctx.stroke();
+        }
+        ctx.restore();
+      }
+
+      get dead() { return performance.now() - this.born > this.lifetime; }
+    }
+
+    // ── SHOCKWAVE ────────────────────────────────────────────────────────
+    class Shockwave {
+      constructor(x, y, power) {
+        this.x = x; this.y = y; this.power = power;
+        this.born = performance.now();
+        this.lifetime = 550 + power * 280;
+      }
+      draw(now) {
+        const t = (now - this.born) / this.lifetime;
+        if (t < 0 || t >= 1) return;
+        const r = (70 + this.power * 130) * t;
+        const color = this.power > 0.6 ? '#ff4fd8' : '#36f7ff';
+        ctx.save();
+        ctx.globalAlpha = (1 - t) * 0.85;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, r, 0, Math.PI * 2);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = Math.max(0.5, 2.5 - t * 2);
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 22;
+        ctx.stroke();
+        ctx.restore();
+      }
+      get dead() { return performance.now() - this.born > this.lifetime; }
+    }
+
+    // ── CHARGE INDICATOR ─────────────────────────────────────────────────
+    function drawCharge(now) {
+      if (holdStart === null) return;
+      const elapsed = now - holdStart;
+      const power = Math.min(1, elapsed / MAX_HOLD);
+      const color = power > 0.6 ? '#ff4fd8' : '#36f7ff';
+
+      // Rings stay anchored at the press point — this is where the crack
+      // will actually originate, regardless of where the cursor wanders.
+      ctx.save();
+      for (let i = 0; i < 3; i++) {
+        const phase = ((now / 270) + i / 3) % 1;
+        const r = 7 + power * 48 * phase;
+        ctx.beginPath();
+        ctx.arc(pressX, pressY, r, 0, Math.PI * 2);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.5;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 18;
+        ctx.globalAlpha = (1 - phase) * 0.88 * Math.min(1, elapsed / 120);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      ctx.beginPath();
+      ctx.arc(pressX, pressY, 3 + power * 2.5, 0, Math.PI * 2);
+      ctx.fillStyle = '#ffffff';
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 28;
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // Faint dashed line from the anchor to the live cursor while charging —
+    // a preview of the lean the fracture will take if you release now.
+    function drawAimLine(now) {
+      if (holdStart === null) return;
+      const dx = liveX - pressX, dy = liveY - pressY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < 14) return; // ignore sub-pixel jitter, not an intentional drag
+
+      const power = Math.min(1, (now - holdStart) / MAX_HOLD);
+      const color = power > 0.6 ? '#ff4fd8' : '#36f7ff';
+
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.3;
+      ctx.shadowColor = color;
+      ctx.shadowBlur = 10;
+      ctx.setLineDash([5, 7]);
+      ctx.globalAlpha = 0.5;
+      ctx.beginPath();
+      ctx.moveTo(pressX, pressY);
+      ctx.lineTo(liveX, liveY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.globalAlpha = 0.85;
+      ctx.beginPath();
+      ctx.arc(liveX, liveY, 3, 0, Math.PI * 2);
+      ctx.fillStyle = color;
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // ── STATUS ───────────────────────────────────────────────────────────
+    function setStatus(text, revertMs) {
+      statusEl.textContent = text;
+      if (statusTimeout) clearTimeout(statusTimeout);
+      if (revertMs) {
+        statusTimeout = setTimeout(() => {
+          statusEl.textContent = 'Hold to charge. Drag to aim. Release to shatter. The glass always heals.';
+        }, revertMs);
+      }
+    }
+
+    // ── LOOP ─────────────────────────────────────────────────────────────
+    function loop(now) {
+      ctx.fillStyle = '#030407';
+      ctx.fillRect(0, 0, W, H);
+      drawGlass();
+
+      fractures = fractures.filter(f => !f.dead);
+      shockwaves = shockwaves.filter(s => !s.dead);
+      dragTraces = dragTraces.filter(d => !d.dead);
+
+      for (const d of dragTraces) d.draw(now);
+      for (const s of shockwaves) s.draw(now);
+      for (const f of fractures) f.draw(now);
+      drawCharge(now);
+      drawAimLine(now);
+
+      if (holdStart !== null) {
+        const power = Math.min(1, (now - holdStart) / MAX_HOLD);
+        if (power >= 1) setStatus("That's everything you've got.");
+        else if (power > 0.5) setStatus('Hold longer. Go harder.');
+        else setStatus('Building pressure…');
+      }
+
+      requestAnimationFrame(loop);
+    }
+
+    // ── INPUT ────────────────────────────────────────────────────────────
+    function getPos(e) {
+      if (e.touches && e.touches.length) {
+        return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      }
+      return { x: e.clientX, y: e.clientY };
+    }
+
+    function startPress(e) {
+      const { x, y } = getPos(e);
+      holdStart = performance.now();
+      pressX = x; pressY = y;   // anchor set once, stays put until release
+      liveX = x; liveY = y;
+      dragPath = [{ x, y }];
+      if (statusTimeout) clearTimeout(statusTimeout);
+    }
+
+    function onDragMove(e) {
+      if (holdStart === null) return;
+      const { x, y } = getPos(e);
+      const dx = x - liveX, dy = y - liveY;
+      if (dx * dx + dy * dy < 1) return; // skip sub-pixel jitter
+      liveX = x; liveY = y;
+      dragPath.push({ x, y });
+    }
+
+    function endPress() {
+      if (holdStart === null) return;
+      const power = Math.min(1, (performance.now() - holdStart) / MAX_HOLD);
+
+      // Bias = straight-line lean from the original press point to wherever
+      // the cursor ended up. Displacement, not summed path wiggle — so
+      // shaky-hand jitter while charging doesn't fake a strong directional pull.
+      const dx = liveX - pressX, dy = liveY - pressY;
+      const dragDist = Math.sqrt(dx * dx + dy * dy);
+      let biasAngle = null, biasMagnitude = 0;
+      let originX = pressX, originY = pressY;
+      if (dragDist > 16) {
+        biasAngle = Math.atan2(dy, dx);
+        biasMagnitude = Math.min(1, dragDist / 200);
+
+        // Epicenter itself drifts toward release, not just the arm angles.
+        // PULL caps how far it can travel (0 = stays put, 1 = lands exactly
+        // on the release point) — tune this constant to taste.
+        const PULL = 0.6;
+        const pull = biasMagnitude * PULL;
+        originX = pressX + dx * pull;
+        originY = pressY + dy * pull;
+      }
+
+      // Preserve the drag path as a glowing trace before clearing
+      if (dragPath.length > 1) {
+        dragTraces.push(new DragTrace(dragPath, power));
+      }
+
+      // Origin now bends toward release for a real drag, but a quick tap
+      // (dragDist <= 16, originX/Y untouched above) still epicenters exactly
+      // where you clicked.
+      fractures.push(new Fracture(originX, originY, Math.max(0.06, power), biasAngle, biasMagnitude));
+      shockwaves.push(new Shockwave(originX, originY, power));
+      playShatter(Math.max(0.06, power));
+      hapticShatter(Math.max(0.06, power));
+
+      holdStart = null;
+      dragPath = [];
+      setStatus('The glass always heals.', 5000);
+    }
+
+    canvas.addEventListener('mousedown', startPress);
+    canvas.addEventListener('mousemove', onDragMove);
+    window.addEventListener('mouseup', endPress);
+    canvas.addEventListener('touchstart', e => { e.preventDefault(); startPress(e); }, { passive: false });
+    canvas.addEventListener('touchmove', e => { e.preventDefault(); onDragMove(e); }, { passive: false });
+    canvas.addEventListener('touchend', e => { e.preventDefault(); endPress(e); }, { passive: false });
+
+    // ── INIT ─────────────────────────────────────────────────────────────
+    function resize() {
+      W = canvas.width = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+      buildGlass();
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+    requestAnimationFrame(loop);
+  </script>
+</body>
+
+</html>

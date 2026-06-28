@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Particle Drift | Fidget Toy Garden</title>
+  <style>
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #0a0a12;
+      /* Deep, calming dark space */
+      overflow: hidden;
+      font-family: system-ui, sans-serif;
+      touch-action: none;
+      /* Prevents mobile scrolling and pull-to-refresh */
+    }
+
+    canvas {
+      display: block;
+    }
+
+    .toy-nav {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 10;
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .back-link {
+      color: rgba(255, 255, 255, 0.5);
+      text-decoration: none;
+      font-size: 0.9rem;
+      transition: color 0.3s ease;
+    }
+
+    .back-link:hover {
+      color: rgba(255, 255, 255, 1);
+    }
+
+    .sound-toggle {
+      background: none;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: rgba(255, 255, 255, 0.5);
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .sound-toggle.active {
+      color: #fff;
+      border-color: #fff;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="toy-nav" aria-label="Toy controls">
+    <a class="back-link" href="../fidgetToy-index.html">← Back</a>
+    <button id="sound-toggle" class="sound-toggle" type="button" aria-label="Toggle sound"
+      aria-pressed="false">♪</button>
+  </nav>
+  <canvas id="drift-canvas"></canvas>
+
+  <script>
+    const canvas = document.getElementById('drift-canvas');
+    const ctx = canvas.getContext('2d');
+
+    let width, height;
+    let particles = [];
+    const particleCount = 400; // Adjust for performance vs density
+
+    // Blue, Purple, and Green palette (RGB values for easy alpha injection)
+    const particleColors = [
+      '100, 200, 255', // Light Blue
+      '180, 130, 255', // Purple
+      '120, 255, 180', // Mint Green
+      '60, 150, 255',  // Deep Blue
+    ];
+
+    // Audio Context variables
+    let audioCtx;
+    let oscillator;
+    let gainNode;
+    let isSoundEnabled = false;
+
+    // Mouse / Touch interaction object
+    let pointer = { x: null, y: null, active: false, isPressed: false };
+
+    // Setup Audio Setup
+    const soundBtn = document.getElementById('sound-toggle');
+    soundBtn.addEventListener('click', () => {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        oscillator = audioCtx.createOscillator();
+        gainNode = audioCtx.createGain();
+
+        oscillator.type = 'sine';
+        oscillator.frequency.value = 10; // Deep, calming hum
+        gainNode.gain.value = 0;
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        oscillator.start();
+      }
+
+      isSoundEnabled = !isSoundEnabled;
+      soundBtn.classList.toggle('active', isSoundEnabled);
+      soundBtn.setAttribute('aria-pressed', isSoundEnabled);
+
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+
+      // Fade sound in/out smoothly
+      if (isSoundEnabled) {
+        gainNode.gain.setTargetAtTime(2.3, audioCtx.currentTime, 1.5);
+      } else {
+        gainNode.gain.setTargetAtTime(0, audioCtx.currentTime, 0.1);
+      }
+    });
+
+    // Sensory Feedback Triggers (Sound + Haptics)
+    function handlePress() {
+      if (navigator.vibrate) navigator.vibrate(50); // Single crisp buzz
+      if (isSoundEnabled && audioCtx) {
+        // Swell volume and pitch
+        oscillator.frequency.setTargetAtTime(110, audioCtx.currentTime, 0.3);
+        gainNode.gain.setTargetAtTime(2.8, audioCtx.currentTime, 1.2);
+      }
+    }
+
+    function handleRelease() {
+      if (navigator.vibrate) navigator.vibrate([20, 30, 20]); // Gentle double tap
+      if (isSoundEnabled && audioCtx) {
+        // Return to baseline
+        oscillator.frequency.setTargetAtTime(20, audioCtx.currentTime, 2.8);
+        gainNode.gain.setTargetAtTime(2, audioCtx.currentTime, 1.5);
+      }
+    }
+
+    function resize() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
+
+    window.addEventListener('resize', resize);
+    resize();
+
+    class Particle {
+      constructor() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.vx = (Math.random() - 0.5) * 0.5;
+        this.vy = (Math.random() - 0.5) * 0.5 - 0.2; // Soft upward gravity/drift
+        this.baseRadius = Math.random() * 2 + 0.5;
+        this.alpha = Math.random() * 0.5 + 0.2;
+        this.color = particleColors[Math.floor(Math.random() * particleColors.length)];
+      }
+
+      update() {
+        // Apply soft gravity
+        this.x += this.vx;
+        this.y += this.vy;
+
+        // Pointer interaction
+        if (pointer.active && pointer.x !== null) {
+          let dx = this.x - pointer.x;
+          let dy = this.y - pointer.y;
+          let distance = Math.sqrt(dx * dx + dy * dy);
+
+          if (pointer.isPressed) {
+            // Gravity Well (Attract)
+            let maxDistance = 300;
+            if (distance < maxDistance && distance > 5) {
+              let force = (maxDistance - distance) / maxDistance;
+              this.vx -= (dx / distance) * force * 0.4;
+              this.vy -= (dy / distance) * force * 0.4;
+            }
+          } else {
+            // Wind (Repel)
+            let maxDistance = 150;
+            if (distance < maxDistance) {
+              let force = (maxDistance - distance) / maxDistance;
+              this.vx += (dx / distance) * force * 0.2;
+              this.vy += (dy / distance) * force * 0.2;
+            }
+          }
+        }
+
+        // Friction / Drag (keeps them from flying too fast)
+        this.vx *= 0.95;
+        this.vy *= 0.95;
+
+        // Continuous base drift
+        this.vy -= 0.002;
+
+        // Slight random wander (thermal scattering)
+        this.vx += (Math.random() - 0.5) * 0.44;
+        this.vy += (Math.random() - 0.5) * 0.44;
+
+        // Very gentle pull to center to prevent them from abandoning the space
+        let cx = width / 2;
+        let cy = height / 2;
+        this.vx += (cx - this.x) * 0.00002;
+        this.vy += (cy - this.y) * 0.00002;
+
+        // Wrap around edges
+        if (this.y < -10) this.y = height + 10;
+        if (this.y > height + 10) this.y = -10;
+        if (this.x < -10) this.x = width + 10;
+        if (this.x > width + 10) this.x = -10;
+      }
+
+      draw() {
+        ctx.beginPath();
+        let currentRadius = this.baseRadius;
+        // Glow brighter when pulled
+        if (pointer.isPressed && pointer.active) {
+          ctx.fillStyle = `rgba(${this.color}, ${this.alpha * 2})`;
+          currentRadius = this.baseRadius * 1.5;
+        } else {
+          ctx.fillStyle = `rgba(${this.color}, ${this.alpha})`;
+        }
+        ctx.arc(this.x, this.y, currentRadius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    for (let i = 0; i < particleCount; i++) {
+      particles.push(new Particle());
+    }
+
+    // Unified Pointer Updates
+    const updatePointer = (x, y) => {
+      pointer.x = x;
+      pointer.y = y;
+      pointer.active = true;
+    };
+
+    // Mouse Listeners
+    window.addEventListener('mousedown', (e) => {
+      pointer.isPressed = true;
+      updatePointer(e.clientX, e.clientY);
+      handlePress();
+    });
+    window.addEventListener('mousemove', (e) => updatePointer(e.clientX, e.clientY));
+    window.addEventListener('mouseup', () => {
+      pointer.isPressed = false;
+      handleRelease();
+    });
+    window.addEventListener('mouseout', () => {
+      pointer.active = false;
+      pointer.isPressed = false;
+    });
+
+    // Touch Listeners
+    window.addEventListener('touchstart', (e) => {
+      pointer.isPressed = true;
+      updatePointer(e.touches[0].clientX, e.touches[0].clientY);
+      handlePress();
+    });
+    window.addEventListener('touchmove', (e) => {
+      updatePointer(e.touches[0].clientX, e.touches[0].clientY);
+    });
+    window.addEventListener('touchend', () => {
+      pointer.isPressed = false;
+      pointer.active = false;
+      handleRelease();
+    });
+    window.addEventListener('touchcancel', () => { pointer.isPressed = false; pointer.active = false; });
+
+    function animate() {
+      ctx.clearRect(0, 0, width, height);
+
+      particles.forEach(p => {
+        p.update();
+        p.draw();
+      });
+
+      requestAnimationFrame(animate);
+    }
+    animate();
+  </script>
+</body>
+
+</html>

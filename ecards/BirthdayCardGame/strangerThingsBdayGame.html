@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Birthday Card Game</title>
+<style>
+/* Existing Styles */
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background:#000;min-height:100vh;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;font-family:'Courier New',monospace;
+  color:#fff;overflow:hidden;
+  transition:transform 1.8s cubic-bezier(.4,0,.2,1),filter 1.8s ease;
+}
+body.ud{transform:rotate(180deg);filter:invert(1) hue-rotate(140deg)}
+canvas#bg{position:fixed;inset:0;z-index:0;pointer-events:none}
+#app{position:relative;z-index:10;display:flex;flex-direction:column;align-items:center;gap:14px}
+
+#sndbtn{
+  position:fixed;top:14px;right:14px;z-index:200;
+  background:transparent;border:1px solid #221111;color:#441111;
+  width:30px;height:30px;border-radius:50%;cursor:pointer;
+  font-size:13px;font-family:'Courier New',monospace;
+  display:flex;align-items:center;justify-content:center;
+  transition:all .3s;
+}
+#sndbtn:hover{border-color:#660000;color:#880000}
+#sndbtn.off{color:#220000;border-color:#110000}
+
+/* Card Styles */
+#ca{display:none;flex-direction:column;align-items:center;gap:10px}
+.scene{width:660px;height:440px;perspective:1400px;cursor:pointer;user-select:none}
+.card{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform 1.3s cubic-bezier(.4,0,.2,1)}
+.card.open{transform:rotateY(-180deg)}
+.face{position:absolute;inset:0;backface-visibility:hidden;border-radius:5px;overflow:hidden}
+
+.front{
+  display:flex;flex-direction:column;
+  background:linear-gradient(150deg,#060610,#0b0b1c,#060610);
+  border:2px solid #880000;
+  box-shadow:0 0 35px #88000055,inset 0 0 50px #00000077;
+}
+.lbar{position:relative;width:100%;height:34px;flex-shrink:0}
+.wire{position:absolute;top:7px;left:0;right:0;height:2px;background:#1a1a1a}
+.brow{display:flex;justify-content:space-around;align-items:flex-start;padding:0 6px;position:relative;z-index:2}
+.bu{display:flex;flex-direction:column;align-items:center}
+.bstem{width:1px;height:7px;background:#333}
+.bg2{width:10px;height:14px;border-radius:50% 50% 42% 42%}
+.bcap{width:10px;height:3px;background:#2a2a2a;margin-top:1px;border-radius:1px}
+
+.fmain{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;padding:8px 24px 24px}
+.sp{position:absolute;pointer-events:none}
+.sp1{top:16px;left:24px;font-size:20px;color:#2299ff;opacity:.35;animation:fl1 9s ease-in-out infinite}
+.sp2{top:22px;right:30px;font-size:14px;color:#9933ff;opacity:.3;animation:fl1 7s ease-in-out infinite 2s}
+.sp3{bottom:32px;left:48px;font-size:17px;color:#33ffaa;opacity:.28;animation:fl1 11s ease-in-out infinite 4s}
+.sp4{bottom:26px;right:44px;font-size:15px;color:#ff9933;opacity:.28;animation:fl1 8s ease-in-out infinite 1s}
+.sp5{top:50%;left:14px;font-size:12px;color:#ff3366;opacity:.2;animation:fl1 10s ease-in-out infinite 3s}
+.sp6{top:44%;right:16px;font-size:11px;color:#ffff44;opacity:.2;animation:fl1 13s ease-in-out infinite 5s}
+
+.lhappy{font-size:11px;letter-spacing:9px;color:#770000;text-shadow:0 0 8px #ff3333;margin-bottom:6px}
+.lbday{font-size:60px;font-weight:900;letter-spacing:3px;line-height:1;text-transform:uppercase;color:#bb0000;text-shadow:0 0 8px #ff0000,0 0 20px #ff0000,0 0 45px #990000;animation:flk 5s infinite}
+.lname{font-size:36px;font-weight:700;letter-spacing:4px;text-transform:uppercase;color:#ff7744;text-shadow:0 0 8px #ff6633,0 0 20px #ff4411;margin-top:4px;animation:flk 7s infinite 1.2s}
+.lfrom{position:absolute;bottom:12px;right:14px;font-size:9px;letter-spacing:3px;color:#330000}
+
+#udbtn{
+  position:absolute;bottom:10px;left:12px;background:transparent;
+  border:1px solid #2a0000;color:#440000;font-size:8px;letter-spacing:1px;
+  padding:3px 7px;cursor:pointer;font-family:'Courier New',monospace;
+  transition:all .3s;z-index:5;
+}
+#udbtn:hover{border-color:#aa0000;color:#aa0000;box-shadow:0 0 8px #aa000066}
+
+.back{
+  display:flex;flex-direction:column;padding:26px 30px;gap:16px;
+  background:linear-gradient(150deg,#030314,#050526,#030318);
+  border:2px solid #1a2d99;
+  box-shadow:0 0 35px #1a2d9944;
+  transform:rotateY(180deg);
+}
+.bkhdr{text-align:center;font-size:10px;letter-spacing:6px;color:#2255cc;text-shadow:0 0 10px #2255cc}
+.bkmsg{font-size:13.5px;line-height:1.9;color:#99aabb;text-align:center;flex:1;display:flex;align-items:center}
+.bkmsg p{width:100%}
+.gb{color:#3377ff;text-shadow:0 0 7px #3377ff}
+.gg{color:#33ffaa;text-shadow:0 0 7px #33ffaa}
+.gr{color:#ff3344;text-shadow:0 0 7px #ff3344}
+.gy{color:#ffdd44;text-shadow:0 0 7px #ffdd44}
+.facts{display:flex;gap:8px}
+.fact{flex:1;border:1px solid #111a33;background:#05051688;padding:8px 10px;font-size:9.5px;line-height:1.6;color:#6688aa}
+.flbl{display:block;font-size:8px;letter-spacing:3px;color:#2255cc;text-shadow:0 0 6px #2255cc;margin-bottom:3px;text-transform:uppercase}
+.bkhint{font-size:9px;letter-spacing:3px;color:#0a1a33;text-align:center}
+.hint{font-size:9px;letter-spacing:3px;color:#3a0000;animation:pulse 2.5s infinite}
+
+@keyframes flk{0%,88%,90%,92%,100%{opacity:1}89%{opacity:.25}91%{opacity:.7}}
+@keyframes fl1{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-10px) rotate(4deg)}}
+@keyframes pulse{0%,100%{opacity:.4}50%{opacity:1}}
+
+/* --- NEW GAME STYLES --- */
+.term-box {
+  background: rgba(10, 10, 15, 0.85);
+  border: 2px solid #33ffaa;
+  box-shadow: 0 0 20px rgba(51, 255, 170, 0.2), inset 0 0 30px rgba(0, 0, 0, 0.8);
+  padding: 30px;
+  width: 660px;
+  max-width: 95vw;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+  backdrop-filter: blur(5px);
+}
+.term-box::before {
+  content: ''; position: absolute; inset: 0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px);
+  pointer-events: none;
+}
+.sys-msg { color: #ffaa00; font-family: 'Courier New', monospace; text-shadow: 0 0 5px #ffaa00; font-size: 14px; text-align: center; }
+.err-msg { color: #ff3333; font-family: 'Courier New', monospace; text-shadow: 0 0 8px #ff3333; font-weight: bold; text-align: center; }
+.mc-msg { color: #55ff55; font-family: monospace; text-shadow: 0 0 5px #55ff55; font-size: 16px; font-weight: bold; text-align: center;}
+.mc-msg-left { text-align: left; }
+.action-row { display: flex; gap: 15px; justify-content: center; margin-top: 10px; align-items: center;}
+.mc-btn { 
+  background: #111; border: 2px solid #55ff55; color: #55ff55; 
+  padding: 12px 24px; font-family: monospace; font-size: 14px;
+  cursor: pointer; transition: all 0.2s; text-transform: uppercase;
+  font-weight: bold; position: relative; z-index: 5;
+}
+.mc-btn:hover { background: #55ff55; color: #000; box-shadow: 0 0 20px #55ff55; transform: scale(1.05); }
+.mc-input {
+  background: #000; border: 2px solid #ffaa00; color: #ffaa00;
+  padding: 12px; font-family: 'Courier New', monospace; font-size: 16px;
+  text-align: center; width: 280px; outline: none; letter-spacing: 2px;
+  position: relative; z-index: 5;
+}
+.mc-input:focus { border-color: #55ff55; color: #55ff55; box-shadow: 0 0 10px #55ff5544; }
+.hide { display: none !important; }
+
+/* Wall Styles */
+.wall { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; background: #050505; padding: 25px; border-radius: 8px; border: 1px solid #222; }
+.wall-node { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 24px; }
+.p-bulb { width: 16px; height: 16px; border-radius: 50%; background: #1a1a1a; border: 1px solid #111; transition: all 0.05s; box-shadow: inset 0 0 5px #000; }
+.rune { color: #888; font-family: monospace; font-size: 18px; line-height: 1; }
+
+/* Key Styles */
+.key-box { border: 1px dashed #55ff55; padding: 15px; background: rgba(0,255,0,0.02); }
+.key-title { color: #55ff55; font-family: monospace; margin-bottom: 15px; text-align: center; font-size: 12px; letter-spacing: 3px; }
+.key-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; text-align: center; color: #aaa; font-family: monospace; font-size: 16px; }
+.key-grid div { background: #111; padding: 8px; border: 1px solid #222; border-radius: 4px; }
+
+/* Riddle Styles */
+.riddle-box { background: rgba(255, 170, 0, 0.05); padding: 25px; border-left: 4px solid #ffaa00; font-family: 'Courier New', monospace; color: #ffdd88; font-style: italic; line-height: 1.8; font-size: 14.5px; text-align: center;}
+
+/* Circuit Styles */
+.circuit-container { background: #080808; border: 1px solid #333; padding: 20px; border-radius: 8px; display: flex; justify-content: center; align-items: center; }
+
+/* Glitch text */
+.glitch { animation: gl 2s infinite linear alternate-reverse; position: relative; }
+@keyframes gl {
+  0% { transform: translate(0) }
+  20% { transform: translate(-2px, 1px) }
+  40% { transform: translate(-1px, -1px) }
+  60% { transform: translate(2px, 1px) }
+  80% { transform: translate(1px, -1px) }
+  100% { transform: translate(0) }
+}
+</style>
+</head>
+<body>
+<canvas id="bg"></canvas>
+<button id="sndbtn" title="Toggle sound">&#9834;</button>
+
+<div id="app">
+
+  <!-- Intro Screen -->
+  <div id="intro" class="term-box">
+    <div class="sys-msg" style="font-size: 18px; letter-spacing: 4px; color: #ff3333; animation: pulse 2s infinite;">CLASSIFIED TRANSMISSION</div>
+    <div class="sys-msg" style="margin-top:20px;">[ ENTER RECIPIENT DESIGNATION ]</div>
+    <input type="text" id="kname" class="mc-input" placeholder="NAME" maxlength="18" autocomplete="off" style="margin: 0 auto; display: block;">
+    <div class="action-row">
+      <button class="mc-btn" onclick="hackSystem()" style="border-color: #ffaa00; color: #ffaa00;">INITIATE &rarr;</button>
+    </div>
+  </div>
+
+  <!-- Hack Sequence Screen -->
+  <div id="hack-seq" class="term-box hide">
+    <div class="err-msg glitch" style="font-size: 20px; margin-bottom: 10px;">!!! WARNING: SYSTEM BREACH DETECTED !!!</div>
+    <div class="mc-msg mc-msg-left">>> HACKER IDENTIFIED: <span style="color:#fff;">Xx_Minecraft_Steve_xX</span></div>
+    <div class="mc-msg mc-msg-left">>> LOCATION: <span style="color:#ff3333;">ORBITING THE UPSIDE DOWN</span></div>
+    <div class="mc-msg mc-msg-left glitch" style="margin-top: 15px; color:#ffaa00;">>> "I've intercepted the birthday payload. Solve my 3 trials to retrieve it."</div>
+    <div class="action-row" style="margin-top: 30px;">
+      <button class="mc-btn" onclick="goToStage(1)">[ START TRIAL 1 ]</button>
+    </div>
+  </div>
+
+  <!-- Stage 1 -->
+  <div id="stage1" class="term-box hide">
+    <div class="mc-msg" style="font-size:18px; text-decoration: underline;">SECTOR 1: THE BLOCKY ALPHABET WALL</div>
+    <div class="sys-msg">"Translate the sequence. The lights show the way."</div>
+    
+    <div class="wall" id="wall">
+      <!-- Generated by JS -->
+    </div>
+    
+    <div class="key-box">
+      <div class="key-title">TRANSLATION KEY</div>
+      <div class="key-grid">
+        <div>╔ = A</div><div>╬ = E</div><div>╝ = I</div><div>▄ = O</div>
+        <div>▮ = U</div><div>▯ = V</div><div>╠ = D</div><div>▐ = S</div>
+      </div>
+    </div>
+    
+    <div class="action-row">
+      <input type="text" id="s1_ans" placeholder="4-LETTER WORD" class="mc-input" autocomplete="off">
+      <button class="mc-btn" onclick="checkS1()">[ SUBMIT ]</button>
+    </div>
+    <div id="s1_err" class="err-msg hide">ACCESS DENIED. TRY AGAIN.</div>
+  </div>
+
+  <!-- Stage 2 -->
+  <div id="stage2" class="term-box hide">
+    <div class="mc-msg" style="font-size:18px; text-decoration: underline;">SECTOR 2: SPACE-REDSTONE CIRCUIT</div>
+    <div class="sys-msg">"The Demogorgon broke the circuit. Fix it to restore gravity."</div>
+    
+    <div class="circuit-container">
+      <svg width="460" height="120" viewBox="0 0 460 120">
+         <!-- Torch -->
+         <rect x="20" y="40" width="16" height="40" fill="#6b3e15" />
+         <rect x="23" y="25" width="10" height="15" fill="#ff2222" style="filter: drop-shadow(0 0 8px #ff0000);" />
+         
+         <!-- Wire 1 -->
+         <rect x="40" y="60" width="120" height="8" fill="#cc0000" style="filter: drop-shadow(0 0 5px #cc0000);" />
+         
+         <!-- Gap with Footprint -->
+         <g id="circuit-gap">
+           <rect x="170" y="45" width="90" height="38" fill="#111" stroke="#444" stroke-dasharray="4" rx="4" />
+           <text x="215" y="68" fill="#666" font-family="monospace" font-size="10" text-anchor="middle">COMPONENT</text>
+           <text x="215" y="78" fill="#666" font-family="monospace" font-size="10" text-anchor="middle">MISSING</text>
+           <!-- Footprint path -->
+           <path d="M185,55 Q195,40 205,55 Q215,40 225,55 Q235,40 245,55 L215,80 Z" fill="#003300" opacity="0.3" />
+         </g>
+
+         <!-- Fixed Overlay (hidden by default) -->
+         <g id="circuit-fixed" style="display:none;">
+            <!-- End Crystal representation -->
+            <polygon points="215,35 230,64 215,93 200,64" fill="#ff77ff" stroke="#aa00aa" stroke-width="2" style="filter: drop-shadow(0 0 10px #ff00ff);" />
+            <rect x="160" y="60" width="110" height="8" fill="#cc0000" style="filter: drop-shadow(0 0 5px #cc0000);" />
+         </g>
+         
+         <!-- Wire 2 -->
+         <rect x="270" y="60" width="80" height="8" fill="#300" id="wire2" style="transition:all 0.5s;" />
+         
+         <!-- Piston -->
+         <rect x="360" y="35" width="70" height="58" fill="#777" rx="2" />
+         <!-- Piston Head -->
+         <rect x="350" y="35" width="10" height="58" fill="#a08050" id="piston-head" style="transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);" />
+         <!-- Piston Base styling -->
+         <rect x="400" y="35" width="30" height="58" fill="#555" rx="2" />
+      </svg>
+    </div>
+    
+    <div class="action-row options" style="flex-wrap:wrap; gap:10px;">
+      <button class="mc-btn" onclick="checkS2('repeater')">[ Redstone Repeater ]</button>
+      <button class="mc-btn" onclick="checkS2('eggo')">[ Eggo Waffle ]</button>
+      <button class="mc-btn" onclick="checkS2('crystal')">[ End Crystal ]</button>
+    </div>
+    <div id="s2_err" class="err-msg hide">INCORRECT. THE DEMOGORGON IS GETTING CLOSER.</div>
+  </div>
+
+  <!-- Stage 3 -->
+  <div id="stage3" class="term-box hide">
+    <div class="mc-msg" style="font-size:18px; text-decoration: underline;">SECTOR 3: NAVIGATIONAL COMPUTER</div>
+    <div class="sys-msg">"The thrusters are powered. Input final coordinates to return to Overworld Prime."</div>
+    
+    <div class="riddle-box">
+      Take the number of sides on a Creeper's head,<br><br>
+      Add the season count of the show in this place instead,<br><br>
+      And multiply by the number of stars in a 'Nether Star'.
+    </div>
+    
+    <div class="action-row">
+      <input type="text" id="s3_ans" placeholder="ENTER CODE OR MATH" class="mc-input" autocomplete="off">
+      <button class="mc-btn" onclick="checkS3()">[ ENGAGE ]</button>
+    </div>
+    <div id="s3_err" class="err-msg hide">CALCULATION ERROR. COORDINATES REJECTED.</div>
+  </div>
+
+  <!-- Card Scene (Original) -->
+  <div id="ca" class="hide">
+    <div class="scene" id="scene">
+      <div class="card" id="card">
+        <div class="face front">
+          <div class="lbar">
+            <div class="wire"></div>
+            <div class="brow" id="brow"></div>
+          </div>
+          <div class="fmain">
+            <div class="sp sp1">&#9883;</div>
+            <div class="sp sp2">&#10022;</div>
+            <div class="sp sp3">&#9737;</div>
+            <div class="sp sp4">&#11042;</div>
+            <div class="sp sp5">&#8734;</div>
+            <div class="sp sp6">&#9670;</div>
+            <div class="lhappy">&mdash; HAPPY &mdash;</div>
+            <div class="lbday">BIRTHDAY</div>
+            <div class="lname" id="lname">FRIEND</div>
+          </div>
+          <div class="lfrom">a mystery sender &bull;</div>
+          <button id="udbtn" onclick="toggleUD(event)">&#8595; ENTER THE UPSIDE DOWN &#8595;</button>
+        </div>
+
+        <div class="face back">
+          <div class="bkhdr">&#10022; TRANSMISSION FROM THE RIGHT-SIDE UP &#10022;</div>
+          <div class="bkmsg">
+            <p>
+              Hey <span class="gb" id="bkname">Friend</span> &mdash;<br><br>
+              You are the kind of person who notices things others miss.<br>
+              The <span class="gg">science</span> that explains everything,<br>
+              the <span class="gb">space</span> between galaxies that goes on forever,<br>
+              the <span class="gr">mysteries</span> lurking somewhere in the dark.<br><br>
+              Keep asking <span class="gy">why</span>. That&rsquo;s where all the good stuff lives.<br><br>
+              Happy birthday. You are genuinely awesome.
+            </p>
+          </div>
+          <div class="facts">
+            <div class="fact">
+              <span class="flbl">&#9672; Space fact</span>
+              There are more stars in the universe than grains of sand on every beach on Earth &mdash; and you are made of atoms forged inside those stars.
+            </div>
+            <div class="fact">
+              <span class="flbl">&#9883; Science fact</span>
+              If you unraveled all the DNA in your body it would stretch from Earth to Pluto and back &mdash; 17 times. You contain multitudes.
+            </div>
+            <div class="fact">
+              <span class="flbl">&#9650; ST fact</span>
+              The Upside Down is theoretically real. Physicists call parallel dimensions &ldquo;branes&rdquo; in string theory. You already knew to look for it.
+            </div>
+          </div>
+          <div class="bkhint">[ CLICK TO CLOSE ]</div>
+        </div>
+      </div>
+    </div>
+    <div class="hint" id="hint">[ CLICK CARD TO OPEN ]</div>
+  </div>
+
+</div>
+
+<script>
+/* ── CANVAS STARS ── */
+const cv=document.getElementById('bg'),cx=cv.getContext('2d');
+function rsz(){cv.width=innerWidth;cv.height=innerHeight}rsz();
+window.addEventListener('resize',rsz);
+const stars=Array.from({length:240},()=>({
+  x:Math.random()*cv.width,y:Math.random()*cv.height,
+  r:Math.random()*1.5+.2,ph:Math.random()*Math.PI*2,
+  sp:Math.random()*.012+.004,dr:(Math.random()-.5)*.18,h:200+Math.random()*60
+}));
+const nebs=Array.from({length:6},()=>({
+  x:Math.random()*cv.width,y:Math.random()*cv.height,
+  r:80+Math.random()*120,h:Math.random()*360,a:.025+Math.random()*.035
+}));
+(function loop(){
+  cx.clearRect(0,0,cv.width,cv.height);
+  nebs.forEach(n=>{const g=cx.createRadialGradient(n.x,n.y,0,n.x,n.y,n.r);g.addColorStop(0,`hsla(${n.h},65%,35%,${n.a})`);g.addColorStop(1,'transparent');cx.fillStyle=g;cx.beginPath();cx.arc(n.x,n.y,n.r,0,Math.PI*2);cx.fill()});
+  stars.forEach(s=>{s.ph+=s.sp;s.x+=s.dr;if(s.x>cv.width)s.x=0;if(s.x<0)s.x=cv.width;const a=(Math.sin(s.ph)+1)/2*.75+.25;cx.fillStyle=`hsla(${s.h},50%,90%,${a})`;cx.beginPath();cx.arc(s.x,s.y,s.r,0,Math.PI*2);cx.fill()});
+  requestAnimationFrame(loop);
+})();
+
+/* ── LIGHTS FOR CARD ── */
+const COLS=['#ff1111','#00dd00','#ffaa00','#0099ff','#ff00ff','#00ddff','#ffee00','#ff6600'];
+const brow=document.getElementById('brow');
+const bulbs=[];
+for(let i=0;i<36;i++){
+  const u=document.createElement('div');u.className='bu';
+  u.innerHTML='<div class="bstem"></div><div class="bg2"></div><div class="bcap"></div>';
+  const g=u.querySelector('.bg2');
+  const c=COLS[i%COLS.length];g.style.background=c;g.style.boxShadow=`0 0 5px ${c},0 0 10px ${c}99`;
+  brow.appendChild(u);bulbs.push(g);
+}
+(function flicker(){
+  const b=bulbs[Math.floor(Math.random()*bulbs.length)];
+  const on=Math.random()>.07;
+  const c=on?COLS[Math.floor(Math.random()*COLS.length)]:'#0d0d0d';
+  b.style.background=c;b.style.boxShadow=on?`0 0 5px ${c},0 0 10px ${c}99`:'none';
+  setTimeout(flicker,50+Math.random()*450);
+})();
+
+/* ── AUDIO ── */
+let AC=null,sndOn=true,udSrcs=[],udGains=[],opened=false;
+
+function initAC(){
+  if(!AC) AC=new(window.AudioContext||window.webkitAudioContext)();
+  if(AC.state==='suspended') AC.resume();
+}
+
+function mkReverb(dur=2.5,decay=2.2){
+  const conv=AC.createConvolver();
+  const len=AC.sampleRate*dur;
+  const buf=AC.createBuffer(2,len,AC.sampleRate);
+  for(let c=0;c<2;c++){const d=buf.getChannelData(c);for(let i=0;i<len;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/len,decay);}
+  conv.buffer=buf;return conv;
+}
+
+function playSTArp(){
+  if(!sndOn||!AC)return;
+  const notes=[164.81,246.94,293.66,329.63,392,440,493.88,587.33];
+  const rev=mkReverb(3,2.5);
+  const mG=AC.createGain();mG.gain.value=0.26;
+  mG.connect(rev);mG.connect(AC.destination);rev.connect(AC.destination);
+  notes.forEach((f,i)=>{
+    const t=AC.currentTime+.3+i*.2;
+    [0,8,-6].forEach(det=>{
+      const o=AC.createOscillator(),g=AC.createGain(),fl=AC.createBiquadFilter();
+      o.type='sawtooth';o.frequency.value=f;o.detune.value=det;
+      fl.type='lowpass';fl.frequency.value=1700;fl.Q.value=0.7;
+      g.gain.setValueAtTime(0,t);
+      g.gain.linearRampToValueAtTime(.1,t+.025);
+      g.gain.setValueAtTime(.1,t+.12);
+      g.gain.exponentialRampToValueAtTime(.0001,t+.55);
+      o.connect(fl);fl.connect(g);g.connect(mG);
+      o.start(t);o.stop(t+.65);
+    });
+  });
+}
+
+function playWhoosh(){
+  if(!sndOn||!AC)return;
+  const dur=.38;
+  const buf=AC.createBuffer(1,Math.ceil(AC.sampleRate*dur),AC.sampleRate);
+  const d=buf.getChannelData(0);
+  for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,.22)*.9;
+  const src=AC.createBufferSource(),fl=AC.createBiquadFilter(),g=AC.createGain();
+  fl.type='bandpass';
+  fl.frequency.setValueAtTime(3000,AC.currentTime);
+  fl.frequency.exponentialRampToValueAtTime(160,AC.currentTime+dur);
+  fl.Q.value=2;g.gain.value=.3;
+  src.buffer=buf;src.connect(fl);fl.connect(g);g.connect(AC.destination);
+  src.start();
+}
+
+function playChime(){
+  if(!sndOn||!AC)return;
+  const rev=mkReverb(2.5,2);rev.connect(AC.destination);
+  [261.63,329.63,392,523.25].forEach((f,i)=>{
+    const t=AC.currentTime+i*.14;
+    const o=AC.createOscillator(),g=AC.createGain();
+    o.type='triangle';o.frequency.value=f;
+    g.gain.setValueAtTime(0,t);
+    g.gain.linearRampToValueAtTime(.16,t+.02);
+    g.gain.exponentialRampToValueAtTime(.0001,t+.55);
+    o.connect(g);g.connect(rev);g.connect(AC.destination);
+    o.start(t);o.stop(t+.7);
+  });
+}
+
+function playUDSting(){
+  if(!sndOn||!AC)return;
+  [36.7,55,73.4].forEach((f,i)=>{
+    const t=AC.currentTime+i*.06;
+    const o=AC.createOscillator(),g=AC.createGain();
+    o.type='sawtooth';o.frequency.value=f;
+    g.gain.setValueAtTime(.35,t);
+    g.gain.exponentialRampToValueAtTime(.0001,t+1.8);
+    o.connect(g);g.connect(AC.destination);
+    o.start(t);o.stop(t+2.2);
+  });
+}
+
+function startUD(){
+  if(!sndOn||!AC)return;
+  const sub=AC.createOscillator(),subG=AC.createGain();
+  sub.type='sine';sub.frequency.value=38;
+  subG.gain.setValueAtTime(0,AC.currentTime);
+  subG.gain.linearRampToValueAtTime(.48,AC.currentTime+2.5);
+  sub.connect(subG);subG.connect(AC.destination);sub.start();
+
+  const lfo=AC.createOscillator(),lfoG=AC.createGain();
+  lfo.frequency.value=.1;lfoG.gain.value=18;
+  lfo.connect(lfoG);lfoG.connect(sub.frequency);lfo.start();
+
+  const mid=AC.createOscillator(),midG=AC.createGain(),midF=AC.createBiquadFilter();
+  mid.type='sawtooth';mid.frequency.value=73.4;
+  midF.type='bandpass';midF.frequency.value=280;midF.Q.value=14;
+  midG.gain.setValueAtTime(0,AC.currentTime);
+  midG.gain.linearRampToValueAtTime(.22,AC.currentTime+3);
+  mid.connect(midF);midF.connect(midG);midG.connect(AC.destination);mid.start();
+
+  const nLen=AC.sampleRate*3;
+  const nBuf=AC.createBuffer(1,nLen,AC.sampleRate);
+  const nd=nBuf.getChannelData(0);for(let i=0;i<nLen;i++)nd[i]=Math.random()*2-1;
+  const ns=AC.createBufferSource(),nF=AC.createBiquadFilter(),nG=AC.createGain();
+  ns.buffer=nBuf;ns.loop=true;
+  nF.type='bandpass';nF.frequency.value=700;nF.Q.value=18;
+  nF.frequency.linearRampToValueAtTime(1400,AC.currentTime+10);
+  nF.frequency.linearRampToValueAtTime(600,AC.currentTime+22);
+  nG.gain.setValueAtTime(0,AC.currentTime);
+  nG.gain.linearRampToValueAtTime(.07,AC.currentTime+3);
+  ns.connect(nF);nF.connect(nG);nG.connect(AC.destination);ns.start();
+
+  udSrcs=[sub,lfo,mid,ns];udGains=[subG,midG,nG];
+}
+
+function stopUD(){
+  const now=AC.currentTime;
+  udGains.forEach(g=>{try{g.gain.cancelScheduledValues(now);g.gain.linearRampToValueAtTime(0,now+1.5);}catch(e){}});
+  udSrcs.forEach(s=>{try{s.stop(now+2);}catch(e){}});
+  udSrcs=[];udGains=[];
+}
+
+document.getElementById('sndbtn').addEventListener('click',()=>{
+  sndOn=!sndOn;
+  const btn=document.getElementById('sndbtn');
+  btn.innerHTML=sndOn?'&#9834;':'&#10005;';
+  btn.classList.toggle('off',!sndOn);
+  if(!sndOn&&udOn) stopUD();
+});
+
+/* ── GAME LOGIC ── */
+
+// Build Stage 1 Wall
+const RUNES = ["╔", "╦", "╗", "╠", "╬", "╣", "╚", "╩", "╝", "║", "═", "▓", "▒", "░", "▄", "▀", "█", "▌", "▐", "▬", "▮", "▯", "▰", "▱", "◈", "▣"];
+const wallDiv = document.getElementById('wall');
+let wHtml = '';
+for(let i=0; i<26; i++) {
+  wHtml += `<div class="wall-node"><div class="p-bulb" id="p-bulb-${i}"></div><div class="rune">${RUNES[i]}</div></div>`;
+}
+wallDiv.innerHTML = wHtml;
+
+const seq = [21, 14, 8, 3]; // V, O, I, D indices
+let seqIdx = 0;
+let seqTimer = null;
+
+function playSequence() {
+  if (document.getElementById('stage1').classList.contains('hide')) return;
+  for(let i=0; i<26; i++) {
+    document.getElementById(`p-bulb-${i}`).style.background = '#1a1a1a';
+    document.getElementById(`p-bulb-${i}`).style.boxShadow = 'inset 0 0 5px #000';
+  }
+  
+  const b = document.getElementById(`p-bulb-${seq[seqIdx]}`);
+  b.style.background = '#ffaa00';
+  b.style.boxShadow = '0 0 15px #ffaa00, 0 0 30px #ffaa00, inset 0 0 5px #fff';
+  
+  seqTimer = setTimeout(() => {
+    b.style.background = '#1a1a1a';
+    b.style.boxShadow = 'inset 0 0 5px #000';
+    seqIdx = (seqIdx + 1) % seq.length;
+    seqTimer = setTimeout(playSequence, 500); 
+  }, 1000);
+}
+
+function hackSystem() {
+  initAC();
+  playUDSting();
+  document.getElementById('intro').classList.add('hide');
+  document.getElementById('hack-seq').classList.remove('hide');
+}
+
+function goToStage(n) {
+  document.querySelectorAll('.term-box').forEach(el => el.classList.add('hide'));
+  document.getElementById('stage' + n).classList.remove('hide');
+  if (n === 1) {
+    playSequence();
+  } else {
+    clearTimeout(seqTimer);
+  }
+}
+
+function checkS1() {
+  const ans = document.getElementById('s1_ans').value.trim().toUpperCase();
+  if (ans === 'VOID') {
+    playChime();
+    goToStage(2);
+  } else {
+    document.getElementById('s1_err').classList.remove('hide');
+    playWhoosh();
+    setTimeout(() => document.getElementById('s1_err').classList.add('hide'), 2000);
+  }
+}
+
+function checkS2(choice) {
+  if (choice === 'crystal') {
+    document.getElementById('circuit-gap').style.display = 'none';
+    document.getElementById('circuit-fixed').style.display = 'block';
+    document.getElementById('wire2').setAttribute('fill', '#cc0000');
+    document.getElementById('wire2').style.filter = 'drop-shadow(0 0 5px #cc0000)';
+    document.getElementById('piston-head').setAttribute('x', '290');
+    document.getElementById('piston-head').setAttribute('width', '70'); 
+    playSTArp();
+    setTimeout(() => {
+      goToStage(3);
+    }, 2000);
+  } else {
+    document.getElementById('s2_err').classList.remove('hide');
+    playWhoosh();
+    setTimeout(() => document.getElementById('s2_err').classList.add('hide'), 2000);
+  }
+}
+
+function checkS3() {
+  const val = document.getElementById('s3_ans').value.trim();
+  const clean = val.replace(/[^0-9]/g, '');
+  // Creeper sides: 6
+  // Season count: 4 (or 5) -> allow 10 or 11
+  // Nether star points: 1 (or 4 points)
+  // Accept: 10, 40, 641, 11, 44
+  const valid = ['10', '40', '641', '11', '44', '64'];
+  if (valid.includes(clean)) {
+    playChime();
+    document.getElementById('stage3').classList.add('hide');
+    launchCard();
+  } else {
+    document.getElementById('s3_err').classList.remove('hide');
+    playWhoosh();
+    setTimeout(() => document.getElementById('s3_err').classList.add('hide'), 2000);
+  }
+}
+
+function launchCard() {
+  const raw=document.getElementById('kname').value.trim();
+  const name=raw||'FRIEND';
+  document.getElementById('lname').textContent=name.toUpperCase();
+  document.getElementById('bkname').textContent=name.charAt(0).toUpperCase()+name.slice(1).toLowerCase();
+  
+  document.getElementById('ca').style.display='flex';
+  document.getElementById('ca').classList.remove('hide');
+  setTimeout(playSTArp, 250);
+}
+
+// Enter key support
+document.getElementById('kname').addEventListener('keydown',e=>{if(e.key==='Enter')hackSystem()});
+document.getElementById('s1_ans').addEventListener('keydown',e=>{if(e.key==='Enter')checkS1()});
+document.getElementById('s3_ans').addEventListener('keydown',e=>{if(e.key==='Enter')checkS3()});
+
+let flipped=false;
+document.getElementById('scene').addEventListener('click',()=>{
+  flipped=!flipped;
+  document.getElementById('card').classList.toggle('open',flipped);
+  document.getElementById('hint').style.opacity=flipped?'0':'1';
+  playWhoosh();
+  if(flipped && !opened) {
+    opened = true;
+    setTimeout(playChime,300);
+  }
+});
+
+let udOn=false;
+function toggleUD(e){
+  e.stopPropagation();
+  udOn=!udOn;
+  document.body.classList.toggle('ud',udOn);
+  document.getElementById('udbtn').innerHTML=udOn?'&#8593; RETURN TO THE RIGHT-SIDE UP &#8593;':'&#8595; ENTER THE UPSIDE DOWN &#8595;';
+  if(udOn){playUDSting();setTimeout(startUD,400);}
+  else stopUD();
+}
+</script>
+</body>
+</html>

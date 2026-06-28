@@ -1,0 +1,523 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gravity Well | Fidget Toy Garden</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <style>
+    body.toy-page {
+      overflow: hidden;
+      background: #030407;
+    }
+
+    #gravity-canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+      touch-action: none;
+      cursor: none;
+    }
+
+    .cursor-indicator {
+      position: fixed;
+      pointer-events: none;
+      z-index: 10;
+      transform: translate(-50%, -50%);
+    }
+
+    .cursor-ring {
+      position: absolute;
+      border: 2px solid rgba(255, 120, 40, 0.8);
+      border-radius: 50%;
+      opacity: 0.5;
+      transition: all 0.15s ease-out;
+    }
+
+    .cursor-core {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #ff8c00 0%, #ff4500 100%);
+      box-shadow: 0 0 20px rgba(255, 140, 0, 0.9);
+    }
+
+    .well-pulse {
+      position: fixed;
+      pointer-events: none;
+      z-index: 9;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 80, 0, 0.4) 0%, transparent 70%);
+      opacity: 0;
+      animation: pulse 2s ease-out infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: translate(-50%, -50%) scale(0.5);
+        opacity: 0.5;
+      }
+
+      100% {
+        transform: translate(-50%, -50%) scale(2.5);
+        opacity: 0;
+      }
+    }
+
+    .velocity-meter {
+      position: fixed;
+      z-index: 4;
+      left: 18px;
+      bottom: 82px;
+      width: 8px;
+      height: min(120px, 20vh);
+      overflow: hidden;
+      border: 1px solid rgba(255, 120, 40, 0.4);
+      border-radius: 999px;
+      background: rgba(7, 8, 12, 0.58);
+      pointer-events: none;
+      backdrop-filter: blur(18px);
+    }
+
+    .velocity-meter span {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      height: 0%;
+      border-radius: inherit;
+      background: linear-gradient(to top, #ff4500 0%, #ff8c00 35%, #ffd700 65%, #ffffff 100%);
+      box-shadow: 0 0 14px rgba(255, 80, 0, 0.8);
+      transition: height 120ms linear;
+    }
+  </style>
+</head>
+
+<body class="toy-page">
+  <nav class="toy-nav" aria-label="Toy controls">
+    <a class="back-link" href="../fidgetToy-index.html">Home</a>
+    <button class="sound-toggle" type="button" aria-label="Toggle sound" aria-pressed="false">\u266A</button>
+  </nav>
+
+  <canvas id="gravity-canvas" aria-label="Interactive gravity well with orbiting particles"></canvas>
+
+  <div class="cursor-indicator" id="cursor-indicator">
+    <div class="cursor-ring" id="cursor-ring"></div>
+    <div class="cursor-core"></div>
+  </div>
+  <div class="well-pulse" id="well-pulse"></div>
+
+  <div class="velocity-meter" aria-hidden="true"><span id="velocity-fill"></span></div>
+
+  <div class="toy-status" aria-live="polite">
+    <p>Move to create gravity. Click to launch. The fire remembers your pull.</p>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gravity-canvas');
+    const ctx = canvas.getContext('2d');
+    const cursorIndicator = document.getElementById('cursor-indicator');
+    const cursorRing = document.getElementById('cursor-ring');
+    const wellPulse = document.getElementById('well-pulse');
+    const velocityFill = document.getElementById('velocity-fill');
+    const statusText = document.querySelector('.toy-status p');
+    const soundToggle = document.querySelector('.sound-toggle');
+
+    let width = 0, height = 0;
+    let dpr = 1;
+    let mouse = { x: 0, y: 0, down: false };
+    let particles = [];
+    let wellStrength = 1.0;
+    let maxParticles = 300;
+    let globalVelocity = 0;
+    let lastEmit = 0;
+    let soundOn = false;
+    let audioCtx = null;
+    let oscillators = [];
+    let rect;
+
+    // Flame color palette
+    const flameColors = [
+      { r: 255, g: 45, b: 0 },   // Orange-red
+      { r: 255, g: 69, b: 0 },   // Orange-red bright
+      { r: 255, g: 80, b: 0 },   // Deep orange
+      { r: 255, g: 100, b: 0 },  // Orange
+      { r: 255, g: 140, b: 0 },  // Dark orange
+      { r: 255, g: 165, b: 0 },  // Orange-yellow
+      { r: 255, g: 193, b: 37 }, // Golden orange
+      { r: 255, g: 215, b: 0 },  // Gold
+      { r: 255, g: 223, b: 0 },  // Light gold
+      { r: 255, g: 255, b: 100 },// Pale yellow
+      { r: 220, g: 20, b: 60 },  // Crimson
+      { r: 180, g: 20, b: 40 },  // Deep red
+      { r: 255, g: 140, b: 0 },  // Dark orange
+      { r: 255, g: 200, b: 80 }  // Amber
+    ];
+
+    class Particle {
+      constructor(x, y) {
+        this.x = x || Math.random() * width;
+        this.y = y || Math.random() * height;
+        this.vx = (Math.random() - 0.5) * 4;
+        this.vy = (Math.random() - 0.5) * 4;
+        this.radius = Math.random() * 2.2 + 0.3;
+        this.mass = this.radius * 0.4;
+
+        // Pick from flame palette with some variation
+        const color = flameColors[Math.floor(Math.random() * flameColors.length)];
+        this.r = color.r;
+        this.g = color.g + (Math.random() - 0.5) * 20;
+        this.b = color.b + (Math.random() - 0.5) * 10;
+        this.r = Math.max(0, Math.min(255, this.r));
+        this.g = Math.max(0, Math.min(255, this.g));
+        this.b = Math.max(0, Math.min(255, this.b));
+
+        this.alpha = 0.8;
+        this.lifetime = Math.random() * 50000 + 40000;
+        this.age = 0;
+        this.memory = [];
+        this.maxMemory = 5 + Math.floor(Math.random() * 10);
+
+        // Some particles flicker
+        this.flicker = Math.random() > 0.7 ? 0.1 + Math.random() * 0.2 : 0;
+        this.flickerPhase = Math.random() * Math.PI * 2;
+      }
+
+      update(dt, wellX, wellY) {
+        this.age += dt;
+
+        const dx = wellX - this.x;
+        const dy = wellY - this.y;
+        const distSq = dx * dx + dy * dy;
+        const dist = Math.sqrt(distSq);
+
+        // Anti-gravity: REPELS particles from the cursor
+        const minDist = 10;
+        const clampedDist = Math.max(minDist, dist);
+        const force = wellStrength * this.mass * 200000 / (clampedDist * clampedDist);
+
+        // NEGATIVE force - pushes away instead of pulling in
+        this.vx -= (dx / dist) * force * dt;
+        this.vy -= (dy / dist) * force * dt;
+
+        // Less damping for more chaotic motion
+        this.vx *= 0.95;
+        this.vy *= 0.95;
+
+        // Update position
+        this.x += this.vx * dt;
+        this.y += this.vy * dt;
+
+        // Boundary bounce - more energetic
+        const margin = this.radius + 5;
+        if (this.x < margin) {
+          this.x = margin;
+          this.vx = Math.abs(this.vx) * 0.8;
+        } else if (this.x > width - margin) {
+          this.x = width - margin;
+          this.vx = -Math.abs(this.vx) * 0.8;
+        }
+        if (this.y < margin) {
+          this.y = margin;
+          this.vy = Math.abs(this.vy) * 0.8;
+        } else if (this.y > height - margin) {
+          this.y = height - margin;
+          this.vy = -Math.abs(this.vy) * 0.8;
+        }
+
+        this.memory.push({ x: this.x, y: this.y });
+        if (this.memory.length > this.maxMemory) {
+          this.memory.shift();
+        }
+
+        return Math.sqrt(this.vx * this.vx + this.vy * this.vy);
+      }
+
+      draw(ctx) {
+        // Flicker effect
+        let alpha = this.alpha * (1 - Math.min(1, this.age / this.lifetime));
+        if (this.flicker > 0) {
+          const flicker = Math.sin(performance.now() * 0.008 + this.flickerPhase) * 0.5 + 0.5;
+          alpha *= 0.7 + flicker * 0.3;
+        }
+
+        const rgb = `rgb(${this.r}, ${this.g}, ${this.b})`;
+
+        // Draw trail
+        if (this.memory.length > 1) {
+          ctx.beginPath();
+          ctx.moveTo(this.memory[0].x, this.memory[0].y);
+          for (let i = 1; i < this.memory.length; i++) {
+            ctx.lineTo(this.memory[i].x, this.memory[i].y);
+          }
+          ctx.strokeStyle = rgb.replace('rgb', 'rgba') + `, ${alpha * 0.4})`;
+          ctx.lineWidth = this.radius * 0.8;
+          ctx.lineCap = 'round';
+          ctx.globalAlpha = alpha * 0.6;
+          ctx.stroke();
+          ctx.globalAlpha = 1;
+        }
+
+        // Draw particle with glow
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+
+        ctx.shadowColor = rgb;
+        ctx.shadowBlur = this.radius * 8;
+        ctx.fillStyle = rgb.replace('rgb', 'rgba') + `, ${alpha})`;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // Inner highlight - yellow/white
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius * 0.3, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 200, ${alpha * 0.5})`;
+        ctx.fill();
+      }
+
+      isDead() {
+        return this.age >= this.lifetime;
+      }
+    }
+
+    function initAudio() {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return false;
+
+      audioCtx = new AudioContext();
+
+      const baseOsc = audioCtx.createOscillator();
+      baseOsc.type = 'sine';
+      baseOsc.frequency.value = 150;
+      const baseGain = audioCtx.createGain();
+      baseGain.gain.value = 0;
+      baseOsc.connect(baseGain);
+      baseGain.connect(audioCtx.destination);
+      baseOsc.start();
+      oscillators.push({ osc: baseOsc, gain: baseGain, type: 'base' });
+
+      [2, 3, 4, 5].forEach(ratio => {
+        const osc = audioCtx.createOscillator();
+        osc.type = 'sine';
+        osc.frequency.value = 150 * ratio;
+        const gain = audioCtx.createGain();
+        gain.gain.value = 0;
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        oscillators.push({ osc, gain, ratio, type: 'harmonic' });
+      });
+
+      return true;
+    }
+
+    function updateAudio(particleCount, avgVelocity) {
+      if (!soundOn || !audioCtx) return;
+      const now = audioCtx.currentTime;
+      const baseFreq = 150 + particleCount * 0.5 + avgVelocity * 30;
+      const intensity = Math.min(1, particleCount / maxParticles) * 0.8;
+      oscillators.forEach(osc => {
+        if (osc.type === 'base') {
+          osc.osc.frequency.setTargetAtTime(baseFreq, now, 0.1);
+          osc.gain.gain.setTargetAtTime(intensity, now, 0.1);
+        } else {
+          osc.osc.frequency.value = baseFreq * osc.ratio;
+          osc.gain.gain.setTargetAtTime(intensity / osc.ratio, now, 0.1);
+        }
+      });
+    }
+
+    function toggleSound() {
+      if (!audioCtx) {
+        if (!initAudio()) {
+          statusText.textContent = 'This browser does not support Web Audio.';
+          setTimeout(() => {
+            statusText.textContent = 'Move to create gravity. Click to launch. The fire remembers your pull.';
+          }, 4000);
+          return;
+        }
+      }
+      soundOn = !soundOn;
+      soundToggle.setAttribute('aria-pressed', soundOn);
+      soundToggle.textContent = soundOn ? '\u266B' : '\u266A';
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function getMousePos(e) {
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      return { x, y };
+    }
+
+    canvas.addEventListener('mousemove', e => {
+      const pos = getMousePos(e);
+      mouse.x = pos.x;
+      mouse.y = pos.y;
+      cursorIndicator.style.left = e.clientX + 'px';
+      cursorIndicator.style.top = e.clientY + 'px';
+      wellPulse.style.left = e.clientX + 'px';
+      wellPulse.style.top = e.clientY + 'px';
+    });
+
+    canvas.addEventListener('mousedown', e => {
+      mouse.down = true;
+      const pos = getMousePos(e);
+
+      // More particles, more violent
+      const count = 15 + Math.floor(Math.random() * 15);
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 3 + Math.random() * 8;
+        const offset = 20 + Math.random() * 40;
+        const p = new Particle(pos.x + Math.cos(angle) * offset, pos.y + Math.sin(angle) * offset);
+        p.vx = Math.cos(angle) * speed;
+        p.vy = Math.sin(angle) * speed;
+        p.lifetime = 8000 + Math.random() * 20000;
+        particles.push(p);
+        if (particles.length > maxParticles * 1.5) particles.shift();
+      }
+      if (navigator.vibrate) navigator.vibrate(20);
+    });
+
+    canvas.addEventListener('mouseup', () => mouse.down = false);
+    canvas.addEventListener('mouseleave', () => mouse.down = false);
+
+    canvas.addEventListener('touchmove', e => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      mouse.x = touch.clientX - rect.left;
+      mouse.y = touch.clientY - rect.top;
+      cursorIndicator.style.left = touch.clientX + 'px';
+      cursorIndicator.style.top = touch.clientY + 'px';
+      wellPulse.style.left = touch.clientX + 'px';
+      wellPulse.style.top = touch.clientY + 'px';
+    }, { passive: false });
+
+    canvas.addEventListener('touchstart', e => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      mouse.x = touch.clientX - rect.left;
+      mouse.y = touch.clientY - rect.top;
+      mouse.down = true;
+      cursorIndicator.style.left = touch.clientX + 'px';
+      cursorIndicator.style.top = touch.clientY + 'px';
+      wellPulse.style.left = touch.clientX + 'px';
+      wellPulse.style.top = touch.clientY + 'px';
+
+      const count = 20 + Math.floor(Math.random() * 15);
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = 4 + Math.random() * 8;
+        const offset = 25 + Math.random() * 40;
+        const p = new Particle(mouse.x + Math.cos(angle) * offset, mouse.y + Math.sin(angle) * offset);
+        p.vx = Math.cos(angle) * speed;
+        p.vy = Math.sin(angle) * speed;
+        p.lifetime = 8000 + Math.random() * 20000;
+        particles.push(p);
+        if (particles.length > maxParticles * 1.5) particles.shift();
+      }
+      if (navigator.vibrate) navigator.vibrate(40);
+    }, { passive: false });
+
+    canvas.addEventListener('touchend', e => { e.preventDefault(); mouse.down = false; });
+    soundToggle.addEventListener('click', toggleSound);
+
+    function resize() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = Math.floor(width * dpr);
+      canvas.height = Math.floor(height * dpr);
+      canvas.style.width = width + 'px';
+      canvas.style.height = height + 'px';
+      rect = canvas.getBoundingClientRect();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.scale(dpr, dpr);
+    }
+
+    window.addEventListener('resize', resize);
+
+    let lastTime = performance.now();
+
+    function initParticles() {
+      for (let i = 0; i < maxParticles * 0.7; i++) {
+        particles.push(new Particle());
+      }
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const now = performance.now();
+      const dt = Math.min(32, (now - lastTime) / 1000);
+      lastTime = now;
+
+      // Well strength: stronger when near center
+      const centerX = width / 2;
+      const centerY = height / 2;
+      const distFromCenter = Math.sqrt(Math.pow(mouse.x - centerX, 2) + Math.pow(mouse.y - centerY, 2));
+      const maxDist = Math.sqrt(centerX * centerX + centerY * centerY);
+      wellStrength = 1.0 + (1 - Math.min(1, distFromCenter / maxDist)) * 2.0;
+
+      const ringSize = 30 + wellStrength * 40;
+      const flameIntensity = 0.5 + wellStrength * 0.5;
+      cursorRing.style.width = ringSize + 'px';
+      cursorRing.style.height = ringSize + 'px';
+      cursorRing.style.top = (-ringSize / 2 + 4) + 'px';
+      cursorRing.style.left = (-ringSize / 2 + 4) + 'px';
+      cursorRing.style.opacity = 0.4 + wellStrength * 0.4;
+      cursorRing.style.borderColor = `rgba(255, ${100 + flameIntensity * 55}, 0, ${0.7 + wellStrength * 0.3})`;
+
+      // Continuous emission when dragging
+      if (mouse.down && now - lastEmit > 50) {
+        const count = 3 + Math.floor(Math.random() * 5);
+        for (let i = 0; i < count; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = 2 + Math.random() * 6;
+          const offset = 15 + Math.random() * 25;
+          const p = new Particle(mouse.x + Math.cos(angle) * offset, mouse.y + Math.sin(angle) * offset);
+          p.vx = Math.cos(angle) * speed;
+          p.vy = Math.sin(angle) * speed;
+          particles.push(p);
+          if (particles.length > maxParticles * 1.5) particles.shift();
+        }
+        lastEmit = now;
+      }
+
+      let totalVelocity = 0;
+      let liveCount = 0;
+
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const vel = particles[i].update(dt, mouse.x, mouse.y);
+        totalVelocity += vel;
+        liveCount += particles[i].isDead() ? 0 : 1;
+        if (particles[i].isDead()) {
+          particles.splice(i, 1);
+          if (particles.length < maxParticles) particles.push(new Particle());
+        }
+      }
+
+      globalVelocity = totalVelocity / Math.max(1, liveCount);
+      velocityFill.style.height = Math.min(100, (globalVelocity / 15) * 100) + '%';
+
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0, 0, width, height);
+
+      particles.forEach(p => p.draw(ctx));
+      updateAudio(particles.length, globalVelocity);
+    }
+
+    resize();
+    rect = canvas.getBoundingClientRect();
+    mouse.x = width / 2;
+    mouse.y = height / 2;
+    initParticles();
+    requestAnimationFrame(animate);
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Birthday Card</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #000;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Courier New', monospace;
+      color: #fff;
+      overflow: hidden;
+      transition: transform 1.8s cubic-bezier(.4, 0, .2, 1), filter 1.8s ease;
+    }
+
+    body.ud {
+      transform: rotate(180deg);
+      filter: invert(1) hue-rotate(140deg);
+    }
+
+    canvas#bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    #app {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
+    /* ── Sound toggle button ── */
+    #sndbtn {
+      position: fixed;
+      top: 14px;
+      right: 14px;
+      z-index: 200;
+      background: transparent;
+      border: 1px solid #221111;
+      color: #441111;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 13px;
+      font-family: 'Courier New', monospace;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .3s;
+    }
+
+    #sndbtn:hover { border-color: #660000; color: #880000; }
+    #sndbtn.off   { color: #220000; border-color: #110000; }
+
+    /* ── Name-entry screen ── */
+    #ns {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 18px;
+      text-align: center;
+    }
+
+    .ns-label {
+      font-size: 11px;
+      letter-spacing: 7px;
+      color: #bb0000;
+      text-shadow: 0 0 12px #ff0000;
+      animation: flk 4s infinite;
+    }
+
+    .ns-sub {
+      font-size: 9px;
+      letter-spacing: 3px;
+      color: #440000;
+      margin-top: -10px;
+    }
+
+    #kname {
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid #990000;
+      color: #fff;
+      padding: 8px 12px;
+      font-size: 20px;
+      font-family: 'Courier New', monospace;
+      text-align: center;
+      outline: none;
+      width: 280px;
+      letter-spacing: 4px;
+      caret-color: #ff4444;
+    }
+
+    #kname::placeholder { color: #440000; }
+
+    #gobtn {
+      background: #aa0000;
+      color: #fff;
+      border: none;
+      padding: 10px 32px;
+      font-size: 12px;
+      letter-spacing: 5px;
+      font-family: 'Courier New', monospace;
+      cursor: pointer;
+      text-transform: uppercase;
+      box-shadow: 0 0 20px #aa000099;
+      transition: all .3s;
+    }
+
+    #gobtn:hover {
+      background: #dd0000;
+      box-shadow: 0 0 40px #dd0000;
+      transform: scale(1.04);
+    }
+
+    /* ── Card area ── */
+    #ca {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .scene {
+      width: 660px;
+      height: 440px;
+      perspective: 1400px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .card {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 1.3s cubic-bezier(.4, 0, .2, 1);
+    }
+
+    .card.open { transform: rotateY(-180deg); }
+
+    .face {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      border-radius: 5px;
+      overflow: hidden;
+    }
+
+    /* ── Front face ── */
+    .front {
+      display: flex;
+      flex-direction: column;
+      background: linear-gradient(150deg, #060610, #0b0b1c, #060610);
+      border: 2px solid #880000;
+      box-shadow: 0 0 35px #88000055, inset 0 0 50px #00000077;
+    }
+
+    .lbar {
+      position: relative;
+      width: 100%;
+      height: 34px;
+      flex-shrink: 0;
+    }
+
+    .wire {
+      position: absolute;
+      top: 7px;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: #1a1a1a;
+    }
+
+    .brow {
+      display: flex;
+      justify-content: space-around;
+      align-items: flex-start;
+      padding: 0 6px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .bu    { display: flex; flex-direction: column; align-items: center; }
+    .bstem { width: 1px; height: 7px; background: #333; }
+
+    .bg2 {
+      width: 10px;
+      height: 14px;
+      border-radius: 50% 50% 42% 42%;
+    }
+
+    .bcap {
+      width: 10px;
+      height: 3px;
+      background: #2a2a2a;
+      margin-top: 1px;
+      border-radius: 1px;
+    }
+
+    .fmain {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      padding: 8px 24px 24px;
+    }
+
+    /* Floating sparkle symbols */
+    .sp  { position: absolute; pointer-events: none; }
+    .sp1 { top: 16px;   left: 24px;  font-size: 20px; color: #2299ff; opacity: .35; animation: fl1 9s  ease-in-out infinite; }
+    .sp2 { top: 22px;   right: 30px; font-size: 14px; color: #9933ff; opacity: .3;  animation: fl1 7s  ease-in-out infinite 2s; }
+    .sp3 { bottom: 32px; left: 48px; font-size: 17px; color: #33ffaa; opacity: .28; animation: fl1 11s ease-in-out infinite 4s; }
+    .sp4 { bottom: 26px; right: 44px; font-size: 15px; color: #ff9933; opacity: .28; animation: fl1 8s ease-in-out infinite 1s; }
+    .sp5 { top: 50%; left: 14px;   font-size: 12px; color: #ff3366; opacity: .2;  animation: fl1 10s ease-in-out infinite 3s; }
+    .sp6 { top: 44%; right: 16px;  font-size: 11px; color: #ffff44; opacity: .2;  animation: fl1 13s ease-in-out infinite 5s; }
+
+    .lhappy {
+      font-size: 11px;
+      letter-spacing: 9px;
+      color: #770000;
+      text-shadow: 0 0 8px #ff3333;
+      margin-bottom: 6px;
+    }
+
+    .lbday {
+      font-size: 60px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      line-height: 1;
+      text-transform: uppercase;
+      color: #bb0000;
+      text-shadow: 0 0 8px #ff0000, 0 0 20px #ff0000, 0 0 45px #990000;
+      animation: flk 5s infinite;
+    }
+
+    .lname {
+      font-size: 36px;
+      font-weight: 700;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: #ff7744;
+      text-shadow: 0 0 8px #ff6633, 0 0 20px #ff4411;
+      margin-top: 4px;
+      animation: flk 7s infinite 1.2s;
+    }
+
+    .lfrom {
+      position: absolute;
+      bottom: 12px;
+      right: 14px;
+      font-size: 9px;
+      letter-spacing: 3px;
+      color: #330000;
+    }
+
+    #udbtn {
+      position: absolute;
+      bottom: 10px;
+      left: 12px;
+      background: transparent;
+      border: 1px solid #2a0000;
+      color: #440000;
+      font-size: 8px;
+      letter-spacing: 1px;
+      padding: 3px 7px;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+      transition: all .3s;
+      z-index: 5;
+    }
+
+    #udbtn:hover {
+      border-color: #aa0000;
+      color: #aa0000;
+      box-shadow: 0 0 8px #aa000066;
+    }
+
+    /* ── Back face ── */
+    .back {
+      display: flex;
+      flex-direction: column;
+      padding: 26px 30px;
+      gap: 16px;
+      background: linear-gradient(150deg, #030314, #050526, #030318);
+      border: 2px solid #1a2d99;
+      box-shadow: 0 0 35px #1a2d9944;
+      transform: rotateY(180deg);
+    }
+
+    .bkhdr {
+      text-align: center;
+      font-size: 10px;
+      letter-spacing: 6px;
+      color: #2255cc;
+      text-shadow: 0 0 10px #2255cc;
+    }
+
+    .bkmsg {
+      font-size: 13.5px;
+      line-height: 1.9;
+      color: #99aabb;
+      text-align: center;
+      flex: 1;
+      display: flex;
+      align-items: center;
+    }
+
+    .bkmsg p { width: 100%; }
+
+    /* Glow text colors for message */
+    .gb { color: #3377ff; text-shadow: 0 0 7px #3377ff; }
+    .gg { color: #33ffaa; text-shadow: 0 0 7px #33ffaa; }
+    .gr { color: #ff3344; text-shadow: 0 0 7px #ff3344; }
+    .gy { color: #ffdd44; text-shadow: 0 0 7px #ffdd44; }
+
+    /* Fact boxes */
+    .facts { display: flex; gap: 8px; }
+
+    .fact {
+      flex: 1;
+      border: 1px solid #111a33;
+      background: #05051688;
+      padding: 8px 10px;
+      font-size: 9.5px;
+      line-height: 1.6;
+      color: #6688aa;
+    }
+
+    .flbl {
+      display: block;
+      font-size: 8px;
+      letter-spacing: 3px;
+      color: #2255cc;
+      text-shadow: 0 0 6px #2255cc;
+      margin-bottom: 3px;
+      text-transform: uppercase;
+    }
+
+    .bkhint {
+      font-size: 9px;
+      letter-spacing: 3px;
+      color: #0a1a33;
+      text-align: center;
+    }
+
+    .hint {
+      font-size: 9px;
+      letter-spacing: 3px;
+      color: #3a0000;
+      animation: pulse 2.5s infinite;
+    }
+
+    /* ── Keyframes ── */
+    @keyframes flk {
+      0%, 88%, 90%, 92%, 100% { opacity: 1; }
+      89% { opacity: .25; }
+      91% { opacity: .7; }
+    }
+
+    @keyframes fl1 {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50%       { transform: translateY(-10px) rotate(4deg); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: .4; }
+      50%       { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="bg"></canvas>
+<button id="sndbtn" title="Toggle sound">&#9834;</button>
+
+<div id="app">
+
+  <!-- Name entry screen -->
+  <div id="ns">
+    <div class="ns-label">CLASSIFIED TRANSMISSION</div>
+    <div class="ns-sub">[ ENTER RECIPIENT DESIGNATION ]</div>
+    <input id="kname" type="text" placeholder="NAME" maxlength="18" autocomplete="off"/>
+    <button id="gobtn" onclick="launch()">INITIATE &rarr;</button>
+  </div>
+
+  <!-- Card -->
+  <div id="ca">
+    <div class="scene" id="scene">
+      <div class="card" id="card">
+
+        <!-- Front -->
+        <div class="face front">
+          <div class="lbar">
+            <div class="wire"></div>
+            <div class="brow" id="brow"></div>
+          </div>
+          <div class="fmain">
+            <div class="sp sp1">&#9883;</div>
+            <div class="sp sp2">&#10022;</div>
+            <div class="sp sp3">&#9737;</div>
+            <div class="sp sp4">&#11042;</div>
+            <div class="sp sp5">&#8734;</div>
+            <div class="sp sp6">&#9670;</div>
+            <div class="lhappy">&mdash; HAPPY &mdash;</div>
+            <div class="lbday">BIRTHDAY</div>
+            <div class="lname" id="lname">FRIEND</div>
+          </div>
+          <div class="lfrom">a mystery sender &bull;</div>
+          <button id="udbtn" onclick="toggleUD(event)">&#8595; ENTER THE UPSIDE DOWN &#8595;</button>
+        </div>
+
+        <!-- Back -->
+        <div class="face back">
+          <div class="bkhdr">&#10022; TRANSMISSION FROM THE RIGHT-SIDE UP &#10022;</div>
+          <div class="bkmsg">
+            <p>
+              Hey <span class="gb" id="bkname">Friend</span> &mdash;<br><br>
+              You are the kind of person who notices things others miss.<br>
+              The <span class="gg">science</span> that explains everything,<br>
+              the <span class="gb">space</span> between galaxies that goes on forever,<br>
+              the <span class="gr">mysteries</span> lurking somewhere in the dark.<br><br>
+              Keep asking <span class="gy">why</span>. That&rsquo;s where all the good stuff lives.<br><br>
+              Happy birthday. You are genuinely awesome.
+            </p>
+          </div>
+          <div class="facts">
+            <div class="fact">
+              <span class="flbl">&#9672; Space fact</span>
+              There are more stars in the universe than grains of sand on every beach on Earth &mdash;
+              and you are made of atoms forged inside those stars.
+            </div>
+            <div class="fact">
+              <span class="flbl">&#9883; Science fact</span>
+              If you unraveled all the DNA in your body it would stretch from Earth to Pluto and back &mdash;
+              17 times. You contain multitudes.
+            </div>
+            <div class="fact">
+              <span class="flbl">&#9650; ST fact</span>
+              The Upside Down is theoretically real. Physicists call parallel dimensions &ldquo;branes&rdquo;
+              in string theory. You already knew to look for it.
+            </div>
+          </div>
+          <div class="bkhint">[ CLICK TO CLOSE ]</div>
+        </div>
+
+      </div>
+    </div>
+    <div class="hint" id="hint">[ CLICK CARD TO OPEN ]</div>
+  </div>
+
+</div>
+
+<script>
+  // ── Canvas starfield background ──────────────────────────────────────────
+  const cv = document.getElementById('bg');
+  const cx = cv.getContext('2d');
+
+  function rsz() {
+    cv.width  = innerWidth;
+    cv.height = innerHeight;
+  }
+  rsz();
+  window.addEventListener('resize', rsz);
+
+  const stars = Array.from({ length: 240 }, () => ({
+    x:  Math.random() * cv.width,
+    y:  Math.random() * cv.height,
+    r:  Math.random() * 1.5 + .2,
+    ph: Math.random() * Math.PI * 2,
+    sp: Math.random() * .012 + .004,
+    dr: (Math.random() - .5) * .18,
+    h:  200 + Math.random() * 60
+  }));
+
+  const nebs = Array.from({ length: 6 }, () => ({
+    x: Math.random() * cv.width,
+    y: Math.random() * cv.height,
+    r: 80 + Math.random() * 120,
+    h: Math.random() * 360,
+    a: .025 + Math.random() * .035
+  }));
+
+  (function loop() {
+    cx.clearRect(0, 0, cv.width, cv.height);
+
+    // Nebulae
+    nebs.forEach(n => {
+      const g = cx.createRadialGradient(n.x, n.y, 0, n.x, n.y, n.r);
+      g.addColorStop(0, `hsla(${n.h}, 65%, 35%, ${n.a})`);
+      g.addColorStop(1, 'transparent');
+      cx.fillStyle = g;
+      cx.beginPath();
+      cx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+      cx.fill();
+    });
+
+    // Stars
+    stars.forEach(s => {
+      s.ph += s.sp;
+      s.x  += s.dr;
+      if (s.x > cv.width)  s.x = 0;
+      if (s.x < 0)         s.x = cv.width;
+      const a = (Math.sin(s.ph) + 1) / 2 * .75 + .25;
+      cx.fillStyle = `hsla(${s.h}, 50%, 90%, ${a})`;
+      cx.beginPath();
+      cx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      cx.fill();
+    });
+
+    requestAnimationFrame(loop);
+  })();
+
+
+  // ── Christmas-light bulbs ─────────────────────────────────────────────────
+  const COLS = ['#ff1111','#00dd00','#ffaa00','#0099ff','#ff00ff','#00ddff','#ffee00','#ff6600'];
+  const brow  = document.getElementById('brow');
+  const bulbs = [];
+
+  for (let i = 0; i < 36; i++) {
+    const u = document.createElement('div');
+    u.className = 'bu';
+    u.innerHTML = '<div class="bstem"></div><div class="bg2"></div><div class="bcap"></div>';
+    const g = u.querySelector('.bg2');
+    const c = COLS[i % COLS.length];
+    g.style.background  = c;
+    g.style.boxShadow   = `0 0 5px ${c}, 0 0 10px ${c}99`;
+    brow.appendChild(u);
+    bulbs.push(g);
+  }
+
+  (function flicker() {
+    const b  = bulbs[Math.floor(Math.random() * bulbs.length)];
+    const on = Math.random() > .07;
+    const c  = on ? COLS[Math.floor(Math.random() * COLS.length)] : '#0d0d0d';
+    b.style.background = c;
+    b.style.boxShadow  = on ? `0 0 5px ${c}, 0 0 10px ${c}99` : 'none';
+    setTimeout(flicker, 50 + Math.random() * 450);
+  })();
+
+
+  // ── Audio ─────────────────────────────────────────────────────────────────
+  let AC     = null;
+  let sndOn  = true;
+  let udSrcs = [];
+  let udGains = [];
+  let opened = false;
+
+  function initAC() {
+    if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)();
+    if (AC.state === 'suspended') AC.resume();
+  }
+
+  function mkReverb(dur = 2.5, decay = 2.2) {
+    const conv = AC.createConvolver();
+    const len  = AC.sampleRate * dur;
+    const buf  = AC.createBuffer(2, len, AC.sampleRate);
+    for (let c = 0; c < 2; c++) {
+      const d = buf.getChannelData(c);
+      for (let i = 0; i < len; i++) {
+        d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
+      }
+    }
+    conv.buffer = buf;
+    return conv;
+  }
+
+  function playSTArp() {
+    if (!sndOn || !AC) return;
+    const notes = [164.81, 246.94, 293.66, 329.63, 392, 440, 493.88, 587.33];
+    const rev   = mkReverb(3, 2.5);
+    const mG    = AC.createGain();
+    mG.gain.value = 0.26;
+    mG.connect(rev);
+    mG.connect(AC.destination);
+    rev.connect(AC.destination);
+
+    notes.forEach((f, i) => {
+      const t = AC.currentTime + .3 + i * .2;
+      [0, 8, -6].forEach(det => {
+        const o  = AC.createOscillator();
+        const g  = AC.createGain();
+        const fl = AC.createBiquadFilter();
+        o.type           = 'sawtooth';
+        o.frequency.value = f;
+        o.detune.value   = det;
+        fl.type          = 'lowpass';
+        fl.frequency.value = 1700;
+        fl.Q.value       = 0.7;
+        g.gain.setValueAtTime(0, t);
+        g.gain.linearRampToValueAtTime(.1, t + .025);
+        g.gain.setValueAtTime(.1, t + .12);
+        g.gain.exponentialRampToValueAtTime(.0001, t + .55);
+        o.connect(fl); fl.connect(g); g.connect(mG);
+        o.start(t); o.stop(t + .65);
+      });
+    });
+  }
+
+  function playWhoosh() {
+    if (!sndOn || !AC) return;
+    const dur = .38;
+    const buf = AC.createBuffer(1, Math.ceil(AC.sampleRate * dur), AC.sampleRate);
+    const d   = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) {
+      d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, .22) * .9;
+    }
+    const src = AC.createBufferSource();
+    const fl  = AC.createBiquadFilter();
+    const g   = AC.createGain();
+    fl.type = 'bandpass';
+    fl.frequency.setValueAtTime(3000, AC.currentTime);
+    fl.frequency.exponentialRampToValueAtTime(160, AC.currentTime + dur);
+    fl.Q.value  = 2;
+    g.gain.value = .3;
+    src.buffer  = buf;
+    src.connect(fl); fl.connect(g); g.connect(AC.destination);
+    src.start();
+  }
+
+  function playChime() {
+    if (!sndOn || !AC || opened) return;
+    opened = true;
+    const rev = mkReverb(2.5, 2);
+    rev.connect(AC.destination);
+    [261.63, 329.63, 392, 523.25].forEach((f, i) => {
+      const t = AC.currentTime + i * .14;
+      const o = AC.createOscillator();
+      const g = AC.createGain();
+      o.type         = 'triangle';
+      o.frequency.value = f;
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(.16, t + .02);
+      g.gain.exponentialRampToValueAtTime(.0001, t + .55);
+      o.connect(g); g.connect(rev); g.connect(AC.destination);
+      o.start(t); o.stop(t + .7);
+    });
+  }
+
+  function playUDSting() {
+    if (!sndOn || !AC) return;
+    [36.7, 55, 73.4].forEach((f, i) => {
+      const t = AC.currentTime + i * .06;
+      const o = AC.createOscillator();
+      const g = AC.createGain();
+      o.type         = 'sawtooth';
+      o.frequency.value = f;
+      g.gain.setValueAtTime(.35, t);
+      g.gain.exponentialRampToValueAtTime(.0001, t + 1.8);
+      o.connect(g); g.connect(AC.destination);
+      o.start(t); o.stop(t + 2.2);
+    });
+  }
+
+  function startUD() {
+    if (!sndOn || !AC) return;
+
+    // Sub bass
+    const sub  = AC.createOscillator();
+    const subG = AC.createGain();
+    sub.type          = 'sine';
+    sub.frequency.value = 38;
+    subG.gain.setValueAtTime(0, AC.currentTime);
+    subG.gain.linearRampToValueAtTime(.48, AC.currentTime + 2.5);
+    sub.connect(subG); subG.connect(AC.destination);
+    sub.start();
+
+    // LFO on sub frequency
+    const lfo  = AC.createOscillator();
+    const lfoG = AC.createGain();
+    lfo.frequency.value = .1;
+    lfoG.gain.value     = 18;
+    lfo.connect(lfoG); lfoG.connect(sub.frequency);
+    lfo.start();
+
+    // Mid sawtooth through bandpass
+    const mid  = AC.createOscillator();
+    const midG = AC.createGain();
+    const midF = AC.createBiquadFilter();
+    mid.type          = 'sawtooth';
+    mid.frequency.value = 73.4;
+    midF.type         = 'bandpass';
+    midF.frequency.value = 280;
+    midF.Q.value      = 14;
+    midG.gain.setValueAtTime(0, AC.currentTime);
+    midG.gain.linearRampToValueAtTime(.22, AC.currentTime + 3);
+    mid.connect(midF); midF.connect(midG); midG.connect(AC.destination);
+    mid.start();
+
+    // Noise layer
+    const nLen = AC.sampleRate * 3;
+    const nBuf = AC.createBuffer(1, nLen, AC.sampleRate);
+    const nd   = nBuf.getChannelData(0);
+    for (let i = 0; i < nLen; i++) nd[i] = Math.random() * 2 - 1;
+
+    const ns = AC.createBufferSource();
+    const nF = AC.createBiquadFilter();
+    const nG = AC.createGain();
+    ns.buffer  = nBuf;
+    ns.loop    = true;
+    nF.type    = 'bandpass';
+    nF.frequency.value = 700;
+    nF.Q.value = 18;
+    nF.frequency.linearRampToValueAtTime(1400, AC.currentTime + 10);
+    nF.frequency.linearRampToValueAtTime(600,  AC.currentTime + 22);
+    nG.gain.setValueAtTime(0, AC.currentTime);
+    nG.gain.linearRampToValueAtTime(.07, AC.currentTime + 3);
+    ns.connect(nF); nF.connect(nG); nG.connect(AC.destination);
+    ns.start();
+
+    udSrcs  = [sub, lfo, mid, ns];
+    udGains = [subG, midG, nG];
+  }
+
+  function stopUD() {
+    const now = AC.currentTime;
+    udGains.forEach(g => {
+      try {
+        g.gain.cancelScheduledValues(now);
+        g.gain.linearRampToValueAtTime(0, now + 1.5);
+      } catch(e) {}
+    });
+    udSrcs.forEach(s => {
+      try { s.stop(now + 2); } catch(e) {}
+    });
+    udSrcs  = [];
+    udGains = [];
+  }
+
+  document.getElementById('sndbtn').addEventListener('click', () => {
+    sndOn = !sndOn;
+    const btn = document.getElementById('sndbtn');
+    btn.innerHTML = sndOn ? '&#9834;' : '&#10005;';
+    btn.classList.toggle('off', !sndOn);
+    if (!sndOn && udOn) stopUD();
+  });
+
+
+  // ── Name launch ───────────────────────────────────────────────────────────
+  function launch() {
+    initAC();
+    const raw  = document.getElementById('kname').value.trim();
+    const name = raw || 'FRIEND';
+    document.getElementById('lname').textContent  = name.toUpperCase();
+    document.getElementById('bkname').textContent = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+    document.getElementById('ns').style.display   = 'none';
+    document.getElementById('ca').style.display   = 'flex';
+    setTimeout(playSTArp, 250);
+  }
+
+  document.getElementById('kname').addEventListener('keydown', e => {
+    if (e.key === 'Enter') launch();
+  });
+
+
+  // ── Card flip ─────────────────────────────────────────────────────────────
+  let flipped = false;
+
+  document.getElementById('scene').addEventListener('click', () => {
+    flipped = !flipped;
+    document.getElementById('card').classList.toggle('open', flipped);
+    document.getElementById('hint').style.opacity = flipped ? '0' : '1';
+    playWhoosh();
+    if (flipped) setTimeout(playChime, 300);
+  });
+
+
+  // ── Upside Down toggle ────────────────────────────────────────────────────
+  let udOn = false;
+
+  function toggleUD(e) {
+    e.stopPropagation();
+    udOn = !udOn;
+    document.body.classList.toggle('ud', udOn);
+    document.getElementById('udbtn').innerHTML = udOn
+      ? '&#8593; RETURN TO THE RIGHT-SIDE UP &#8593;'
+      : '&#8595; ENTER THE UPSIDE DOWN &#8595;';
+    if (udOn) {
+      playUDSting();
+      setTimeout(startUD, 400);
+    } else {
+      stopUD();
+    }
+  }
+</script>
+
+</body>
+</html>

@@ -300,39 +300,55 @@ h1 {
 }
 
 .pulse-preview {
-  background:
-    radial-gradient(circle at 50% 50%, rgba(255, 209, 102, 0.62), transparent 24%),
-    radial-gradient(circle at 50% 50%, rgba(54, 247, 255, 0.2), transparent 42%),
-    #0b0e13;
+  overflow: hidden;
+  background: #030407;
+}
+
+.pulse-preview::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 100' preserveAspectRatio='none'><defs><filter id='gp' x='-40%25' y='-40%25' width='180%25' height='180%25'><feGaussianBlur stdDeviation='1.5' result='b'/><feMerge><feMergeNode in='b'/><feMergeNode in='SourceGraphic'/></feMerge></filter></defs><polygon points='0,48 85,50 0,52' fill='white' fill-opacity='0.2' filter='url(%23gp)'/><line x1='0' y1='50' x2='85' y2='50' stroke='white' stroke-width='0.5' opacity='0.6' filter='url(%23gp)'/><g filter='url(%23gp)'><line x1='115' y1='50' x2='200' y2='50' stroke='%23cc00ff' stroke-width='2.2' opacity='0.8'/><line x1='115' y1='50' x2='200' y2='61' stroke='%234455ff' stroke-width='2.2' opacity='0.8'/><line x1='115' y1='50' x2='200' y2='72' stroke='%2300ccff' stroke-width='2.2' opacity='0.8'/><line x1='115' y1='50' x2='200' y2='84' stroke='%2333ee66' stroke-width='2.2' opacity='0.8'/><line x1='115' y1='50' x2='200' y2='97' stroke='%23ffdd00' stroke-width='2.2' opacity='0.8'/><line x1='115' y1='50' x2='182' y2='100' stroke='%23ff7700' stroke-width='2.2' opacity='0.8'/><line x1='115' y1='50' x2='168' y2='100' stroke='%23ff2244' stroke-width='2.2' opacity='0.8'/></g><polygon points='100,24 70,76 130,76' fill='%23c0ddff' fill-opacity='0.07' stroke='%23aaddff' stroke-width='0.9'/><polygon points='100,24 70,76 130,76' fill='none' stroke='%23c0ddff' stroke-width='3' opacity='0.25' filter='url(%23gp)'/></svg>");
+  background-size: 100% 100%;
 }
 
 .hex-preview {
-  background:
-    repeating-linear-gradient(0deg, rgba(255, 79, 216, 0.07) 0px, transparent 1px, transparent 22px),
-    repeating-linear-gradient(90deg, rgba(54, 247, 255, 0.07) 0px, transparent 1px, transparent 22px),
-    radial-gradient(circle at 62% 38%, rgba(255, 79, 216, 0.38), transparent 22%),
-    radial-gradient(circle at 28% 64%, rgba(54, 247, 255, 0.28), transparent 20%),
-    linear-gradient(145deg, #0c0e14, #0a0c12);
+  overflow: hidden;
+  background: #030407;
+}
+
+.hex-preview::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 300 190' preserveAspectRatio='none'><defs><filter id='gg' x='-20%25' y='-20%25' width='140%25' height='140%25'><feGaussianBlur stdDeviation='1.2' result='blur'/><feMerge><feMergeNode in='blur'/><feMergeNode in='SourceGraphic'/></feMerge></filter><pattern id='scanlines' width='100' height='4' patternUnits='userSpaceOnUse'><line x1='0' y1='0' x2='100' y2='0' stroke='black' stroke-width='1.2' opacity='0.35'/></pattern><radialGradient id='vignette' cx='50%25' cy='50%25' r='70%25'><stop offset='50%25' stop-color='black' stop-opacity='0'/><stop offset='100%25' stop-color='black' stop-opacity='0.8'/></radialGradient></defs><rect width='300' height='190' fill='%23030407'/><g font-family='Courier New, monospace' font-size='10' font-weight='bold' text-anchor='middle'><text x='18' y='22' fill='%232a3b2a'>4F</text><text x='46' y='22' fill='%232a3b2a'>8C</text><text x='74' y='22' fill='%232a3b2a'>D2</text><text x='102' y='22' fill='%232a3b2a'>E0</text><text x='130' y='22' fill='%232a3b2a'>1A</text><text x='158' y='22' fill='%232a3b2a'>B7</text><text x='186' y='22' fill='%232a3b2a'>3E</text><text x='214' y='22' fill='%232a3b2a'>99</text><text x='242' y='22' fill='%232a3b2a'>F5</text><text x='270' y='22' fill='%232a3b2a'>0B</text><text x='18' y='46' fill='%232a3b2a'>76</text><text x='46' y='46' fill='%232a3b2a'>A3</text><text x='78' y='46' fill='%23ff0055' filter='url(%23gg)'>FF</text><text x='102' y='46' fill='%232a3b2a'>5D</text><text x='130' y='46' fill='%232a3b2a'>C1</text><text x='158' y='46' fill='%232a3b2a'>88</text><text x='186' y='46' fill='%232a3b2a'>E2</text><text x='214' y='46' fill='%232a3b2a'>40</text><text x='242' y='46' fill='%232a3b2a'>B9</text><text x='270' y='46' fill='%232a3b2a'>D7</text><text x='18' y='70' fill='%232a3b2a'>E8</text><text x='46' y='70' fill='%232a3b2a'>10</text><text x='74' y='78' fill='%23161a16'>D2</text><text x='102' y='70' fill='%232a3b2a'>9A</text><text x='130' y='70' fill='%232a3b2a'>F3</text><text x='154' y='76' fill='%2300ffff' filter='url(%23gg)'>2B</text><text x='186' y='70' fill='%232a3b2a'>0C</text><text x='210' y='86' fill='%234d6d4d'>8B</text><text x='242' y='70' fill='%232a3b2a'>6E</text><text x='270' y='70' fill='%232a3b2a'>A5</text><text x='18' y='94' fill='%232a3b2a'>C4</text><text x='46' y='94' fill='%232a3b2a'>7B</text><text x='74' y='104' fill='%234d6d4d'>F1</text><text x='102' y='94' fill='%232a3b2a'>5E</text><text x='130' y='94' fill='%232a3b2a'>02</text><text x='158' y='94' fill='%232a3b2a'>7F</text><text x='186' y='94' fill='%232a3b2a'>D4</text><text x='210' y='110' fill='%23161a16'>33</text><text x='242' y='94' fill='%232a3b2a'>89</text><text x='270' y='94' fill='%232a3b2a'>20</text><text x='10' y='118' fill='%2339ff14' filter='url(%23gg)'>AA</text><text x='38' y='118' fill='%2339ff14' filter='url(%23gg)'>BB</text><text x='66' y='118' fill='%23ff00ff' filter='url(%23gg)'>CC</text><text x='102' y='118' fill='%232a3b2a'>0D</text><text x='130' y='118' fill='%232a3b2a'>E3</text><text x='158' y='118' fill='%232a3b2a'>61</text><text x='186' y='118' fill='%232a3b2a'>5A</text><text x='214' y='118' fill='%232a3b2a'>C7</text><text x='242' y='118' fill='%232a3b2a'>42</text><text x='270' y='118' fill='%232a3b2a'>9F</text><text x='18' y='142' fill='%232a3b2a'>9E</text><text x='46' y='142' fill='%232a3b2a'>55</text><text x='74' y='142' fill='%232a3b2a'>81</text><text x='102' y='142' fill='%232a3b2a'>D6</text><text x='130' y='142' fill='%232a3b2a'>F0</text><text x='158' y='142' fill='%232a3b2a'>3B</text><text x='186' y='142' fill='%232a3b2a'>C8</text><text x='220' y='140' fill='%23ffff00' filter='url(%23gg)'>77</text><text x='242' y='142' fill='%232a3b2a'>E4</text><text x='270' y='142' fill='%232a3b2a'>13</text><text x='18' y='166' fill='%232a3b2a'>12</text><text x='46' y='166' fill='%232a3b2a'>D9</text><text x='74' y='166' fill='%232a3b2a'>07</text><text x='102' y='166' fill='%232a3b2a'>FE</text><text x='130' y='166' fill='%232a3b2a'>8A</text><text x='158' y='166' fill='%232a3b2a'>45</text><text x='186' y='166' fill='%232a3b2a'>9D</text><text x='214' y='166' fill='%232a3b2a'>C0</text><text x='242' y='166' fill='%232a3b2a'>35</text><text x='270' y='166' fill='%232a3b2a'>B2</text></g><rect width='300' height='190' fill='url(%23scanlines)'/><rect width='300' height='190' fill='url(%23vignette)'/></svg>");
+  background-size: 100% 100%;
 }
 
 .fracture-preview {
+  overflow: hidden;
   background:
-    radial-gradient(circle at 48% 50%, rgba(255, 255, 255, 0.9), transparent 2.5%),
-    radial-gradient(ellipse at 32% 38%, rgba(54, 247, 255, 0.22), transparent 30%),
-    radial-gradient(ellipse at 65% 62%, rgba(255, 79, 216, 0.18), transparent 28%),
-    radial-gradient(ellipse at 55% 44%, rgba(184, 255, 93, 0.1), transparent 20%),
-    linear-gradient(145deg, #08090f, #0c0e16);
+    radial-gradient(circle at 48% 50%, rgba(54, 247, 255, 0.18), transparent 35%),
+    #030407;
+}
+
+.fracture-preview::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><defs><filter id='gf' x='-60%25' y='-60%25' width='220%25' height='220%25'><feGaussianBlur stdDeviation='0.8' result='b'/><feMerge><feMergeNode in='b'/><feMergeNode in='SourceGraphic'/></feMerge></filter></defs><g filter='url(%23gf)' fill='none' stroke-linecap='round'><circle cx='48' cy='50' r='10' stroke='%2336f7ff' stroke-width='0.7' opacity='0.25'/><circle cx='48' cy='50' r='20' stroke='%2336f7ff' stroke-width='0.5' opacity='0.15'/><polyline points='48,50 55,38 65,28 75,16' stroke='%2336f7ff' stroke-width='1.2' opacity='0.85'/><polyline points='48,50 62,47 78,44 92,42' stroke='%2336f7ff' stroke-width='1.1' opacity='0.8'/><polyline points='48,50 62,58 76,64 88,70' stroke='%23ff4fd8' stroke-width='1.1' opacity='0.75'/><polyline points='48,50 46,63 44,76 42,90' stroke='%2336f7ff' stroke-width='1.0' opacity='0.75'/><polyline points='48,50 38,58 26,65 14,72' stroke='%2336f7ff' stroke-width='1.1' opacity='0.8'/><polyline points='48,50 34,48 20,46 7,44' stroke='%23ff4fd8' stroke-width='1.0' opacity='0.7'/><polyline points='48,50 40,40 28,30 18,22' stroke='%2336f7ff' stroke-width='1.1' opacity='0.8'/><polyline points='48,50 50,36 52,22 54,8' stroke='%2336f7ff' stroke-width='1.2' opacity='0.85'/><line x1='55' y1='38' x2='63' y2='32' stroke='%2336f7ff' stroke-width='0.8' opacity='0.6'/><line x1='62' y1='58' x2='70' y2='52' stroke='%23ff4fd8' stroke-width='0.7' opacity='0.55'/><line x1='38' y1='58' x2='30' y2='52' stroke='%2336f7ff' stroke-width='0.7' opacity='0.55'/><line x1='50' y1='36' x2='44' y2='30' stroke='%2336f7ff' stroke-width='0.7' opacity='0.55'/></g><circle cx='48' cy='50' r='3.5' fill='white' fill-opacity='0.3'/><circle cx='48' cy='50' r='1.8' fill='white' fill-opacity='0.95'/></svg>");
+  background-size: 100% 100%;
 }
 
 .gravity-preview {
   position: relative;
   overflow: hidden;
   background:
-    radial-gradient(circle at 40% 40%, rgba(54, 247, 255, 0.3), transparent 40%),
+    radial-gradient(circle at 40% 40%, rgba(255, 54, 54, 0.536), transparent 40%),
     radial-gradient(circle at 65% 55%, rgba(255, 79, 216, 0.22), transparent 35%),
     radial-gradient(circle at 20% 60%, rgba(255, 209, 102, 0.18), transparent 28%),
-    radial-gradient(circle at 75% 30%, rgba(184, 255, 93, 0.14), transparent 22%),
-    linear-gradient(145deg, #030407, #0a0c14);
+    radial-gradient(circle at 75% 30%, rgba(239, 233, 46, 0.455), transparent 22%),
+    linear-gradient(145deg, #070503, #140a0a);
 }
 
 .gravity-preview::before,
@@ -348,8 +364,8 @@ h1 {
   height: 32%;
   top: 34%;
   left: 34%;
-  border-color: rgba(54, 247, 255, 0.5);
-  box-shadow: 0 0 18px rgba(54, 247, 255, 0.3);
+  border-color: #fa500f;
+  box-shadow: 0 0 18px rgb(255, 208, 0);
 }
 
 .gravity-preview::after {
@@ -357,10 +373,40 @@ h1 {
   height: 18%;
   top: 41%;
   left: 41%;
-  border-color: rgba(255, 255, 255, 0.6);
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, transparent 70%);
-  box-shadow: 0 0 14px rgba(255, 255, 255, 0.4);
+  border-color: rgb(252, 186, 132);
+  background: radial-gradient(circle, rgba(255, 77, 0, 0.8) 0%, transparent 70%);
+  box-shadow: 0 0 14px rgba(255, 211, 34, 0.942);
 }
+
+.connector-preview {
+  overflow: hidden;
+  background: radial-gradient(ellipse at 50% 45%, #0e0e22, #06060f);
+}
+
+.connector-preview::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><defs><filter id='gl' x='-50%25' y='-50%25' width='200%25' height='200%25'><feGaussianBlur stdDeviation='1.5' result='b'/><feMerge><feMergeNode in='b'/><feMergeNode in='SourceGraphic'/></feMerge></filter></defs><g filter='url(%23gl)' stroke-width='0.8' opacity='0.7'><line x1='20' y1='27' x2='50' y2='14' stroke='%238b7fff'/><line x1='50' y1='14' x2='80' y2='28' stroke='%23ff7eb3'/><line x1='20' y1='27' x2='13' y2='64' stroke='%238b7fff'/><line x1='80' y1='28' x2='79' y2='63' stroke='%236ef0ff'/><line x1='50' y1='14' x2='47' y2='52' stroke='%23ff7eb3'/><line x1='47' y1='52' x2='13' y2='64' stroke='%2374c0fc'/><line x1='47' y1='52' x2='79' y2='63' stroke='%2374c0fc'/><line x1='13' y1='64' x2='30' y2='84' stroke='%23ffd166'/><line x1='79' y1='63' x2='68' y2='84' stroke='%23ff9f7f'/><line x1='30' y1='84' x2='68' y2='84' stroke='%23a9e34b'/><line x1='20' y1='27' x2='47' y2='52' stroke='%238b7fff'/><line x1='80' y1='28' x2='47' y2='52' stroke='%236ef0ff'/><line x1='50' y1='14' x2='79' y2='63' stroke='%23ff7eb3' opacity='0.5'/><line x1='13' y1='64' x2='68' y2='84' stroke='%23ffd166' opacity='0.5'/></g></svg>");
+  background-size: 100% 100%;
+}
+
+.connector-preview span {
+  position: absolute;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.connector-preview span:nth-child(1) { left: 20%; top: 27%; background: #8b7fff; box-shadow: 0 0 12px #8b7fff, 0 0 26px rgba(139, 127, 255, 0.4); }
+.connector-preview span:nth-child(2) { left: 50%; top: 14%; background: #ff7eb3; box-shadow: 0 0 12px #ff7eb3, 0 0 26px rgba(255, 126, 179, 0.4); }
+.connector-preview span:nth-child(3) { left: 80%; top: 28%; background: #6ef0ff; box-shadow: 0 0 12px #6ef0ff, 0 0 26px rgba(110, 240, 255, 0.4); }
+.connector-preview span:nth-child(4) { left: 13%; top: 64%; background: #ffd166; box-shadow: 0 0 12px #ffd166, 0 0 26px rgba(255, 209, 102, 0.4); }
+.connector-preview span:nth-child(5) { left: 47%; top: 52%; background: #74c0fc; box-shadow: 0 0 12px #74c0fc, 0 0 26px rgba(116, 192, 252, 0.4); }
+.connector-preview span:nth-child(6) { left: 79%; top: 63%; background: #ff9f7f; box-shadow: 0 0 12px #ff9f7f, 0 0 26px rgba(255, 159, 127, 0.4); }
+.connector-preview span:nth-child(7) { left: 30%; top: 84%; background: #a9e34b; box-shadow: 0 0 12px #a9e34b, 0 0 26px rgba(169, 227, 75, 0.4); }
+.connector-preview span:nth-child(8) { left: 68%; top: 84%; background: #e77ff5; box-shadow: 0 0 12px #e77ff5, 0 0 26px rgba(231, 127, 245, 0.4); }
 
 .toy-meta {
   display: grid;
@@ -503,6 +549,7 @@ h1 {
 }
 
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {

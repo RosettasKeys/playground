@@ -9,7 +9,7 @@
   <style>
     body.toy-page {
       overflow: hidden;
-      background: #030407;
+      background: #160000;
     }
 
     #threads-canvas {
@@ -46,8 +46,8 @@
       left: 0;
       height: 0%;
       border-radius: inherit;
-      background: linear-gradient(to top, #36f7ff 0%, #ffd166 48%, #ff4f74 76%, #ffffff 100%);
-      box-shadow: 0 0 22px rgba(255, 79, 116, 0.72);
+      background: linear-gradient(to top, #006eff 0%, #ffd10f 48%, #fa500f 76%, #ff910f 100%);
+      box-shadow: 0 0 22px rgba(255, 0, 55, 0.72);
       transition: height 80ms linear;
     }
   </style>
@@ -103,10 +103,10 @@
     };
 
     const palette = {
-      cool: [54, 247, 255],
-      warm: [255, 209, 102],
-      hot: [255, 79, 116],
-      white: [255, 255, 255],
+      cool: [0, 150, 255],
+      warm: [255, 209, 15],
+      hot: [250, 79, 16],
+      white: [255, 145, 15],
     };
 
     function mixColor(a, b, amount) {
@@ -498,9 +498,9 @@
         height * 0.48,
         Math.max(width, height) * 0.72
       );
-      gradient.addColorStop(0, '#12101a');
+      gradient.addColorStop(0, '#180a01');
       gradient.addColorStop(0.55, '#070912');
-      gradient.addColorStop(1, '#030407');
+      gradient.addColorStop(1, '#2c0e02');
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, width, height);
 

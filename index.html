@@ -103,11 +103,11 @@
       /* Spring of Ages: warm pulse */
       0%,
       100% {
-        box-shadow: 0 0 18px rgba(255, 172, 42, 0.12), 0 10px 38px rgba(0, 0, 0, 0.58);
+        box-shadow: 0 0 18px rgba(255, 42, 230, 0.12), 0 10px 38px rgba(0, 0, 0, 0.58);
       }
 
       50% {
-        box-shadow: 0 0 36px rgba(255, 172, 42, 0.24), 0 10px 38px rgba(0, 0, 0, 0.58);
+        box-shadow: 0 0 36px rgba(237, 42, 255, 0.388), 0 10px 38px rgba(0, 0, 0, 0.58);
       }
     }
 
@@ -116,11 +116,11 @@
       /* Fidget Toys: cool blue glow that softly breathes */
       0%,
       100% {
-        box-shadow: 0 0 14px rgba(100, 168, 255, 0.16), 0 10px 38px rgba(0, 0, 0, 0.62);
+        box-shadow: 0 0 14px rgba(100, 175, 255, 0.644), 0 10px 38px rgba(0, 0, 0, 0.62);
       }
 
       50% {
-        box-shadow: 0 0 30px rgba(130, 188, 255, 0.26), 0 0 10px rgba(190, 130, 255, 0.10), 0 10px 38px rgba(0, 0, 0, 0.62);
+        box-shadow: 0 0 30px rgba(130, 228, 255, 0.26), 0 0 10px rgba(190, 130, 255, 0.10), 0 10px 38px rgba(0, 0, 0, 0.62);
       }
     }
 
@@ -550,7 +550,8 @@
         <div id="card-ecards" class="card">
           <div class="card-title">Deck of Cards</div>
           <div class="card-label">motion for occasions</div>
-          <div class="card-body">Send a card that doesn't sit still. A descent into wonderland, occasion by occasion.
+          <div class="card-body">Interactive cards for moments that deserve motion. A descent into wonderland, occasion
+            by occasion.
           </div>
           <div class="card-cta">fall in →</div>
         </div>
@@ -561,7 +562,7 @@
         style="text-decoration:none;color:inherit;">
         <div id="card-spring" class="card">
           <div class="card-title">Spring of Ages</div>
-          <div class="card-label">a site as memory</div>
+          <div class="card-label">a celebration of cultures</div>
           <div class="card-body">Easter across cultures, across time. Joy older than any one tradition.</div>
           <div class="card-cta">celebrate →</div>
         </div>
@@ -624,7 +625,7 @@
     function initParticles() {
       for (let i = 0; i < PARTICLE_COUNT; i++) {
         const type = FIELD_TYPES[Math.floor(Math.random() * FIELD_TYPES.length)];
-        const size = Math.random() * 13 + 10;                    // 10–23px font size
+        const size = Math.random() * 13 + 20;                    // 10–23px font size
         const opacity = (Math.random() * 0.14 + 0.07).toFixed(2);  // 0.07–0.21 (subtle)
         const duration = Math.random() * 16 + 14;                   // 14–30s to fall
         const delay = -(Math.random() * duration);               // negative = start mid-fall

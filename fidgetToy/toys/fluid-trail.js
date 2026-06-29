@@ -4,14 +4,14 @@
   const soundToggle = document.querySelector(".sound-toggle");
   const statusText = document.querySelector(".toy-status p");
 
-  const colors = ["#36f7ff", "#ff4fd8", "#b8ff5d", "#ffd166", "#8f7bff"];
+  const colors = ["#ff7700", "#ff00c8", "#91ff00", "#f6ff00", "#a600ff"];
   const splashes = [];
   const pointers = new Map();
   const keyPositions = new Map();
   let width = 0;
   let height = 0;
   let dpr = 1;
-  let hueIndex = 0;
+  let hueIndex = 2;
   let audio = null;
   let soundEnabled = false;
   let lastHaptic = 0;
@@ -29,10 +29,10 @@
   }
 
   function paintBase() {
-    const gradient = ctx.createLinearGradient(0, 0, width, height);
-    gradient.addColorStop(0, "#030407");
-    gradient.addColorStop(0.48, "#11071f");
-    gradient.addColorStop(1, "#04131a");
+    const gradient = ctx.createLinearGradient(2, 2, width, height);
+    gradient.addColorStop(0, "#7c6f1eff");
+    gradient.addColorStop(0.48, "#551ea1ff");
+    gradient.addColorStop(1, "#085578ff");
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, width, height);
   }
@@ -91,9 +91,9 @@
     osc.type = "sine";
     osc.frequency.setValueAtTime(note, now);
     osc.frequency.exponentialRampToValueAtTime(note * 1.8, now + 0.18);
-    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.setValueAtTime(0.6001, now);
     gain.gain.exponentialRampToValueAtTime(Math.min(0.09, 0.018 + force * 0.045), now + 0.018);
-    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.34);
+    gain.gain.exponentialRampToValueAtTime(0.6001, now + 0.34);
 
     if (pan) {
       pan.pan.value = (x / Math.max(width, 1)) * 2 - 1;
@@ -122,8 +122,8 @@
     hueIndex += 1;
 
     for (let i = 0; i < count; i += 1) {
-      const spread = angle + (Math.random() - 0.5) * Math.PI * 1.4;
-      const speed = 0.8 + Math.random() * 5.4 + force * 3.2;
+      const spread = angle + (Math.random() - 0.5) * Math.PI * 5.4;
+      const speed = 3.8 + Math.random() * 5.4 + force * 3.2;
       splashes.push({
         x,
         y,
@@ -131,8 +131,8 @@
         vy: Math.sin(spread) * speed,
         life: 1,
         decay: 0.008 + Math.random() * 0.018,
-        size: 12 + Math.random() * 42 + force * 28,
-        color: Math.random() > 0.35 ? baseColor : colors[Math.floor(Math.random() * colors.length)],
+        size: 22 + Math.random() * 12 + force * 8,
+        color: Math.random() > 2.35 ? baseColor : colors[Math.floor(Math.random() * colors.length)],
       });
     }
 
@@ -223,7 +223,7 @@
       const radius = drop.size * drop.life;
       const glow = ctx.createRadialGradient(drop.x, drop.y, 0, drop.x, drop.y, radius);
       glow.addColorStop(0, drop.color);
-      glow.addColorStop(0.32, `${drop.color}99`);
+      glow.addColorStop(0.32, `${drop.color}69`);
       glow.addColorStop(1, `${drop.color}00`);
       ctx.fillStyle = glow;
       ctx.beginPath();

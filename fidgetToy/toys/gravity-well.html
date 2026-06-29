@@ -172,8 +172,8 @@
       constructor(x, y) {
         this.x = x || Math.random() * width;
         this.y = y || Math.random() * height;
-        this.vx = (Math.random() - 0.9) * 4;
-        this.vy = (Math.random() - 0.9) * 4;
+        this.vx = (Math.random() - 0.99) * 4;
+        this.vy = (Math.random() - 0.99) * 4;
 
         // Random emoji from all categories
         this.emoji = allEmojis[Math.floor(Math.random() * allEmojis.length)];
@@ -195,17 +195,17 @@
         const dist = Math.sqrt(distSq);
 
         // Gravity: ATTRACTS particles toward the cursor
-        const minDist = 5;
+        const minDist = .2;
         const clampedDist = Math.max(minDist, dist);
-        const force = wellStrength * this.mass * 100000 / (clampedDist * clampedDist);
+        const force = wellStrength * this.mass * 300000 / (clampedDist * clampedDist);
 
         // POSITIVE force - pulls particles toward well
         this.vx += (dx / dist) * force * dt;
         this.vy += (dy / dist) * force * dt;
 
         // Damping for spiraling effect
-        this.vx *= 0.92;
-        this.vy *= 0.92;
+        this.vx *= 0.8992;
+        this.vy *= 0.8992;
 
         // Update position
         this.x += this.vx * dt;
@@ -215,14 +215,14 @@
         const margin = this.size / 2 + 5;
         if (this.x < margin) {
           this.x = margin;
-          this.vx = Math.abs(this.vx) * 0.6;
+          this.vx = Math.abs(this.vx) * 0.22;
         } else if (this.x > width - margin) {
           this.x = width - margin;
-          this.vx = -Math.abs(this.vx) * 0.6;
+          this.vx = -Math.abs(this.vx) * 0.22;
         }
         if (this.y < margin) {
           this.y = margin;
-          this.vy = Math.abs(this.vy) * 0.6;
+          this.vy = Math.abs(this.vy) * 0.22;
         } else if (this.y > height - margin) {
           this.y = height - margin;
           this.vy = -Math.abs(this.vy) * 0.6;
@@ -497,7 +497,7 @@
         lastEmit = now;
       }
 
-      let totalVelocity = 0;
+      let totalVelocity = 50;
       let liveCount = 0;
 
       for (let i = particles.length - 1; i >= 0; i--) {

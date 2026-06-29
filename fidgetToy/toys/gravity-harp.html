@@ -1,0 +1,1129 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gravity Wave Harp | Fidget Toy Garden</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <style>
+    body.toy-page {
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 50%, #07050f 0%, #020105 100%);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    #stage-container {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      touch-action: none;
+      user-select: none;
+    }
+
+    svg#stage {
+      display: block;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    /* Grid lines base styles */
+    .grid-string {
+      fill: none;
+      stroke-linecap: round;
+      transition: stroke 0.3s ease;
+      pointer-events: none;
+    }
+
+    /* Accretion disk spin */
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .accretion-disk {
+      transform-origin: center;
+      animation: spin 8s linear infinite;
+    }
+
+    /* Floating UI HUD styles with Glassmorphism */
+    .hud-panel {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      padding: 14px 22px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 16px;
+      background: rgba(11, 8, 20, 0.65);
+      backdrop-filter: blur(20px);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+      z-index: 10;
+      max-width: min(90%, 820px);
+    }
+
+    .hud-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .hud-label {
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    /* Custom Controls Styling */
+    .hud-select {
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 6px;
+      color: var(--text);
+      padding: 6px 12px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .hud-select:hover, .hud-select:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 8px rgba(54, 247, 255, 0.2);
+    }
+
+    .hud-slider-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .hud-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 80px;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255, 255, 255, 0.15);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .hud-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 8px var(--cyan);
+      transition: transform 0.1s;
+    }
+
+    .hud-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.3);
+    }
+
+    .hud-btn {
+      background: rgba(255, 79, 216, 0.15);
+      border: 1px solid rgba(255, 79, 216, 0.35);
+      border-radius: 6px;
+      color: var(--pink);
+      padding: 6px 14px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s, transform 0.1s;
+    }
+
+    .hud-btn:hover {
+      background: rgba(255, 79, 216, 0.3);
+      border-color: var(--pink);
+      box-shadow: 0 0 10px rgba(255, 79, 216, 0.3);
+    }
+
+    .hud-btn:active {
+      transform: scale(0.96);
+    }
+
+    /* Mode button states */
+    .mode-btn-group {
+      display: flex;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      overflow: hidden;
+      background: rgba(0, 0, 0, 0.3);
+    }
+
+    .mode-btn {
+      background: transparent;
+      border: none;
+      color: var(--muted);
+      padding: 6px 12px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .mode-btn.active {
+      background: var(--lime);
+      color: #07080c;
+      box-shadow: 0 0 12px rgba(184, 255, 93, 0.4);
+    }
+
+    /* Lensing backdrop overlay for black holes */
+    .gravitational-lens {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+      mix-blend-mode: normal;
+      backdrop-filter: blur(3px) contrast(1.4) saturate(1.8) hue-rotate(-20deg);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.1);
+      z-index: 1;
+    }
+
+    /* Event instructions */
+    .toy-status p {
+      max-width: 580px;
+    }
+  </style>
+</head>
+
+<body class="toy-page">
+  <nav class="toy-nav" aria-label="Toy controls">
+    <a class="back-link" href="../fidgetToy-index.html">← Home</a>
+    <button class="sound-toggle" type="button" aria-label="Toggle sound" aria-pressed="false">♪</button>
+  </nav>
+
+  <!-- Interaction Area -->
+  <div id="stage-container">
+    <!-- Gravitational lens elements will be dynamically mounted here behind the SVG layers -->
+    <svg id="stage" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <!-- Cyan glow -->
+        <filter id="cyan-glow" x="-50%" y="-50%" width="200%" height="200%">
+          <feGaussianBlur stdDeviation="5" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+        
+        <!-- Black hole accretion gradient -->
+        <radialGradient id="accretion-grad" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#000000" />
+          <stop offset="35%" stop-color="#120524" />
+          <stop offset="70%" stop-color="#ff4fd8" />
+          <stop offset="88%" stop-color="#36f7ff" />
+          <stop offset="100%" stop-color="transparent" />
+        </radialGradient>
+      </defs>
+
+      <!-- Grid string layers -->
+      <g id="strings-layer"></g>
+
+      <!-- Space dust particles (drawn as a single path for ultimate rendering speed) -->
+      <path id="dust-layer" fill="none" stroke-linecap="round" opacity="0.6"></path>
+
+      <!-- Gravity wells overlay -->
+      <g id="wells-layer"></g>
+    </svg>
+  </div>
+
+  <!-- HUD Control Panel -->
+  <div class="hud-panel">
+    <div class="hud-group">
+      <span class="hud-label">Mode</span>
+      <div class="mode-btn-group">
+        <button id="mode-launch" class="mode-btn active" type="button">Launch</button>
+        <button id="mode-tether" class="mode-btn" type="button">Tether</button>
+      </div>
+    </div>
+
+    <div class="hud-group">
+      <span class="hud-label">Harmonic Scale</span>
+      <select id="scale-select" class="hud-select">
+        <option value="pentatonic">Minor Pentatonic (Mystic)</option>
+        <option value="lydian">Lydian Space (Future)</option>
+        <option value="aeolian">Aeolian (Deep Ocean)</option>
+        <option value="chromatic">Chromatic (Quantum Chaos)</option>
+      </select>
+    </div>
+
+    <div class="hud-group">
+      <span class="hud-label">Mass</span>
+      <div class="hud-slider-container">
+        <input id="mass-slider" class="hud-slider" type="range" min="10" max="100" value="45" />
+      </div>
+    </div>
+
+    <div class="hud-group">
+      <span class="hud-label">Friction</span>
+      <div class="hud-slider-container">
+        <input id="friction-slider" class="hud-slider" type="range" min="0" max="60" value="12" />
+      </div>
+    </div>
+
+    <button id="clear-btn" class="hud-btn" type="button">Clear Space</button>
+  </div>
+
+  <div class="toy-status" aria-live="polite">
+    <p>Tap empty space to spawn Black Holes · Fling to shoot them · Hover/Drag to pull the spacetime grid</p>
+  </div>
+
+  <script>
+    // ─── Constants & CONFIG ───────────────────────────────────────────────────
+    const NUM_STRINGS = 9; // 9 horizontal, 9 vertical
+    const NODES_PER_STRING = 36; // Subdivisions for smooth bending
+    const DUST_COUNT = 80;
+
+    // String color palettes
+    const ST_COLORS_HORIZ = ['#ff4fd8', '#d64fff', '#a84fff', '#704fff', '#4f62ff', '#4fb8ff', '#36f7ff', '#36ffd1', '#b8ff5d'];
+    const ST_COLORS_VERT = ['#36f7ff', '#52e8ff', '#70d6ff', '#8cbdff', '#a99fff', '#c77eff', '#e45eff', '#ff4fd8', '#ffd166'];
+
+    // Harmonic Scale intervals (MIDI note offset mappings from C3)
+    const SCALES = {
+      pentatonic: [0, 3, 5, 7, 10, 12, 15, 17, 19, 22, 24, 27, 29, 31, 34, 36, 39, 41],
+      lydian: [0, 2, 4, 6, 7, 9, 11, 12, 14, 16, 18, 19, 21, 23, 24, 26, 28, 30],
+      aeolian: [0, 2, 3, 5, 7, 8, 10, 12, 14, 15, 17, 19, 20, 22, 24, 26, 27, 29],
+      chromatic: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
+    };
+    const BASE_MIDI = 36; // C2
+
+    // Helper: convert midi note to frequency
+    function midiToFreq(note) {
+      return 440 * Math.pow(2, (note - 69) / 12);
+    }
+
+    // ─── STATE ───────────────────────────────────────────────────────────────
+    const stageContainer = document.getElementById('stage-container');
+    const svgStage = document.getElementById('stage');
+    const stringsLayer = document.getElementById('strings-layer');
+    const wellsLayer = document.getElementById('wells-layer');
+    const dustLayer = document.getElementById('dust-layer');
+
+    let W = window.innerWidth;
+    let H = window.innerHeight;
+
+    let strings = [];
+    let gravityWells = [];
+    let dustParticles = [];
+    let activeVoices = [];
+
+    // Interaction modes
+    let isTetherMode = false;
+    let baseMass = 45;
+    let spaceFriction = 0.012; // Adjusted from slider (value/1000)
+    let activeScaleName = 'pentatonic';
+
+    // Drag-fling states
+    let activeDragWell = null;
+    let pointerX = 0;
+    let pointerY = 0;
+    let pointerDown = false;
+    let dragOffset = { x: 0, y: 0 };
+    let dragHistory = [];
+
+    // Audio Context
+    let audioCtx = null;
+    let delayNode = null;
+    let backgroundHum = null;
+    let humGainNode = null;
+    let isMuted = true;
+
+    // ─── AUDIO ENGINE ────────────────────────────────────────────────────────
+    function initAudio() {
+      if (audioCtx) return;
+      
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) return;
+      audioCtx = new AudioContextClass();
+
+      // Master delay for cosmic resonance
+      delayNode = audioCtx.createDelay(2.0);
+      delayNode.delayTime.setValueAtTime(0.38, audioCtx.currentTime);
+      
+      const delayFeedback = audioCtx.createGain();
+      delayFeedback.gain.setValueAtTime(0.42, audioCtx.currentTime);
+      
+      // Delay feedback loop
+      delayNode.connect(delayFeedback);
+      delayFeedback.connect(delayNode);
+
+      // Connect delay to output
+      delayNode.connect(audioCtx.destination);
+
+      // Low frequency hum generator for gravitational wave simulation
+      const humOsc1 = audioCtx.createOscillator();
+      const humOsc2 = audioCtx.createOscillator();
+      humGainNode = audioCtx.createGain();
+      const humFilter = audioCtx.createBiquadFilter();
+
+      humOsc1.type = 'sine';
+      humOsc1.frequency.value = 46.25; // F#1
+      humOsc2.type = 'sawtooth';
+      humOsc2.frequency.value = 46.5; // Slightly detuned
+
+      humFilter.type = 'lowpass';
+      humFilter.frequency.value = 80;
+      humFilter.Q.value = 2.0;
+
+      humGainNode.gain.value = 0.0; // Silent at start
+
+      humOsc1.connect(humFilter);
+      humOsc2.connect(humFilter);
+      humFilter.connect(humGainNode);
+      humGainNode.connect(audioCtx.destination);
+
+      humOsc1.start();
+      humOsc2.start();
+
+      backgroundHum = { osc1: humOsc1, osc2: humOsc2, filter: humFilter };
+    }
+
+    function playPluckSynth(baseFreq, volume, stretchRatio) {
+      if (!audioCtx || isMuted) return null;
+
+      const now = audioCtx.currentTime;
+      const carrier = audioCtx.createOscillator();
+      const modulator = audioCtx.createOscillator();
+      const modGain = audioCtx.createGain();
+      const mainGain = audioCtx.createGain();
+
+      // Scale pitch with tension: stretchRatio scales base frequency
+      const stretchedFreq = baseFreq * (1 + Math.min(stretchRatio * 1.5, 1.2));
+
+      carrier.type = 'sine';
+      modulator.type = 'sine';
+
+      // Harmonic FM setup for spatial bells
+      const harmonicRatio = 2.0;
+      // Modulator index increases with stretch for brighter, sharper tension snaps
+      const modIndex = 160 * (1 + stretchRatio * 2.5);
+
+      carrier.frequency.setValueAtTime(stretchedFreq, now);
+      modulator.frequency.setValueAtTime(stretchedFreq * harmonicRatio, now);
+
+      modGain.gain.setValueAtTime(modIndex, now);
+      modGain.gain.exponentialRampToValueAtTime(0.1, now + 0.35);
+
+      mainGain.gain.setValueAtTime(0, now);
+      mainGain.gain.linearRampToValueAtTime(volume * 0.54, now + 0.006); // soft click-free attack
+      mainGain.gain.exponentialRampToValueAtTime(0.0001, now + 2.0); // long resonance decay
+
+      // Route FM chain
+      modulator.connect(modGain);
+      modGain.connect(carrier.frequency);
+
+      carrier.connect(mainGain);
+      mainGain.connect(delayNode);
+      mainGain.connect(audioCtx.destination);
+
+      carrier.start(now);
+      modulator.start(now);
+      carrier.stop(now + 2.0);
+      modulator.stop(now + 2.0);
+
+      return {
+        carrier,
+        modulator,
+        baseFreq,
+        harmonicRatio,
+        mainGain,
+        stopTime: now + 2.0
+      };
+    }
+
+    function updateAudioSynth(activeEnergy) {
+      if (!audioCtx || isMuted) return;
+
+      // Update background cosmic rumble volume and filter cutoff depending on the movement energy in space
+      const normalizedEnergy = Math.min(activeEnergy / 1500, 1.0);
+      const humVolume = 0.09 + normalizedEnergy * 0.27;
+      const cutoffFreq = 70 + normalizedEnergy * 90;
+
+      humGainNode.gain.setTargetAtTime(humVolume, audioCtx.currentTime, 0.15);
+      backgroundHum.filter.frequency.setTargetAtTime(cutoffFreq, audioCtx.currentTime, 0.15);
+    }
+
+    // ─── INITIALIZATION ──────────────────────────────────────────────────────
+    function initStrings() {
+      stringsLayer.innerHTML = '';
+      strings = [];
+
+      const currentScale = SCALES[activeScaleName];
+
+      // Setup Horizontal Strings
+      for (let i = 0; i < NUM_STRINGS; i++) {
+        const percent = (i + 1) / (NUM_STRINGS + 1);
+        const yRest = percent * H;
+        
+        const pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        pathEl.setAttribute('class', 'grid-string');
+        pathEl.setAttribute('stroke', ST_COLORS_HORIZ[i]);
+        pathEl.setAttribute('stroke-width', '1.5');
+        pathEl.setAttribute('filter', 'url(#cyan-glow)');
+        stringsLayer.appendChild(pathEl);
+
+        const midiNote = BASE_MIDI + currentScale[i % currentScale.length];
+        strings.push({
+          type: 'h',
+          index: i,
+          percent: percent,
+          valRest: yRest,
+          color: ST_COLORS_HORIZ[i],
+          freq: midiToFreq(midiNote),
+          el: pathEl,
+          pluckAmp: 0,
+          pluckTime: 0,
+          pluckPhase: 0,
+          currentStretch: 0
+        });
+      }
+
+      // Setup Vertical Strings
+      for (let j = 0; j < NUM_STRINGS; j++) {
+        const percent = (j + 1) / (NUM_STRINGS + 1);
+        const xRest = percent * W;
+
+        const pathEl = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        pathEl.setAttribute('class', 'grid-string');
+        pathEl.setAttribute('stroke', ST_COLORS_VERT[j]);
+        pathEl.setAttribute('stroke-width', '1.5');
+        pathEl.setAttribute('filter', 'url(#cyan-glow)');
+        stringsLayer.appendChild(pathEl);
+
+        // Assign higher octaves to vertical strings
+        const noteIdx = (j + NUM_STRINGS) % currentScale.length;
+        const midiNote = BASE_MIDI + currentScale[noteIdx] + 12; // Octave offset
+        strings.push({
+          type: 'v',
+          index: j,
+          percent: percent,
+          valRest: xRest,
+          color: ST_COLORS_VERT[j],
+          freq: midiToFreq(midiNote),
+          el: pathEl,
+          pluckAmp: 0,
+          pluckTime: 0,
+          pluckPhase: 0,
+          currentStretch: 0
+        });
+      }
+    }
+
+    function initDust() {
+      dustParticles = [];
+      for (let i = 0; i < DUST_COUNT; i++) {
+        dustParticles.push({
+          x: Math.random() * W,
+          y: Math.random() * H,
+          vx: (Math.random() - 0.5) * 1.5,
+          vy: (Math.random() - 0.5) * 1.5,
+          color: i % 2 === 0 ? '#36f7ff' : '#ff4fd8',
+          life: 0.2 + Math.random() * 0.8
+        });
+      }
+    }
+
+    // ─── LAUNCH GRAVITY WELLS ─────────────────────────────────────────────────
+    function spawnGravityWell(x, y, vx = 0, vy = 0) {
+      const id = Date.now() + Math.random().toString(36).substr(2, 5);
+      const color = gravityWells.length % 2 === 0 ? '#ff4fd8' : '#36f7ff';
+      const radius = 28 + Math.sqrt(baseMass) * 4;
+
+      // Accretion disk and core graphics group
+      const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      g.setAttribute('class', 'gravity-well-svg');
+      g.style.cursor = 'grab';
+
+      // Outer light aura
+      const aura = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      aura.setAttribute('r', radius * 1.4);
+      aura.setAttribute('fill', 'url(#accretion-grad)');
+      aura.setAttribute('opacity', '0.75');
+
+      // Inner accretion details (dashed ring)
+      const disk = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      disk.setAttribute('class', 'accretion-disk');
+      disk.setAttribute('r', radius * 0.85);
+      disk.setAttribute('fill', 'none');
+      disk.setAttribute('stroke', color);
+      disk.setAttribute('stroke-width', '1.5');
+      disk.setAttribute('stroke-dasharray', '8 6');
+      disk.setAttribute('opacity', '0.65');
+
+      // Core event horizon
+      const core = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      core.setAttribute('r', radius * 0.4);
+      core.setAttribute('fill', '#000000');
+      core.setAttribute('stroke', color);
+      core.setAttribute('stroke-width', '2.5');
+      core.setAttribute('filter', 'url(#cyan-glow)');
+
+      g.appendChild(aura);
+      g.appendChild(disk);
+      g.appendChild(core);
+      
+      // Update DOM coordinate
+      g.setAttribute('transform', `translate(${x}, ${y})`);
+      wellsLayer.appendChild(g);
+
+      // Create physical gravitational lens HTML element behind the SVG
+      const lens = document.createElement('div');
+      lens.className = 'gravitational-lens';
+      lens.style.width = `${radius * 2.8}px`;
+      lens.style.height = `${radius * 2.8}px`;
+      lens.style.left = `${x}px`;
+      lens.style.top = `${y}px`;
+      stageContainer.insertBefore(lens, svgStage);
+
+      const well = {
+        id,
+        x,
+        y,
+        lastX: x,
+        lastY: y,
+        vx,
+        vy,
+        mass: baseMass,
+        radius,
+        color,
+        isDragged: false,
+        el: g,
+        lensEl: lens
+      };
+
+      gravityWells.push(well);
+      
+      // Play a soft synthetic splash chord when a black hole is created
+      if (audioCtx && !isMuted) {
+        const chordFreqs = [well.mass * 2.0, well.mass * 3.0, well.mass * 4.0];
+        chordFreqs.forEach((freq, idx) => {
+          playPluckSynth(freq + 100, 0.24, 0.1);
+        });
+      }
+
+      return well;
+    }
+
+    function removeGravityWell(index) {
+      const well = gravityWells[index];
+      if (well.el && well.el.parentNode) well.el.parentNode.removeChild(well.el);
+      if (well.lensEl && well.lensEl.parentNode) well.lensEl.parentNode.removeChild(well.lensEl);
+      gravityWells.splice(index, 1);
+    }
+
+    // ─── MOUSE/TOUCH INTERACTION ─────────────────────────────────────────────
+    function getEventCoords(e) {
+      let x, y;
+      if (e.touches && e.touches.length > 0) {
+        x = e.touches[0].clientX;
+        y = e.touches[0].clientY;
+      } else {
+        x = e.clientX;
+        y = e.clientY;
+      }
+      return { x, y };
+    }
+
+    function onPointerDown(e) {
+      // Don't trigger if clicked on HUD controls
+      if (e.target.closest('.hud-panel') || e.target.closest('.toy-nav')) return;
+
+      pointerDown = true;
+      const coords = getEventCoords(e);
+      pointerX = coords.x;
+      pointerY = coords.y;
+
+      // Enable sound context on first tap
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+
+      // Check if we tapped an existing black hole to drag it
+      let hitIdx = -1;
+      for (let i = 0; i < gravityWells.length; i++) {
+        const well = gravityWells[i];
+        const dist = Math.hypot(pointerX - well.x, pointerY - well.y);
+        if (dist < well.radius * 1.5) {
+          hitIdx = i;
+          break;
+        }
+      }
+
+      if (hitIdx !== -1) {
+        // Drag existing well
+        activeDragWell = gravityWells[hitIdx];
+        activeDragWell.isDragged = true;
+        activeDragWell.vx = 0;
+        activeDragWell.vy = 0;
+        dragOffset.x = pointerX - activeDragWell.x;
+        dragOffset.y = pointerY - activeDragWell.y;
+        dragHistory = [{ x: activeDragWell.x, y: activeDragWell.y, t: performance.now() }];
+      } else {
+        if (isTetherMode) {
+          // In tether mode, instantly spawn a temporary black hole attached to cursor
+          const newWell = spawnGravityWell(pointerX, pointerY);
+          activeDragWell = newWell;
+          activeDragWell.isDragged = true;
+          dragOffset.x = 0;
+          dragOffset.y = 0;
+          dragHistory = [{ x: pointerX, y: pointerY, t: performance.now() }];
+        }
+      }
+    }
+
+    // Move handlers
+    function onPointerMove(e) {
+      const coords = getEventCoords(e);
+      pointerX = coords.x;
+      pointerY = coords.y;
+
+      if (pointerDown && activeDragWell) {
+        const targetX = pointerX - dragOffset.x;
+        const targetY = pointerY - dragOffset.y;
+
+        // Keep inside screen slightly
+        activeDragWell.x = Math.max(10, Math.min(W - 10, targetX));
+        activeDragWell.y = Math.max(10, Math.min(H - 10, targetY));
+
+        // Track trajectory for flinging
+        dragHistory.push({ x: activeDragWell.x, y: activeDragWell.y, t: performance.now() });
+        if (dragHistory.length > 5) dragHistory.shift();
+      }
+    }
+
+    function onPointerUp(e) {
+      if (!pointerDown) return;
+      pointerDown = false;
+
+      if (activeDragWell) {
+        activeDragWell.isDragged = false;
+        
+        // Calculate velocity vector for fling on release
+        if (dragHistory.length >= 2) {
+          const first = dragHistory[0];
+          const last = dragHistory[dragHistory.length - 1];
+          const dt = last.t - first.t || 1;
+          
+          // Speed conversion factor (pixels per ms)
+          const flingStrength = 0.85;
+          activeDragWell.vx = ((last.x - first.x) / dt) * 16.6 * flingStrength;
+          activeDragWell.vy = ((last.y - first.y) / dt) * 16.6 * flingStrength;
+          
+          // Clamp maximum fling velocity to avoid visual escape
+          const maxVel = 26;
+          const speed = Math.hypot(activeDragWell.vx, activeDragWell.vy);
+          if (speed > maxVel) {
+            activeDragWell.vx = (activeDragWell.vx / speed) * maxVel;
+            activeDragWell.vy = (activeDragWell.vy / speed) * maxVel;
+          }
+        }
+        
+        activeDragWell = null;
+      } else {
+        // If it was a quick static tap (not dragging), spawn a bouncing black hole!
+        if (!isTetherMode) {
+          // Give it a small random initial speed
+          const rx = (Math.random() - 0.5) * 6;
+          const ry = (Math.random() - 0.5) * 6;
+          spawnGravityWell(pointerX, pointerY, rx, ry);
+        }
+      }
+      
+      dragHistory = [];
+    }
+
+    // ─── TICK & ENGINE ───────────────────────────────────────────────────────
+    function tick() {
+      // 1. Update N-body physics for gravity wells
+      const numWells = gravityWells.length;
+      let totalKineticEnergy = 0;
+
+      // Apply N-body gravitational attraction between wells
+      const G = 0.16; // gravitational constant for wells
+      for (let i = 0; i < numWells; i++) {
+        const wA = gravityWells[i];
+        if (wA.isDragged) continue;
+
+        for (let j = i + 1; j < numWells; j++) {
+          const wB = gravityWells[j];
+          if (wB.isDragged) continue;
+
+          const dx = wB.x - wA.x;
+          const dy = wB.y - wA.y;
+          const distSq = dx * dx + dy * dy + 800; // smoothing factor
+          const dist = Math.sqrt(distSq);
+
+          // Force calculation: pull together
+          const F = (G * wA.mass * wB.mass) / distSq;
+          const ax = (F * dx) / dist;
+          const ay = (F * dy) / dist;
+
+          // Accelerate both bodies mutually
+          wA.vx += ax / wA.mass;
+          wA.vy += ay / wA.mass;
+          wB.vx -= ax / wB.mass;
+          wB.vy -= ay / wB.mass;
+        }
+      }
+
+      // Update positions, friction, border collision, and plucking detection
+      for (let i = 0; i < numWells; i++) {
+        const well = gravityWells[i];
+
+        well.lastX = well.x;
+        well.lastY = well.y;
+
+        if (!well.isDragged) {
+          // Physics step
+          well.x += well.vx;
+          well.y += well.vy;
+
+          // Apply space friction
+          well.vx *= (1 - spaceFriction);
+          well.vy *= (1 - spaceFriction);
+
+          // Bounce off boundary walls
+          const bounceFactor = -0.88;
+          if (well.x < well.radius * 0.4) {
+            well.x = well.radius * 0.4;
+            well.vx *= bounceFactor;
+            playBounceSound(well);
+          } else if (well.x > W - well.radius * 0.4) {
+            well.x = W - well.radius * 0.4;
+            well.vx *= bounceFactor;
+            playBounceSound(well);
+          }
+
+          if (well.y < well.radius * 0.4) {
+            well.y = well.radius * 0.4;
+            well.vy *= bounceFactor;
+            playBounceSound(well);
+          } else if (well.y > H - well.radius * 0.4) {
+            well.y = H - well.radius * 0.4;
+            well.vy *= bounceFactor;
+            playBounceSound(well);
+          }
+
+          // Accumulate kinetic energy
+          totalKineticEnergy += (well.vx * well.vx + well.vy * well.vy);
+        }
+
+        // Accretion disk coordinate update
+        well.el.setAttribute('transform', `translate(${well.x}, ${well.y})`);
+        
+        // Lens position update
+        well.lensEl.style.left = `${well.x}px`;
+        well.lensEl.style.top = `${well.y}px`;
+
+        // String Pluck Detection: Check crossing of rest state coordinate lines
+        for (let s = 0; s < strings.length; s++) {
+          const str = strings[s];
+          let crossed = false;
+          let crossingSpeed = 0;
+
+          if (str.type === 'h') {
+            const yRest = str.valRest;
+            if ((well.lastY < yRest && well.y >= yRest) || (well.lastY > yRest && well.y <= yRest)) {
+              // Crossed horizontal string
+              crossed = true;
+              crossingSpeed = Math.abs(well.vy);
+            }
+          } else {
+            const xRest = str.valRest;
+            if ((well.lastX < xRest && well.x >= xRest) || (well.lastX > xRest && well.x <= xRest)) {
+              // Crossed vertical string
+              crossed = true;
+              crossingSpeed = Math.abs(well.vx);
+            }
+          }
+
+          if (crossed) {
+            // Apply physical vibration pluck
+            const energy = Math.min(crossingSpeed * 1.5 + 4, 30);
+            str.pluckAmp = energy;
+            str.pluckTime = 0;
+            str.pluckPhase = Math.random() * Math.PI * 2;
+
+            // Trigger pluck sound with stretch tension bending
+            playPluckSynth(str.freq, energy / 30, str.currentStretch);
+          }
+        }
+      }
+
+      // Update background hum rumble based on kinetic energy
+      updateAudioSynth(totalKineticEnergy);
+
+      // 2. Warp Spacetime Grid & Render SVG paths
+      for (let s = 0; s < strings.length; s++) {
+        const str = strings[s];
+        
+        // Decay the pluck vibrations
+        if (str.pluckAmp > 0.05) {
+          str.pluckTime += 0.016;
+          str.pluckAmp *= 0.94; // fast exponential dampening
+        } else {
+          str.pluckAmp = 0;
+        }
+
+        let totalDisplacement = 0;
+        let points = [];
+
+        // Build path nodes
+        for (let k = 0; k <= NODES_PER_STRING; k++) {
+          const ratio = k / NODES_PER_STRING;
+          let origX, origY;
+
+          if (str.type === 'h') {
+            origX = ratio * W;
+            origY = str.valRest;
+          } else {
+            origX = str.valRest;
+            origY = ratio * H;
+          }
+
+          let warpedX = origX;
+          let warpedY = origY;
+
+          // Warp node coordinate based on proximity to ALL black holes
+          for (let w = 0; w < numWells; w++) {
+            const well = gravityWells[w];
+            const dx = well.x - origX;
+            const dy = well.y - origY;
+            const distSq = dx * dx + dy * dy;
+
+            // Gravitational distortion: pulling coordinates inside the funnel
+            // Formula applies a smooth warping limit to avoid visual singularity loops
+            const forceStrength = well.mass * 85.0;
+            const warpPull = forceStrength / (distSq + 1200); 
+
+            warpedX += dx * warpPull;
+            warpedY += dy * warpPull;
+          }
+
+          // Add pluck vibration offsets
+          if (str.pluckAmp > 0) {
+            const phase = ratio * Math.PI * 5 + str.pluckPhase; // wave nodes
+            const vibOffset = str.pluckAmp * Math.sin(phase) * Math.cos(str.pluckTime * 32.0);
+            
+            if (str.type === 'h') {
+              warpedY += vibOffset;
+            } else {
+              warpedX += vibOffset;
+            }
+          }
+
+          // Calculate displacement from rest positions
+          const nodeDisp = Math.hypot(warpedX - origX, warpedY - origY);
+          totalDisplacement += nodeDisp;
+
+          points.push({ x: warpedX, y: warpedY });
+        }
+
+        // Stretch calculation: compare warped string length to rest length
+        str.currentStretch = Math.min(totalDisplacement / (W + H) * 1.5, 0.9);
+
+        // Render path string
+        let dCmd = `M ${points[0].x.toFixed(1)} ${points[0].y.toFixed(1)}`;
+        for (let p = 1; p < points.length; p++) {
+          dCmd += ` L ${points[p].x.toFixed(1)} ${points[p].y.toFixed(1)}`;
+        }
+        str.el.setAttribute('d', dCmd);
+
+        // Dynamically style glowing attributes based on stretch tension
+        // Highly stretched strings shift color slightly towards magenta/orange and glow brighter
+        if (str.currentStretch > 0.05) {
+          str.el.setAttribute('stroke-width', (1.5 + str.currentStretch * 2.8).toFixed(1));
+          str.el.setAttribute('opacity', (0.7 + str.currentStretch * 0.3).toFixed(2));
+        } else {
+          str.el.setAttribute('stroke-width', '1.5');
+          str.el.setAttribute('opacity', '0.7');
+        }
+      }
+
+      // 3. Space dust particles physics (Gravity acceleration & sucking mechanics)
+      let dustPathString = '';
+      for (let i = 0; i < dustParticles.length; i++) {
+        const p = dustParticles[i];
+
+        // Gravitational pull on dust particles
+        for (let w = 0; w < numWells; w++) {
+          const well = gravityWells[w];
+          const dx = well.x - p.x;
+          const dy = well.y - p.y;
+          const distSq = dx * dx + dy * dy;
+          const dist = Math.sqrt(distSq);
+
+          if (dist < well.radius * 0.45) {
+            // Sucked into event horizon: respawn particle at border
+            p.x = Math.random() * W;
+            p.y = Math.random() * H;
+            p.vx = (Math.random() - 0.5) * 1.5;
+            p.vy = (Math.random() - 0.5) * 1.5;
+            continue;
+          }
+
+          // Acceleration force: G * M / d^2
+          const accel = (0.24 * well.mass) / (distSq + 200);
+          p.vx += (dx / dist) * accel;
+          p.vy += (dy / dist) * accel;
+        }
+
+        // Step position
+        p.x += p.vx;
+        p.y += p.vy;
+
+        // Space dust damping
+        p.vx *= 0.98;
+        p.vy *= 0.98;
+
+        // Boundary wrap
+        if (p.x < 0 || p.x > W || p.y < 0 || p.y > H) {
+          p.x = Math.random() * W;
+          p.y = Math.random() * H;
+          p.vx = (Math.random() - 0.5) * 1.5;
+          p.vy = (Math.random() - 0.5) * 1.5;
+        }
+
+        // Draw dot using path line: M x y L (x+1) (y+1)
+        dustPathString += ` M ${p.x.toFixed(1)} ${p.y.toFixed(1)} L ${(p.x + 1.2).toFixed(1)} ${(p.y + 1.2).toFixed(1)}`;
+      }
+      
+      // Update fast-path rendering
+      dustLayer.setAttribute('d', dustPathString);
+      dustLayer.setAttribute('stroke', '#36f7ff');
+
+      requestAnimationFrame(tick);
+    }
+
+    function playBounceSound(well) {
+      if (!audioCtx || isMuted) return;
+      
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+
+      osc.type = 'triangle';
+      // Lower pitch for heavier masses bouncing
+      osc.frequency.setValueAtTime(65 + (100 - well.mass) * 0.8, now);
+      osc.frequency.exponentialRampToValueAtTime(30, now + 0.15);
+
+      gain.gain.setValueAtTime(0.18, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.15);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.16);
+    }
+
+    // ─── RESIZE ──────────────────────────────────────────────────────────────
+    window.addEventListener('resize', () => {
+      W = window.innerWidth;
+      H = window.innerHeight;
+      initStrings();
+      initDust();
+      
+      // Clear wells to prevent boundary gets lost off-screen
+      while(gravityWells.length > 0) {
+        removeGravityWell(0);
+      }
+    });
+
+    // ─── CONTROL BINDINGS ────────────────────────────────────────────────────
+    const toggleSoundBtn = document.querySelector('.sound-toggle');
+    toggleSoundBtn.addEventListener('click', () => {
+      initAudio();
+      
+      isMuted = !isMuted;
+      toggleSoundBtn.setAttribute('aria-pressed', (!isMuted).toString());
+      
+      if (!isMuted) {
+        toggleSoundBtn.textContent = '🔊';
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        // Fade hum in
+        humGainNode.gain.setTargetAtTime(0.03, audioCtx.currentTime, 0.2);
+      } else {
+        toggleSoundBtn.textContent = '♪';
+        // Mute hum
+        humGainNode.gain.setTargetAtTime(0.0, audioCtx.currentTime, 0.2);
+      }
+    });
+
+    // HUD Mode selectors
+    const modeLaunchBtn = document.getElementById('mode-launch');
+    const modeTetherBtn = document.getElementById('mode-tether');
+
+    modeLaunchBtn.addEventListener('click', () => {
+      isTetherMode = false;
+      modeLaunchBtn.classList.add('active');
+      modeTetherBtn.classList.remove('active');
+    });
+
+    modeTetherBtn.addEventListener('click', () => {
+      isTetherMode = true;
+      modeTetherBtn.classList.add('active');
+      modeLaunchBtn.classList.remove('active');
+    });
+
+    // Slider settings
+    const massSlider = document.getElementById('mass-slider');
+    massSlider.addEventListener('input', (e) => {
+      baseMass = parseFloat(e.target.value);
+    });
+
+    const frictionSlider = document.getElementById('friction-slider');
+    frictionSlider.addEventListener('input', (e) => {
+      // Scale logarithmic friction mapping
+      const val = parseFloat(e.target.value);
+      spaceFriction = val / 1000;
+    });
+
+    // Scale selectors
+    const scaleSelect = document.getElementById('scale-select');
+    scaleSelect.addEventListener('change', (e) => {
+      activeScaleName = e.target.value;
+      initStrings(); // Rebuild strings to update frequencies
+    });
+
+    // Clear Space
+    document.getElementById('clear-btn').addEventListener('click', () => {
+      while(gravityWells.length > 0) {
+        removeGravityWell(0);
+      }
+    });
+
+    // Stage pointer events
+    stageContainer.addEventListener('mousedown', onPointerDown);
+    stageContainer.addEventListener('mousemove', onPointerMove);
+    window.addEventListener('mouseup', onPointerUp);
+
+    stageContainer.addEventListener('touchstart', onPointerDown, { passive: false });
+    stageContainer.addEventListener('touchmove', onPointerMove, { passive: false });
+    window.addEventListener('touchend', onPointerUp);
+
+    // Initialize on load
+    initStrings();
+    initDust();
+    requestAnimationFrame(tick);
+  </script>
+</body>
+
+</html>

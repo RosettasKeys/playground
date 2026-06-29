@@ -469,6 +469,19 @@ h1 {
   box-shadow: 0 0 12px #e77ff5, 0 0 26px rgba(231, 127, 245, 0.4);
 }
 
+.gravity-preview {
+  overflow: hidden;
+  background: radial-gradient(ellipse at 50% 50%, #0c0817, #030207);
+}
+
+.gravity-preview::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 130'><defs><filter id='glow' x='-30%25' y='-30%25' width='160%25' height='160%25'><feGaussianBlur stdDeviation='2' result='blur'/><feMerge><feMergeNode in='blur'/><feMergeNode in='SourceGraphic'/></feMerge></filter></defs><g filter='url(%23glow)' stroke-width='0.8' opacity='0.75'><path d='M10,25 Q100,50 190,25' fill='none' stroke='%23ff4fd8'/><path d='M10,50 Q100,85 190,50' fill='none' stroke='%2336f7ff'/><path d='M10,75 Q100,105 190,75' fill='none' stroke='%23b8ff5d'/><path d='M10,100 Q100,120 190,100' fill='none' stroke='%23ffd166'/></g><circle cx='100' cy='75' r='8' fill='%23000' stroke='%2336f7ff' stroke-width='1.5' filter='url(%23glow)'/><circle cx='100' cy='75' r='12' fill='none' stroke='%2336f7ff' stroke-width='0.5' opacity='0.5'/></svg>");
+  background-size: 100% 100%;
+}
+
 .toy-meta {
   display: grid;
   gap: 8px;

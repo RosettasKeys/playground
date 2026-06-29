@@ -1,420 +1,446 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Elastic Connectors</title>
+  <title>Elastic Connectors | Fidget Toy Garden</title>
+  <link rel="stylesheet" href="../styles.css" />
   <style>
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { width: 100%; height: 100%; overflow: hidden; background: #06060f; }
-    svg { display: block; width: 100vw; height: 100vh; user-select: none; }
+    *,
+    *::before,
+    *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #06060f;
+    }
+
+    svg {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+      user-select: none;
+    }
   </style>
 </head>
+
 <body>
-<svg id="stage" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <radialGradient id="bg" cx="50%" cy="45%" r="65%">
-      <stop offset="0%"   stop-color="#0e0e22"/>
-      <stop offset="100%" stop-color="#06060f"/>
-    </radialGradient>
+  <nav class="toy-nav" aria-label="Toy controls">
+    <a class="back-link" href="../fidgetToy-index.html">← Home</a>
+  </nav>
+  <svg id="stage" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="bg" cx="50%" cy="45%" r="65%">
+          <stop offset="0%" stop-color="#0e0e22" />
+          <stop offset="100%" stop-color="#06060f" />
+        </radialGradient>
 
-    <filter id="glow-node" x="-120%" y="-120%" width="340%" height="340%" color-interpolation-filters="sRGB">
-      <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="big"/>
-      <feGaussianBlur in="SourceGraphic" stdDeviation="4"  result="small"/>
-      <feMerge>
-        <feMergeNode in="big"/>
-        <feMergeNode in="small"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
+        <filter id="glow-node" x="-120%" y="-120%" width="340%" height="340%" color-interpolation-filters="sRGB">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="big" />
+          <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="small" />
+          <feMerge>
+            <feMergeNode in="big" />
+            <feMergeNode in="small" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
 
-    <filter id="glow-path" x="-15%" y="-80%" width="130%" height="260%" color-interpolation-filters="sRGB">
-      <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur"/>
-      <feMerge>
-        <feMergeNode in="blur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
-  </defs>
+        <filter id="glow-path" x="-15%" y="-80%" width="130%" height="260%" color-interpolation-filters="sRGB">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />
+          <feMerge>
+            <feMergeNode in="blur" />
+            <feMergeNode in="SourceGraphic" />
+          </feMerge>
+        </filter>
+      </defs>
 
-  <rect id="bg-rect" width="100%" height="100%" fill="url(#bg)"/>
-  <g id="paths-layer" filter="url(#glow-path)"></g>
-  <g id="nodes-layer"></g>
-</svg>
+      <rect id="bg-rect" width="100%" height="100%" fill="url(#bg)" />
+      <g id="paths-layer" filter="url(#glow-path)"></g>
+      <g id="nodes-layer"></g>
+    </svg>
 
-<script>
-// ─── Constants ────────────────────────────────────────────────────────────────
-const R       = 17;
-const K       = 0.065;
-const DAMP    = 0.88;
-const VEL_CAP = 22;
+    <script>
+      // ─── Constants ────────────────────────────────────────────────────────────────
+      const R = 17;
+      const K = 0.065;
+      const DAMP = 0.88;
+      const VEL_CAP = 22;
 
-// ─── Node layout ──────────────────────────────────────────────────────────────
-const NODE_DEFS = [
-  { fx: 0.20, fy: 0.27, color: '#8b7fff' },   // 0 purple
-  { fx: 0.50, fy: 0.14, color: '#ff7eb3' },   // 1 pink
-  { fx: 0.80, fy: 0.28, color: '#6ef0ff' },   // 2 cyan
-  { fx: 0.13, fy: 0.64, color: '#ffd166' },   // 3 amber
-  { fx: 0.47, fy: 0.52, color: '#74c0fc' },   // 4 sky
-  { fx: 0.79, fy: 0.63, color: '#ff9f7f' },   // 5 peach
-  { fx: 0.30, fy: 0.84, color: '#a9e34b' },   // 6 lime
-  { fx: 0.68, fy: 0.84, color: '#e77ff5' },   // 7 lavender
-];
+      // ─── Node layout ──────────────────────────────────────────────────────────────
+      const NODE_DEFS = [
+        { fx: 0.20, fy: 0.27, color: '#8b7fff' },   // 0 purple
+        { fx: 0.50, fy: 0.14, color: '#ff7eb3' },   // 1 pink
+        { fx: 0.80, fy: 0.28, color: '#6ef0ff' },   // 2 cyan
+        { fx: 0.13, fy: 0.64, color: '#ffd166' },   // 3 amber
+        { fx: 0.47, fy: 0.52, color: '#74c0fc' },   // 4 sky
+        { fx: 0.79, fy: 0.63, color: '#ff9f7f' },   // 5 peach
+        { fx: 0.30, fy: 0.84, color: '#a9e34b' },   // 6 lime
+        { fx: 0.68, fy: 0.84, color: '#e77ff5' },   // 7 lavender
+      ];
 
-// ─── Edges ────────────────────────────────────────────────────────────────────
-const EDGES = [
-  [0, 1], [1, 2],
-  [0, 3], [2, 5],
-  [1, 4], [4, 3], [4, 5],
-  [3, 6], [5, 7],
-  [6, 7],
-  [0, 4], [2, 4],
-  [1, 5], [3, 7],
-];
+      // ─── Edges ────────────────────────────────────────────────────────────────────
+      const EDGES = [
+        [0, 1], [1, 2],
+        [0, 3], [2, 5],
+        [1, 4], [4, 3], [4, 5],
+        [3, 6], [5, 7],
+        [6, 7],
+        [0, 4], [2, 4],
+        [1, 5], [3, 7],
+      ];
 
-// ─── Piano notes C4–C5 mapped to nodes 0–7 ───────────────────────────────────
-const NODE_FREQS = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25];
+      // ─── Piano notes C4–C5 mapped to nodes 0–7 ───────────────────────────────────
+      const NODE_FREQS = [261.63, 293.66, 329.63, 349.23, 392.00, 440.00, 493.88, 523.25];
 
-// ─── State ────────────────────────────────────────────────────────────────────
-const svg        = document.getElementById('stage');
-const pathsLayer = document.getElementById('paths-layer');
-const nodesLayer = document.getElementById('nodes-layer');
+      // ─── State ────────────────────────────────────────────────────────────────────
+      const svg = document.getElementById('stage');
+      const pathsLayer = document.getElementById('paths-layer');
+      const nodesLayer = document.getElementById('nodes-layer');
 
-let nodes   = [];
-let pathEls = [];
+      let nodes = [];
+      let pathEls = [];
 
-let dragging = -1;
-let offX = 0, offY = 0;
-let dragX = 0, dragY = 0;
-let history = [];
+      let dragging = -1;
+      let offX = 0, offY = 0;
+      let dragX = 0, dragY = 0;
+      let history = [];
 
-// ─── Audio ────────────────────────────────────────────────────────────────────
-let audioCtx = null;
-let edgeHums = [];   // { osc, gain } one per edge — continuous low hum
+      // ─── Audio ────────────────────────────────────────────────────────────────────
+      let audioCtx = null;
+      let edgeHums = [];   // { osc, gain } one per edge — continuous low hum
 
-function ensureAudio() {
-  if (audioCtx) {
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    return;
-  }
-  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      function ensureAudio() {
+        if (audioCtx) {
+          if (audioCtx.state === 'suspended') audioCtx.resume();
+          return;
+        }
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-  // One persistent oscillator per edge for tension hum (starts silent)
-  edgeHums = EDGES.map(([ai, bi]) => {
-    const freq = (NODE_FREQS[ai] + NODE_FREQS[bi]) / 2 * 2; // one octave up harmonic
-    const osc  = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = 'sine';
-    osc.frequency.value = freq;
-    gain.gain.value = 0;
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start();
-    return { osc, gain };
-  });
-}
+        // One persistent oscillator per edge for tension hum (starts silent)
+        edgeHums = EDGES.map(([ai, bi]) => {
+          const freq = (NODE_FREQS[ai] + NODE_FREQS[bi]) / 2 * 2; // one octave up harmonic
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = freq;
+          gain.gain.value = 0;
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start();
+          return { osc, gain };
+        });
+      }
 
-// Soft piano-like attack tone when a node is grabbed
-function playGrab(nodeId) {
-  ensureAudio();
-  const freq = NODE_FREQS[nodeId];
-  const now  = audioCtx.currentTime;
-  const osc  = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  osc.type = 'triangle';
-  osc.frequency.value = freq;
-  gain.gain.setValueAtTime(0, now);
-  gain.gain.linearRampToValueAtTime(0.22, now + 0.018);  // soft attack
-  gain.gain.exponentialRampToValueAtTime(0.001, now + 1.1);
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-  osc.start(now);
-  osc.stop(now + 1.1);
-}
+      // Soft piano-like attack tone when a node is grabbed
+      function playGrab(nodeId) {
+        ensureAudio();
+        const freq = NODE_FREQS[nodeId];
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(0.22, now + 0.018);  // soft attack
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 1.1);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 1.1);
+      }
 
-// Pluck tone on release — pitch rises with stretch tension
-function playPluck(nodeId, tension) {
-  if (!audioCtx) return;
-  const baseFreq = NODE_FREQS[nodeId];
-  const freq     = baseFreq * (1 + tension * 0.7);   // more stretch → higher pitch
-  const vol      = 0.12 + tension * 0.28;
-  const now      = audioCtx.currentTime;
+      // Pluck tone on release — pitch rises with stretch tension
+      function playPluck(nodeId, tension) {
+        if (!audioCtx) return;
+        const baseFreq = NODE_FREQS[nodeId];
+        const freq = baseFreq * (1 + tension * 0.7);   // more stretch → higher pitch
+        const vol = 0.12 + tension * 0.28;
+        const now = audioCtx.currentTime;
 
-  const osc  = audioCtx.createOscillator();
-  const gain = audioCtx.createGain();
-  osc.type = 'triangle';
-  osc.frequency.setValueAtTime(freq, now);
-  osc.frequency.exponentialRampToValueAtTime(freq * 0.84, now + 0.35); // pitch drop like a real string
-  gain.gain.setValueAtTime(vol, now);
-  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.75);
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-  osc.start(now);
-  osc.stop(now + 0.75);
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, now);
+        osc.frequency.exponentialRampToValueAtTime(freq * 0.84, now + 0.35); // pitch drop like a real string
+        gain.gain.setValueAtTime(vol, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.75);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.75);
 
-  // Octave harmonic for more tension
-  if (tension > 0.2) {
-    const osc2  = audioCtx.createOscillator();
-    const gain2 = audioCtx.createGain();
-    osc2.type = 'sine';
-    osc2.frequency.value = freq * 2;
-    gain2.gain.setValueAtTime(vol * 0.18 * tension, now);
-    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-    osc2.connect(gain2);
-    gain2.connect(audioCtx.destination);
-    osc2.start(now);
-    osc2.stop(now + 0.35);
-  }
-}
+        // Octave harmonic for more tension
+        if (tension > 0.2) {
+          const osc2 = audioCtx.createOscillator();
+          const gain2 = audioCtx.createGain();
+          osc2.type = 'sine';
+          osc2.frequency.value = freq * 2;
+          gain2.gain.setValueAtTime(vol * 0.18 * tension, now);
+          gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+          osc2.connect(gain2);
+          gain2.connect(audioCtx.destination);
+          osc2.start(now);
+          osc2.stop(now + 0.35);
+        }
+      }
 
-// ─── Color utilities ──────────────────────────────────────────────────────────
-function hexToRgb(hex) {
-  const n = parseInt(hex.replace('#', ''), 16);
-  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
-}
+      // ─── Color utilities ──────────────────────────────────────────────────────────
+      function hexToRgb(hex) {
+        const n = parseInt(hex.replace('#', ''), 16);
+        return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+      }
 
-// Tension-mapped edge color:
-//   rest  → equal blend of both endpoint node colors
-//   max   → hot overload magenta #ff44ff
-function edgeColor(colA, colB, tension) {
-  const [r1, g1, b1] = hexToRgb(colA);
-  const [r2, g2, b2] = hexToRgb(colB);
-  const br = (r1 + r2) >> 1, bg = (g1 + g2) >> 1, bb = (b1 + b2) >> 1; // midpoint
-  const [mr, mg, mb] = [255, 68, 255]; // overload magenta
-  const t2 = tension * tension;         // quadratic — stays neutral until high tension
-  return `rgb(${~~(br + (mr - br) * t2)},${~~(bg + (mg - bg) * t2)},${~~(bb + (mb - bb) * t2)})`;
-}
+      // Tension-mapped edge color:
+      //   rest  → equal blend of both endpoint node colors
+      //   max   → hot overload magenta #ff44ff
+      function edgeColor(colA, colB, tension) {
+        const [r1, g1, b1] = hexToRgb(colA);
+        const [r2, g2, b2] = hexToRgb(colB);
+        const br = (r1 + r2) >> 1, bg = (g1 + g2) >> 1, bb = (b1 + b2) >> 1; // midpoint
+        const [mr, mg, mb] = [255, 68, 255]; // overload magenta
+        const t2 = tension * tension;         // quadratic — stays neutral until high tension
+        return `rgb(${~~(br + (mr - br) * t2)},${~~(bg + (mg - bg) * t2)},${~~(bb + (mb - bb) * t2)})`;
+      }
 
-// ─── Tension helper ───────────────────────────────────────────────────────────
-function calcTension(ai, bi) {
-  const a = nodes[ai], b = nodes[bi];
-  const dist     = Math.hypot(b.x - a.x, b.y - a.y) || 1;
-  const restDist = Math.hypot(b.rx - a.rx, b.ry - a.ry);
-  return Math.min(Math.max((dist / (restDist + 1) - 1) * 1.6, 0), 1);
-}
+      // ─── Tension helper ───────────────────────────────────────────────────────────
+      function calcTension(ai, bi) {
+        const a = nodes[ai], b = nodes[bi];
+        const dist = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+        const restDist = Math.hypot(b.rx - a.rx, b.ry - a.ry);
+        return Math.min(Math.max((dist / (restDist + 1) - 1) * 1.6, 0), 1);
+      }
 
-function maxTensionForNode(nodeId) {
-  let mx = 0;
-  EDGES.forEach(([ai, bi]) => {
-    if (ai === nodeId || bi === nodeId) mx = Math.max(mx, calcTension(ai, bi));
-  });
-  return mx;
-}
+      function maxTensionForNode(nodeId) {
+        let mx = 0;
+        EDGES.forEach(([ai, bi]) => {
+          if (ai === nodeId || bi === nodeId) mx = Math.max(mx, calcTension(ai, bi));
+        });
+        return mx;
+      }
 
-// ─── Init ─────────────────────────────────────────────────────────────────────
-function init() {
-  const W = innerWidth, H = innerHeight;
+      // ─── Init ─────────────────────────────────────────────────────────────────────
+      function init() {
+        const W = innerWidth, H = innerHeight;
 
-  nodes = NODE_DEFS.map((def, i) => {
-    const x = def.fx * W, y = def.fy * H;
-    const node = { x, y, rx: x, ry: y, vx: 0, vy: 0, color: def.color };
+        nodes = NODE_DEFS.map((def, i) => {
+          const x = def.fx * W, y = def.fy * H;
+          const node = { x, y, rx: x, ry: y, vx: 0, vy: 0, color: def.color };
 
-    const g    = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    g.style.cursor = 'grab';
+          const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+          g.style.cursor = 'grab';
 
-    const aura = mkCircle(R + 12, def.color, 0.10);
-    const core = mkCircle(R, def.color, 0.88);
-    core.setAttribute('filter', 'url(#glow-node)');
-    const spec = mkCircle(R * 0.42, 'white', 0.28);
-    spec.setAttribute('cx', (-R * 0.24).toFixed(1));
-    spec.setAttribute('cy', (-R * 0.24).toFixed(1));
-    spec.setAttribute('pointer-events', 'none');
+          const aura = mkCircle(R + 12, def.color, 0.10);
+          const core = mkCircle(R, def.color, 0.88);
+          core.setAttribute('filter', 'url(#glow-node)');
+          const spec = mkCircle(R * 0.42, 'white', 0.28);
+          spec.setAttribute('cx', (-R * 0.24).toFixed(1));
+          spec.setAttribute('cy', (-R * 0.24).toFixed(1));
+          spec.setAttribute('pointer-events', 'none');
 
-    g.append(aura, core, spec);
-    g.addEventListener('mousedown',  e => startDrag(e, i));
-    g.addEventListener('touchstart', e => startTouch(e, i), { passive: false });
-    nodesLayer.appendChild(g);
+          g.append(aura, core, spec);
+          g.addEventListener('mousedown', e => startDrag(e, i));
+          g.addEventListener('touchstart', e => startTouch(e, i), { passive: false });
+          nodesLayer.appendChild(g);
 
-    node.el = g;
-    return node;
-  });
+          node.el = g;
+          return node;
+        });
 
-  pathEls = EDGES.map(() => {
-    const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    p.setAttribute('fill', 'none');
-    p.setAttribute('stroke-linecap', 'round');
-    pathsLayer.appendChild(p);
-    return p;
-  });
+        pathEls = EDGES.map(() => {
+          const p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          p.setAttribute('fill', 'none');
+          p.setAttribute('stroke-linecap', 'round');
+          pathsLayer.appendChild(p);
+          return p;
+        });
 
-  requestAnimationFrame(tick);
-}
+        requestAnimationFrame(tick);
+      }
 
-function mkCircle(r, fill, opacity) {
-  const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-  c.setAttribute('r', r);
-  c.setAttribute('fill', fill);
-  c.setAttribute('opacity', opacity);
-  return c;
-}
+      function mkCircle(r, fill, opacity) {
+        const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        c.setAttribute('r', r);
+        c.setAttribute('fill', fill);
+        c.setAttribute('opacity', opacity);
+        return c;
+      }
 
-// ─── Drag: mouse ──────────────────────────────────────────────────────────────
-function startDrag(e, id) {
-  e.preventDefault();
-  activateDrag(id, e.clientX, e.clientY);
-  window.addEventListener('mousemove', onMove);
-  window.addEventListener('mouseup',   onUp);
-}
-function onMove(e) { moveDrag(e.clientX, e.clientY); }
-function onUp()    {
-  releaseDrag();
-  window.removeEventListener('mousemove', onMove);
-  window.removeEventListener('mouseup',   onUp);
-}
+      // ─── Drag: mouse ──────────────────────────────────────────────────────────────
+      function startDrag(e, id) {
+        e.preventDefault();
+        activateDrag(id, e.clientX, e.clientY);
+        window.addEventListener('mousemove', onMove);
+        window.addEventListener('mouseup', onUp);
+      }
+      function onMove(e) { moveDrag(e.clientX, e.clientY); }
+      function onUp() {
+        releaseDrag();
+        window.removeEventListener('mousemove', onMove);
+        window.removeEventListener('mouseup', onUp);
+      }
 
-// ─── Drag: touch ──────────────────────────────────────────────────────────────
-function startTouch(e, id) {
-  e.preventDefault();
-  const t = e.touches[0];
-  activateDrag(id, t.clientX, t.clientY);
-  window.addEventListener('touchmove', onTMove, { passive: false });
-  window.addEventListener('touchend',  onTEnd);
-}
-function onTMove(e) { e.preventDefault(); moveDrag(e.touches[0].clientX, e.touches[0].clientY); }
-function onTEnd()   {
-  releaseDrag();
-  window.removeEventListener('touchmove', onTMove);
-  window.removeEventListener('touchend',  onTEnd);
-}
+      // ─── Drag: touch ──────────────────────────────────────────────────────────────
+      function startTouch(e, id) {
+        e.preventDefault();
+        const t = e.touches[0];
+        activateDrag(id, t.clientX, t.clientY);
+        window.addEventListener('touchmove', onTMove, { passive: false });
+        window.addEventListener('touchend', onTEnd);
+      }
+      function onTMove(e) { e.preventDefault(); moveDrag(e.touches[0].clientX, e.touches[0].clientY); }
+      function onTEnd() {
+        releaseDrag();
+        window.removeEventListener('touchmove', onTMove);
+        window.removeEventListener('touchend', onTEnd);
+      }
 
-// ─── Drag core ────────────────────────────────────────────────────────────────
-function activateDrag(id, cx, cy) {
-  const node = nodes[id];
-  dragging = id;
-  offX = cx - node.x;
-  offY = cy - node.y;
-  dragX = node.x;
-  dragY = node.y;
-  history = [{ x: node.x, y: node.y, t: performance.now() }];
-  node.vx = node.vy = 0;
-  node.el.style.cursor = 'grabbing';
-  playGrab(id);
-}
+      // ─── Drag core ────────────────────────────────────────────────────────────────
+      function activateDrag(id, cx, cy) {
+        const node = nodes[id];
+        dragging = id;
+        offX = cx - node.x;
+        offY = cy - node.y;
+        dragX = node.x;
+        dragY = node.y;
+        history = [{ x: node.x, y: node.y, t: performance.now() }];
+        node.vx = node.vy = 0;
+        node.el.style.cursor = 'grabbing';
+        playGrab(id);
+      }
 
-function moveDrag(cx, cy) {
-  if (dragging < 0) return;
-  dragX = cx - offX;
-  dragY = cy - offY;
-  const now = performance.now();
-  history.push({ x: dragX, y: dragY, t: now });
-  if (history.length > 8) history.shift();
-}
+      function moveDrag(cx, cy) {
+        if (dragging < 0) return;
+        dragX = cx - offX;
+        dragY = cy - offY;
+        const now = performance.now();
+        history.push({ x: dragX, y: dragY, t: now });
+        if (history.length > 8) history.shift();
+      }
 
-function releaseDrag() {
-  if (dragging < 0) return;
-  const node = nodes[dragging];
-  const maxT = maxTensionForNode(dragging);
+      function releaseDrag() {
+        if (dragging < 0) return;
+        const node = nodes[dragging];
+        const maxT = maxTensionForNode(dragging);
 
-  if (history.length >= 2) {
-    const a = history[0], b = history[history.length - 1];
-    const dt = (b.t - a.t) / 1000;
-    if (dt > 0.001) {
-      node.vx = clamp((b.x - a.x) / dt / 60, -VEL_CAP, VEL_CAP);
-      node.vy = clamp((b.y - a.y) / dt / 60, -VEL_CAP, VEL_CAP);
-    }
-  }
+        if (history.length >= 2) {
+          const a = history[0], b = history[history.length - 1];
+          const dt = (b.t - a.t) / 1000;
+          if (dt > 0.001) {
+            node.vx = clamp((b.x - a.x) / dt / 60, -VEL_CAP, VEL_CAP);
+            node.vy = clamp((b.y - a.y) / dt / 60, -VEL_CAP, VEL_CAP);
+          }
+        }
 
-  playPluck(dragging, maxT);
-  node.el.style.cursor = 'grab';
-  dragging = -1;
-  history = [];
-}
+        playPluck(dragging, maxT);
+        node.el.style.cursor = 'grab';
+        dragging = -1;
+        history = [];
+      }
 
-function clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
+      function clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
 
-// ─── Physics tick ─────────────────────────────────────────────────────────────
-function tick(ts) {
-  nodes.forEach((n, i) => {
-    if (i === dragging) {
-      n.x = dragX;
-      n.y = dragY;
-    } else {
-      n.vx = (n.vx + (n.rx - n.x) * K) * DAMP;
-      n.vy = (n.vy + (n.ry - n.y) * K) * DAMP;
-      n.x += n.vx;
-      n.y += n.vy;
-    }
-  });
+      // ─── Physics tick ─────────────────────────────────────────────────────────────
+      function tick(ts) {
+        nodes.forEach((n, i) => {
+          if (i === dragging) {
+            n.x = dragX;
+            n.y = dragY;
+          } else {
+            n.vx = (n.vx + (n.rx - n.x) * K) * DAMP;
+            n.vy = (n.vy + (n.ry - n.y) * K) * DAMP;
+            n.x += n.vx;
+            n.y += n.vy;
+          }
+        });
 
-  render(ts);
-  requestAnimationFrame(tick);
-}
+        render(ts);
+        requestAnimationFrame(tick);
+      }
 
-// ─── Render ───────────────────────────────────────────────────────────────────
-function render(ts) {
-  const tSec = (ts || 0) / 1000;
+      // ─── Render ───────────────────────────────────────────────────────────────────
+      function render(ts) {
+        const tSec = (ts || 0) / 1000;
 
-  // Nodes
-  nodes.forEach((n, i) => {
-    const scale = (i === dragging) ? 1.14 : 1;
-    n.el.setAttribute('transform',
-      `translate(${n.x.toFixed(2)},${n.y.toFixed(2)}) scale(${scale})`);
-  });
+        // Nodes
+        nodes.forEach((n, i) => {
+          const scale = (i === dragging) ? 1.14 : 1;
+          n.el.setAttribute('transform',
+            `translate(${n.x.toFixed(2)},${n.y.toFixed(2)}) scale(${scale})`);
+        });
 
-  // Paths
-  EDGES.forEach(([ai, bi], i) => {
-    const a = nodes[ai], b = nodes[bi];
-    const dx = b.x - a.x, dy = b.y - a.y;
-    const dist = Math.hypot(dx, dy) || 1;
+        // Paths
+        EDGES.forEach(([ai, bi], i) => {
+          const a = nodes[ai], b = nodes[bi];
+          const dx = b.x - a.x, dy = b.y - a.y;
+          const dist = Math.hypot(dx, dy) || 1;
 
-    // Perpendicular unit vector
-    const nx = -dy / dist, ny = dx / dist;
+          // Perpendicular unit vector
+          const nx = -dy / dist, ny = dx / dist;
 
-    // Static bezier bulge (alternates direction)
-    const sign  = (i % 2 === 0) ? 1 : -1;
-    const bulge = dist * 0.16 * sign;
+          // Static bezier bulge (alternates direction)
+          const sign = (i % 2 === 0) ? 1 : -1;
+          const bulge = dist * 0.16 * sign;
 
-    // Tension
-    const restDist = Math.hypot(b.rx - a.rx, b.ry - a.ry);
-    const tension  = Math.min(Math.max((dist / (restDist + 1) - 1) * 1.6, 0), 1);
+          // Tension
+          const restDist = Math.hypot(b.rx - a.rx, b.ry - a.ry);
+          const tension = Math.min(Math.max((dist / (restDist + 1) - 1) * 1.6, 0), 1);
 
-    // ── Feature 2: Vibrating-string oscillation ───────────────────────────────
-    // Frequency: 2 Hz when slack → 16 Hz at max stretch
-    // Amplitude: zero when slack → scales with tension × length
-    const waveFreq = 2 + tension * 14;
-    const waveAmp  = tension * dist * 0.055;
-    const wave     = Math.sin(tSec * waveFreq * Math.PI * 2) * waveAmp;
+          // ── Feature 2: Vibrating-string oscillation ───────────────────────────────
+          // Frequency: 2 Hz when slack → 16 Hz at max stretch
+          // Amplitude: zero when slack → scales with tension × length
+          const waveFreq = 2 + tension * 14;
+          const waveAmp = tension * dist * 0.055;
+          const wave = Math.sin(tSec * waveFreq * Math.PI * 2) * waveAmp;
 
-    // Control point: static bulge + vibration offset (both perpendicular to edge)
-    const cx = (a.x + b.x) / 2 + nx * (bulge + wave);
-    const cy = (a.y + b.y) / 2 + ny * (bulge + wave);
+          // Control point: static bulge + vibration offset (both perpendicular to edge)
+          const cx = (a.x + b.x) / 2 + nx * (bulge + wave);
+          const cy = (a.y + b.y) / 2 + ny * (bulge + wave);
 
-    // ── Feature 1: Tension-mapped color blending ──────────────────────────────
-    const col = edgeColor(a.color, b.color, tension);
+          // ── Feature 1: Tension-mapped color blending ──────────────────────────────
+          const col = edgeColor(a.color, b.color, tension);
 
-    const isDragEdge = (ai === dragging || bi === dragging);
-    const opacity    = isDragEdge ? 0.85 : 0.42 + tension * 0.35;
-    const strokeW    = 1.4 + tension * 0.9;
+          const isDragEdge = (ai === dragging || bi === dragging);
+          const opacity = isDragEdge ? 0.85 : 0.42 + tension * 0.35;
+          const strokeW = 1.4 + tension * 0.9;
 
-    const p = pathEls[i];
-    p.setAttribute('d',
-      `M${a.x.toFixed(1)},${a.y.toFixed(1)} ` +
-      `Q${cx.toFixed(1)},${cy.toFixed(1)} ` +
-      `${b.x.toFixed(1)},${b.y.toFixed(1)}`);
-    p.setAttribute('stroke',       col);
-    p.setAttribute('stroke-width', strokeW.toFixed(2));
-    p.setAttribute('opacity',      opacity.toFixed(3));
+          const p = pathEls[i];
+          p.setAttribute('d',
+            `M${a.x.toFixed(1)},${a.y.toFixed(1)} ` +
+            `Q${cx.toFixed(1)},${cy.toFixed(1)} ` +
+            `${b.x.toFixed(1)},${b.y.toFixed(1)}`);
+          p.setAttribute('stroke', col);
+          p.setAttribute('stroke-width', strokeW.toFixed(2));
+          p.setAttribute('opacity', opacity.toFixed(3));
 
-    // ── Feature 3: Continuous tension hum ────────────────────────────────────
-    // Gain ramps up only above 35% tension — keeps it subtle until real stretch
-    if (audioCtx && edgeHums[i]) {
-      const humVol = tension > 0.35 ? (tension - 0.35) * 0.072 : 0;
-      edgeHums[i].gain.gain.setTargetAtTime(humVol, audioCtx.currentTime, 0.08);
-    }
-  });
-}
+          // ── Feature 3: Continuous tension hum ────────────────────────────────────
+          // Gain ramps up only above 35% tension — keeps it subtle until real stretch
+          if (audioCtx && edgeHums[i]) {
+            const humVol = tension > 0.35 ? (tension - 0.35) * 0.072 : 0;
+            edgeHums[i].gain.gain.setTargetAtTime(humVol, audioCtx.currentTime, 0.08);
+          }
+        });
+      }
 
-// ─── Responsive resize ────────────────────────────────────────────────────────
-window.addEventListener('resize', () => {
-  const W = innerWidth, H = innerHeight;
-  nodes.forEach((n, i) => {
-    n.rx = NODE_DEFS[i].fx * W;
-    n.ry = NODE_DEFS[i].fy * H;
-  });
-});
+      // ─── Responsive resize ────────────────────────────────────────────────────────
+      window.addEventListener('resize', () => {
+        const W = innerWidth, H = innerHeight;
+        nodes.forEach((n, i) => {
+          n.rx = NODE_DEFS[i].fx * W;
+          n.ry = NODE_DEFS[i].fy * H;
+        });
+      });
 
-// ─── Go ───────────────────────────────────────────────────────────────────────
-init();
-</script>
+      // ─── Go ───────────────────────────────────────────────────────────────────────
+      init();
+    </script>
 </body>
+
 </html>

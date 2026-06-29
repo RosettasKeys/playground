@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,17 +16,23 @@
   ═══════════════════════════════════════════════════════════ -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Space+Mono:wght@400;700&family=Single+Day&family=Cinzel+Decorative:wght@400;700&family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Space+Mono:wght@400;700&family=Single+Day&family=Cinzel+Decorative:wght@400;700&family=IM+Fell+English:ital@0;1&display=swap"
+    rel="stylesheet">
 
   <style>
-
     /* ═══════════════════════════════════════════════════════════
        BASE & RESET
     ═══════════════════════════════════════════════════════════ */
 
-    *, *::before, *::after { box-sizing: border-box; }
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
 
-    html, body {
+    html,
+    body {
       margin: 0;
       padding: 0;
       overflow: hidden;
@@ -34,7 +41,9 @@
     }
 
     /* Utility — toggled by JS to show/hide elements */
-    .hidden { display: none !important; }
+    .hidden {
+      display: none !important;
+    }
 
 
     /* ═══════════════════════════════════════════════════════════
@@ -44,59 +53,144 @@
     /* ── Card personalities ──────────────────────────────────── */
 
     @keyframes chaos-slow {
+
       /* Deck of Cards: always slightly tilted, never quite still */
-      0%, 100% { transform: rotate(-1.4deg) translateY(0px); }
-      25%       { transform: rotate( 0.9deg) translateY(-2px); }
-      50%       { transform: rotate(-0.3deg) translateY( 1px); }
-      75%       { transform: rotate( 1.8deg) translateY(-1px); }
+      0%,
+      100% {
+        transform: rotate(-1.4deg) translateY(0px);
+      }
+
+      25% {
+        transform: rotate(0.9deg) translateY(-2px);
+      }
+
+      50% {
+        transform: rotate(-0.3deg) translateY(1px);
+      }
+
+      75% {
+        transform: rotate(1.8deg) translateY(-1px);
+      }
     }
+
     @keyframes chaos-fast {
+
       /* Deck of Cards on hover: more frantic */
-      0%, 100% { transform: rotate(-4.0deg) translateY(-3px); }
-      20%       { transform: rotate( 3.2deg) translateY( 4px); }
-      40%       { transform: rotate(-3.0deg) translateY(-4px); }
-      60%       { transform: rotate( 4.0deg) translateY( 3px); }
-      80%       { transform: rotate(-3.5deg) translateY(-3px); }
+      0%,
+      100% {
+        transform: rotate(-4.0deg) translateY(-3px);
+      }
+
+      20% {
+        transform: rotate(3.2deg) translateY(4px);
+      }
+
+      40% {
+        transform: rotate(-3.0deg) translateY(-4px);
+      }
+
+      60% {
+        transform: rotate(4.0deg) translateY(3px);
+      }
+
+      80% {
+        transform: rotate(-3.5deg) translateY(-3px);
+      }
     }
+
     @keyframes spring-glow {
+
       /* Spring of Ages: warm pulse */
-      0%, 100% { box-shadow: 0 0 18px rgba(255,172,42,0.12), 0 10px 38px rgba(0,0,0,0.58); }
-      50%       { box-shadow: 0 0 36px rgba(255,172,42,0.24), 0 10px 38px rgba(0,0,0,0.58); }
+      0%,
+      100% {
+        box-shadow: 0 0 18px rgba(255, 172, 42, 0.12), 0 10px 38px rgba(0, 0, 0, 0.58);
+      }
+
+      50% {
+        box-shadow: 0 0 36px rgba(255, 172, 42, 0.24), 0 10px 38px rgba(0, 0, 0, 0.58);
+      }
     }
+
     @keyframes fidget-breathe {
+
       /* Fidget Toys: cool blue glow that softly breathes */
-      0%, 100% { box-shadow: 0 0 14px rgba(100,168,255,0.16), 0 10px 38px rgba(0,0,0,0.62); }
-      50%       { box-shadow: 0 0 30px rgba(130,188,255,0.26), 0 0 10px rgba(190,130,255,0.10), 0 10px 38px rgba(0,0,0,0.62); }
+      0%,
+      100% {
+        box-shadow: 0 0 14px rgba(100, 168, 255, 0.16), 0 10px 38px rgba(0, 0, 0, 0.62);
+      }
+
+      50% {
+        box-shadow: 0 0 30px rgba(130, 188, 255, 0.26), 0 0 10px rgba(190, 130, 255, 0.10), 0 10px 38px rgba(0, 0, 0, 0.62);
+      }
     }
 
     /* ── Particle field ──────────────────────────────────────── */
 
     @keyframes garden-fall {
+
       /* Symbols drift slowly downward, rotating, fading in/out */
-      0%   { transform: translateY(-50px)  translateX(0px)              rotate(0deg);            opacity: 0; }
-      7%   { opacity: 1; }
-      93%  { opacity: 1; }
-      100% { transform: translateY(112vh) translateX(var(--drift,22px)) rotate(var(--rot,360deg)); opacity: 0; }
+      0% {
+        transform: translateY(-50px) translateX(0px) rotate(0deg);
+        opacity: 0;
+      }
+
+      7% {
+        opacity: 1;
+      }
+
+      93% {
+        opacity: 1;
+      }
+
+      100% {
+        transform: translateY(112vh) translateX(var(--drift, 22px)) rotate(var(--rot, 360deg));
+        opacity: 0;
+      }
     }
 
     /* ── Mouse trail ─────────────────────────────────────────── */
 
     @keyframes trail-rise {
+
       /* Tiny sparks rise from the cursor and vanish */
-      0%   { opacity: 0.7; transform: translate(-50%,-50%) translateY(  0px) translateX(0px)               scale(1.0); }
-      100% { opacity: 0;   transform: translate(-50%,-50%) translateY(-30px) translateX(var(--tdrift,0px)) scale(0.28); }
+      0% {
+        opacity: 0.7;
+        transform: translate(-50%, -50%) translateY(0px) translateX(0px) scale(1.0);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) translateY(-30px) translateX(var(--tdrift, 0px)) scale(0.28);
+      }
     }
 
     /* ── Misc UI ─────────────────────────────────────────────── */
 
     @keyframes crack-flicker {
+
       /* "careful..." warning text after enough double-clicks */
-      0%, 100% { opacity: 0.16; letter-spacing: 0.06em; }
-      50%       { opacity: 0.32; letter-spacing: 0.10em; }
+      0%,
+      100% {
+        opacity: 0.16;
+        letter-spacing: 0.06em;
+      }
+
+      50% {
+        opacity: 0.32;
+        letter-spacing: 0.10em;
+      }
     }
+
     @keyframes hint-in {
-      from { opacity: 0; transform: translateY(4px); }
-      to   { opacity: 1; transform: translateY(0);   }
+      from {
+        opacity: 0;
+        transform: translateY(4px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
 
@@ -128,7 +222,7 @@
       color: rgba(205, 222, 255, 0.92);
       letter-spacing: 0.015em;
       line-height: 1;
-      text-shadow: 0 2px 36px rgba(80,130,255,0.22), 0 0 6px rgba(80,130,255,0.10);
+      text-shadow: 0 2px 36px rgba(80, 130, 255, 0.22), 0 0 6px rgba(80, 130, 255, 0.10);
     }
 
     #title-sub {
@@ -165,14 +259,16 @@
       display: grid;
       place-items: center;
       padding-top: 60px;
-      pointer-events: none;   /* wrapper passes clicks through */
+      pointer-events: none;
+      /* wrapper passes clicks through */
     }
 
     #cards-row {
       display: flex;
       align-items: flex-start;
       gap: 20px;
-      pointer-events: all;    /* cards are clickable */
+      pointer-events: all;
+      /* cards are clickable */
     }
 
     /* Shared card base — all cards inherit these */
@@ -185,10 +281,25 @@
       transition: transform 0.38s ease, border-color 0.38s ease;
     }
 
-    .card-title { margin-bottom: 7px;  line-height: 1.1; }
-    .card-label { letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 15px; }
-    .card-body  { line-height: 1.72; }
-    .card-cta   { margin-top: 22px; letter-spacing: 0.12em; }
+    .card-title {
+      margin-bottom: 7px;
+      line-height: 1.1;
+    }
+
+    .card-label {
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      margin-bottom: 15px;
+    }
+
+    .card-body {
+      line-height: 1.72;
+    }
+
+    .card-cta {
+      margin-top: 22px;
+      letter-spacing: 0.12em;
+    }
 
 
     /* ── Fidget Toys ─────────────────── Wonder, shimmer, cool blue */
@@ -198,12 +309,35 @@
       border: 1px solid #01b7d4c7;
       animation: fidget-breathe 4.2s ease-in-out infinite;
     }
-    #card-fidget:hover { transform: translateY(-6px); border-color: rgba(150,205,255,0.38); }
 
-    #card-fidget .card-title { font-family: 'Single Day', cursive; font-size: 30px; color: #36f7ff; }
-    #card-fidget .card-label { font-family: 'Single Day', cursive; font-size: 13px; color: #01b7d4c7; }
-    #card-fidget .card-body  { font-family: 'Single Day', cursive; font-size: 20px; color: #01b7d4c7; }
-    #card-fidget .card-cta   { font-family: 'Single Day', cursive; font-size: 14px; color: #01b7d4c7; }
+    #card-fidget:hover {
+      transform: translateY(-6px);
+      border-color: rgba(150, 205, 255, 0.38);
+    }
+
+    #card-fidget .card-title {
+      font-family: 'Single Day', cursive;
+      font-size: 30px;
+      color: #36f7ff;
+    }
+
+    #card-fidget .card-label {
+      font-family: 'Single Day', cursive;
+      font-size: 13px;
+      color: #01b7d4c7;
+    }
+
+    #card-fidget .card-body {
+      font-family: 'Single Day', cursive;
+      font-size: 20px;
+      color: #01b7d4c7;
+    }
+
+    #card-fidget .card-cta {
+      font-family: 'Single Day', cursive;
+      font-size: 14px;
+      color: #01b7d4c7;
+    }
 
 
     /* ── Deck of Cards ───────────────── Chaos, Alice in Wonderland */
@@ -211,21 +345,42 @@
     #card-ecards {
       background-color: #2a080cde;
       border: 1px solid #c52d2f;
-      box-shadow: 0 10px 38px rgba(0,0,0,0.58);
+      box-shadow: 0 10px 38px rgba(0, 0, 0, 0.58);
       animation: chaos-slow 5.3s ease-in-out infinite;
       margin-top: 36px;
       transition: border-color 0.3s ease;
     }
+
     #card-ecards:hover {
       animation-name: chaos-fast;
       animation-duration: 0.9s;
-      border-color: rgba(235,105,195,0.36);
+      border-color: rgba(235, 105, 195, 0.36);
     }
 
-    #card-ecards .card-title { font-family: 'Cinzel Decorative', serif; font-size: 28px; color: #d4af37f0; font-weight: 600; }
-    #card-ecards .card-label { font-family: 'Cinzel Decorative', serif; font-size: 10px; color: #fbf8eba6; }
-    #card-ecards .card-body  { font-family: 'IM Fell English', serif;   font-size: 18px; color: #fbf8eba6; }
-    #card-ecards .card-cta   { font-family: 'IM Fell English', serif;   font-size: 13px; color: #c52d2f; }
+    #card-ecards .card-title {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 28px;
+      color: #d4af37f0;
+      font-weight: 600;
+    }
+
+    #card-ecards .card-label {
+      font-family: 'Cinzel Decorative', serif;
+      font-size: 10px;
+      color: #fbf8eba6;
+    }
+
+    #card-ecards .card-body {
+      font-family: 'IM Fell English', serif;
+      font-size: 18px;
+      color: #fbf8eba6;
+    }
+
+    #card-ecards .card-cta {
+      font-family: 'IM Fell English', serif;
+      font-size: 13px;
+      color: #c52d2f;
+    }
 
 
     /* ── Spring of Ages ──────────────── Joyful, Easter, warm gold */
@@ -236,12 +391,36 @@
       animation: spring-glow 3.5s ease-in-out infinite;
       margin-top: 62px;
     }
-    #card-spring:hover { transform: translateY(-6px); border-color: rgba(255,190,72,0.34); }
 
-    #card-spring .card-title { font-family: 'EB Garamond', serif;    font-style: italic; font-size: 28px; color: #f0c060; }
-    #card-spring .card-label { font-family: 'Space Mono', monospace; font-size: 10px;  color: #f4d7a1; }
-    #card-spring .card-body  { font-family: 'EB Garamond', serif;    font-size: 20px;  color: #f4d7a1; }
-    #card-spring .card-cta   { font-family: 'Space Mono', monospace; font-size: 12px;  color: #f4d7a1; }
+    #card-spring:hover {
+      transform: translateY(-6px);
+      border-color: rgba(255, 190, 72, 0.34);
+    }
+
+    #card-spring .card-title {
+      font-family: 'EB Garamond', serif;
+      font-style: italic;
+      font-size: 28px;
+      color: #f0c060;
+    }
+
+    #card-spring .card-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      color: #f4d7a1;
+    }
+
+    #card-spring .card-body {
+      font-family: 'EB Garamond', serif;
+      font-size: 20px;
+      color: #f4d7a1;
+    }
+
+    #card-spring .card-cta {
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      color: #f4d7a1;
+    }
 
 
     /* ═══════════════════════════════════════════════════════════
@@ -264,7 +443,10 @@
       cursor: pointer;
       transition: color 0.45s;
     }
-    #about-toggle:hover { color: rgba(130, 162, 215, 0.46); }
+
+    #about-toggle:hover {
+      color: rgba(130, 162, 215, 0.46);
+    }
 
     #about-content {
       margin-top: 10px;
@@ -275,12 +457,16 @@
       letter-spacing: 0.04em;
       animation: hint-in 0.4s ease forwards;
     }
+
     #about-content a {
       color: rgba(110, 172, 255, 0.36);
       text-decoration: none;
       transition: color 0.3s;
     }
-    #about-content a:hover { color: rgba(110, 172, 255, 0.62); }
+
+    #about-content a:hover {
+      color: rgba(110, 172, 255, 0.62);
+    }
 
 
     /* ═══════════════════════════════════════════════════════════
@@ -299,7 +485,10 @@
       justify-content: center;
     }
 
-    #crumble-dead { text-align: center; animation: hint-in 0.8s ease forwards; }
+    #crumble-dead {
+      text-align: center;
+      animation: hint-in 0.8s ease forwards;
+    }
 
     #crumble-dead .line1 {
       font-family: 'EB Garamond', serif;
@@ -308,6 +497,7 @@
       color: rgba(175, 188, 212, 0.35);
       letter-spacing: 0.02em;
     }
+
     #crumble-dead .line2 {
       font-family: 'Space Mono', monospace;
       font-size: 7.5px;
@@ -324,9 +514,9 @@
       pointer-events: none;
       display: block;
     }
-
   </style>
 </head>
+
 <body>
 
   <!-- ═══════════════════════════════════════════════════════════
@@ -346,33 +536,35 @@
     <div id="cards-row">
 
       <!-- FIDGET TOYS — Wonder -->
-      <a href="fidgettoy/fidgettoy-index.html" style="text-decoration:none;color:inherit;">
-      <div id="card-fidget" class="card">
-        <div class="card-title">Fidget Toys</div>
-        <div class="card-label">sensory toys in code</div>
-        <div class="card-body">Interactive objects for hands that need something to do. All shimmer and spark.</div>
-        <div class="card-cta">enter →</div>
-      </div>
+      <a href="fidgetToy/fidgetToy-index.html" style="text-decoration:none;color:inherit;">
+        <div id="card-fidget" class="card">
+          <div class="card-title">Fidget Toys</div>
+          <div class="card-label">sensory toys in code</div>
+          <div class="card-body">Interactive objects for hands that need something to do. All shimmer and spark.</div>
+          <div class="card-cta">enter →</div>
+        </div>
       </a>
 
       <!-- DECK OF CARDS — Chaos / Alice in Wonderland -->
       <a href="ecards/card-index.html" style="text-decoration:none;color:inherit;">
-      <div id="card-ecards" class="card">
-        <div class="card-title">Deck of Cards</div>
-        <div class="card-label">motion for occasions</div>
-        <div class="card-body">Send a card that doesn't sit still. A descent into wonderland, occasion by occasion.</div>
-        <div class="card-cta">fall in →</div>
-      </div>
+        <div id="card-ecards" class="card">
+          <div class="card-title">Deck of Cards</div>
+          <div class="card-label">motion for occasions</div>
+          <div class="card-body">Send a card that doesn't sit still. A descent into wonderland, occasion by occasion.
+          </div>
+          <div class="card-cta">fall in →</div>
+        </div>
       </a>
 
       <!-- SPRING OF AGES — Joyful / Easter across cultures -->
-      <a href="https://sites.google.com/view/springofages/home" target="_blank" rel="noopener" style="text-decoration:none;color:inherit;">
-      <div id="card-spring" class="card">
-        <div class="card-title">Spring of Ages</div>
-        <div class="card-label">a site as memory</div>
-        <div class="card-body">Easter across cultures, across time. Joy older than any one tradition.</div>
-        <div class="card-cta">celebrate →</div>
-      </div>
+      <a href="https://sites.google.com/view/springofages/home" target="_blank" rel="noopener"
+        style="text-decoration:none;color:inherit;">
+        <div id="card-spring" class="card">
+          <div class="card-title">Spring of Ages</div>
+          <div class="card-label">a site as memory</div>
+          <div class="card-body">Easter across cultures, across time. Joy older than any one tradition.</div>
+          <div class="card-cta">celebrate →</div>
+        </div>
       </a>
 
     </div>
@@ -403,7 +595,8 @@
   <canvas id="crumble-canvas"></canvas>
 
 
-  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
+  <script>
 
     // ═══════════════════════════════════════════════════════════
     // PARTICLE FIELD
@@ -417,44 +610,44 @@
 
     const FIELD_TYPES = [
       // Keys get more entries so they appear more frequently
-      { char: '🗝', color: 'rgba(212,175,55,',  glow: '#d4af37' },  // key — classic gold
-      { char: '🗝', color: 'rgba(212,175,55,',  glow: '#d4af37' },  // key
-      { char: '🗝', color: 'rgba(212,175,55,',  glow: '#d4af37' },  // key
-      { char: '🗝', color: 'rgba(220,190,80,',  glow: '#dcbe50' },  // key — warm gold
-      { char: '🗝', color: 'rgba(200,160,40,',  glow: '#c8a028' },  // key — deep gold
+      { char: '🗝', color: 'rgba(212,175,55,', glow: '#d4af37' },  // key — classic gold
+      { char: '🗝', color: 'rgba(212,175,55,', glow: '#d4af37' },  // key
+      { char: '🗝', color: 'rgba(212,175,55,', glow: '#d4af37' },  // key
+      { char: '🗝', color: 'rgba(220,190,80,', glow: '#dcbe50' },  // key — warm gold
+      { char: '🗝', color: 'rgba(200,160,40,', glow: '#c8a028' },  // key — deep gold
       // Supporting cast
-      { char: '✦',  color: 'rgba(188,218,255,', glow: '#bcdaff' },  // 4-pointed star — cool blue
-      { char: '✧',  color: 'rgba(210,235,255,', glow: '#d2ebff' },  // outlined star — pale
-      { char: '✿',  color: 'rgba(200,150,235,', glow: '#c896eb' },  // flower — lavender
-      { char: '❀',  color: 'rgba(215,168,242,', glow: '#d7a8f2' },  // open flower — lilac
+      { char: '✦', color: 'rgba(188,218,255,', glow: '#bcdaff' },  // 4-pointed star — cool blue
+      { char: '✧', color: 'rgba(210,235,255,', glow: '#d2ebff' },  // outlined star — pale
+      { char: '✿', color: 'rgba(200,150,235,', glow: '#c896eb' },  // flower — lavender
+      { char: '❀', color: 'rgba(215,168,242,', glow: '#d7a8f2' },  // open flower — lilac
       { char: '🪄', color: 'rgba(130,248,198,', glow: '#82f8c6' },  // wand — teal
     ];
 
     function initParticles() {
       for (let i = 0; i < PARTICLE_COUNT; i++) {
-        const type     = FIELD_TYPES[Math.floor(Math.random() * FIELD_TYPES.length)];
-        const size     = Math.random() * 13 + 10;                    // 10–23px font size
-        const opacity  = (Math.random() * 0.14 + 0.07).toFixed(2);  // 0.07–0.21 (subtle)
+        const type = FIELD_TYPES[Math.floor(Math.random() * FIELD_TYPES.length)];
+        const size = Math.random() * 13 + 10;                    // 10–23px font size
+        const opacity = (Math.random() * 0.14 + 0.07).toFixed(2);  // 0.07–0.21 (subtle)
         const duration = Math.random() * 16 + 14;                   // 14–30s to fall
-        const delay    = -(Math.random() * duration);               // negative = start mid-fall
-        const leftPct  = (Math.random() * 96).toFixed(1);           // horizontal position 0–96%
-        const drift    = Math.round(Math.random() * 64 - 32);       // ±32px sideways drift
-        const rot      = Math.random() > 0.5 ? 360 : -360;         // rotate CW or CCW
+        const delay = -(Math.random() * duration);               // negative = start mid-fall
+        const leftPct = (Math.random() * 96).toFixed(1);           // horizontal position 0–96%
+        const drift = Math.round(Math.random() * 64 - 32);       // ±32px sideways drift
+        const rot = Math.random() > 0.5 ? 360 : -360;         // rotate CW or CCW
 
         const el = document.createElement('div');
         el.textContent = type.char;
-        el.style.position      = 'fixed';
-        el.style.left          = leftPct + '%';
-        el.style.top           = '-45px';
-        el.style.fontSize      = size + 'px';
-        el.style.color         = type.color + opacity + ')';
-        el.style.textShadow    = '0 0 9px currentColor';
-        el.style.animation     = `garden-fall ${duration}s linear ${delay}s infinite`;
+        el.style.position = 'fixed';
+        el.style.left = leftPct + '%';
+        el.style.top = '-45px';
+        el.style.fontSize = size + 'px';
+        el.style.color = type.color + opacity + ')';
+        el.style.textShadow = '0 0 9px currentColor';
+        el.style.animation = `garden-fall ${duration}s linear ${delay}s infinite`;
         el.style.pointerEvents = 'none';
-        el.style.zIndex        = '1';
-        el.style.userSelect    = 'none';
+        el.style.zIndex = '1';
+        el.style.userSelect = 'none';
         el.style.setProperty('--drift', drift + 'px');
-        el.style.setProperty('--rot',   rot   + 'deg');
+        el.style.setProperty('--rot', rot + 'deg');
         document.body.appendChild(el);
       }
     }
@@ -487,23 +680,23 @@
       if (now - lastTrailTime < TRAIL_THROTTLE_MS) return;
       lastTrailTime = now;
 
-      const type   = TRAIL_TYPES[Math.floor(Math.random() * TRAIL_TYPES.length)];
-      const size   = Math.random() * 9 + 7;
+      const type = TRAIL_TYPES[Math.floor(Math.random() * TRAIL_TYPES.length)];
+      const size = Math.random() * 9 + 7;
       const tdrift = Math.round(Math.random() * 18 - 9);
 
       const el = document.createElement('div');
       el.textContent = type.char;
       Object.assign(el.style, {
-        position:      'fixed',
-        left:          e.clientX + 'px',
-        top:           e.clientY + 'px',
-        fontSize:      size + 'px',
-        color:         type.color,
+        position: 'fixed',
+        left: e.clientX + 'px',
+        top: e.clientY + 'px',
+        fontSize: size + 'px',
+        color: type.color,
         pointerEvents: 'none',
-        zIndex:        '10',
-        userSelect:    'none',
-        textShadow:    '0 0 6px currentColor',
-        animation:     'trail-rise 0.88s ease-out forwards',
+        zIndex: '10',
+        userSelect: 'none',
+        textShadow: '0 0 6px currentColor',
+        animation: 'trail-rise 0.88s ease-out forwards',
       });
       el.style.setProperty('--tdrift', tdrift + 'px');
       document.body.appendChild(el);
@@ -530,9 +723,9 @@
     // ═══════════════════════════════════════════════════════════
 
     let dblClickCount = 0;
-    let crumblePhase  = 0;     // 0 = normal · 2 = animating · 3 = dead
+    let crumblePhase = 0;     // 0 = normal · 2 = animating · 3 = dead
     let crumbleShards = [];
-    let crumbleStart  = null;
+    let crumbleStart = null;
 
     document.getElementById('title-bar').addEventListener('dblclick', () => {
       if (crumblePhase > 0) return;
@@ -552,28 +745,28 @@
       const cx = W / 2, cy = H / 2;
 
       crumbleShards = [];
-      crumbleStart  = null;
-      crumblePhase  = 2;
+      crumbleStart = null;
+      crumblePhase = 2;
 
       // Build a grid of colored rectangles that fly outward from center
       for (let r = 0; r < ROWS; r++) {
         for (let c = 0; c < COLS; c++) {
-          const x  = (c / COLS) * W;
-          const y  = (r / ROWS) * H;
-          const w  = W / COLS + 2;
-          const h  = H / ROWS + 2;
-          const mx = x + w / 2,  my = y + h / 2;
-          const dx = mx - cx,    dy = my - cy;
-          const dist  = Math.sqrt(dx * dx + dy * dy) || 1;
+          const x = (c / COLS) * W;
+          const y = (r / ROWS) * H;
+          const w = W / COLS + 2;
+          const h = H / ROWS + 2;
+          const mx = x + w / 2, my = y + h / 2;
+          const dx = mx - cx, dy = my - cy;
+          const dist = Math.sqrt(dx * dx + dy * dy) || 1;
           const speed = 2.8 + Math.random() * 5.8;
 
           // Rough color zones — remnants of the old illustration palette
           const nc = c / COLS, nr = r / ROWS;
           let br = 3, bg = 8, bb = 22;                                    // default dark blue
-          if (nc < 0.30 && nr < 0.60)              { br = 5;  bg = 14; bb = 40; }  // blue
-          if (nc > 0.65 && nr < 0.48)              { br = 9;  bg = 28; bb = 11; }  // green
-          if (nc > 0.68 && nr > 0.50)              { br = 48; bg = 10; bb = 7;  }  // red
-          if (nc > 0.28 && nc < 0.65 && nr > 0.55) { br = 7;  bg = 12; bb = 32; }  // purple
+          if (nc < 0.30 && nr < 0.60) { br = 5; bg = 14; bb = 40; }  // blue
+          if (nc > 0.65 && nr < 0.48) { br = 9; bg = 28; bb = 11; }  // green
+          if (nc > 0.68 && nr > 0.50) { br = 48; bg = 10; bb = 7; }  // red
+          if (nc > 0.28 && nc < 0.65 && nr > 0.55) { br = 7; bg = 12; bb = 32; }  // purple
 
           // Delay based on distance so shards near center fly first
           const delay = (dist / (Math.max(W, H) * 0.75)) * 0.22;
@@ -582,8 +775,8 @@
             x, y, w, h,
             vx: (dx / dist) * speed,
             vy: (dy / dist) * speed * 0.88,
-            rot: 0,  rotV: (Math.random() - 0.5) * 0.09,
-            opacity: 1,  delay,
+            rot: 0, rotV: (Math.random() - 0.5) * 0.09,
+            opacity: 1, delay,
             br, bg, bb,
           });
         }
@@ -604,15 +797,15 @@
     function crumbleLoop(timestamp) {
       if (crumblePhase !== 2) return;
 
-      const t   = timestamp / 1000;
-      const W   = window.innerWidth,  H = window.innerHeight;
+      const t = timestamp / 1000;
+      const W = window.innerWidth, H = window.innerHeight;
       const cvs = document.getElementById('crumble-canvas');
-      if (cvs.width !== W)  cvs.width  = W;
+      if (cvs.width !== W) cvs.width = W;
       if (cvs.height !== H) cvs.height = H;
 
       if (!crumbleStart) crumbleStart = t;
       const elapsed = t - crumbleStart;
-      const ctx     = cvs.getContext('2d');
+      const ctx = cvs.getContext('2d');
       ctx.clearRect(0, 0, W, H);
 
       for (const s of crumbleShards) {
@@ -624,19 +817,19 @@
 
         // Physics — outward momentum, gravity, rotation
         s.vx *= 0.989;
-        s.vy  = s.vy * 0.989 + 0.052;
-        s.x  += s.vx;
-        s.y  += s.vy;
+        s.vy = s.vy * 0.989 + 0.052;
+        s.x += s.vx;
+        s.y += s.vy;
         s.rot += s.rotV;
 
         ctx.save();
         ctx.globalAlpha = s.opacity;
         ctx.translate(s.x + s.w / 2, s.y + s.h / 2);
         ctx.rotate(s.rot);
-        ctx.fillStyle   = `rgb(${s.br}, ${s.bg}, ${s.bb})`;
+        ctx.fillStyle = `rgb(${s.br}, ${s.bg}, ${s.bb})`;
         ctx.fillRect(-s.w / 2, -s.h / 2, s.w, s.h);
         ctx.strokeStyle = `rgba(85, 138, 255, ${s.opacity * 0.18})`;
-        ctx.lineWidth   = 0.5;
+        ctx.lineWidth = 0.5;
         ctx.strokeRect(-s.w / 2, -s.h / 2, s.w, s.h);
         ctx.restore();
       }
@@ -646,4 +839,5 @@
 
   </script>
 </body>
+
 </html>

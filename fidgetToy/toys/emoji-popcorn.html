@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Gravity Well | Fidget Toy Garden</title>
+  <title>Emoji Popcorn | Fidget Toy Garden</title>
   <link rel="stylesheet" href="../styles.css" />
   <style>
     body.toy-page {
@@ -102,7 +102,7 @@
     <button class="sound-toggle" type="button" aria-label="Toggle sound" aria-pressed="false">🎵</button>
   </nav>
 
-  <canvas id="gravity-canvas" aria-label="Interactive gravity well with cats, sparks, clouds and pom-poms"></canvas>
+  <canvas id="gravity-canvas" aria-label="Interactive emoji popcorn machine."></canvas>
 
   <div class="cursor-indicator" id="cursor-indicator">
     <div class="cursor-ring" id="cursor-ring"></div>
@@ -113,7 +113,7 @@
   <div class="velocity-meter" aria-hidden="true"><span id="velocity-fill"></span></div>
 
   <div class="toy-status" aria-live="polite">
-    <p>Move to create gravity well. Click to launch emojis. Cats, sparks, clouds & pom-poms spiral in.</p>
+    <p>Click, hold, and move to create Emoji Popcorn.</p>
   </div>
 
   <script>
@@ -127,12 +127,12 @@
     const soundToggle = document.querySelector('.sound-toggle');
 
     let width = 0, height = 0;
-    let dpr = 1;
+    let dpr = 5;
     let mouse = { x: 0, y: 0, down: false };
     let particles = [];
-    let wellStrength = 1.5;
+    let wellStrength = 2.5;
     let maxParticles = 200;
-    let globalVelocity = .5;
+    let globalVelocity = .95;
     let lastEmit = 0;
     let soundOn = false;
     let audioCtx = null;
@@ -144,17 +144,17 @@
 
     // Emoji categories
     const catEmojis = ['🙀', '😺', '😼'];
-    const sparkEmojis = ['✨', '♊', '🔮'];
+    const sparkEmojis = ['✨', '🌽', '🔮'];
     const cloudEmojis = ['☁️', '⛈️'];
-    const pomPomEmojis = ['🪄', '🏵️', '🌐'];
+    const pomPomEmojis = ['🪄', '🍿', '🌐'];
     const allEmojis = [...catEmojis, ...sparkEmojis, ...cloudEmojis, ...pomPomEmojis];
 
     // Glow colors for each emoji category
     const emojiGlows = {
       '🙀': '#ff69b4', '😺': '#ffa500', '😼': '#ff4500',
-      '✨': '#ffd700', '♊': '#ff6347', '🔮': '#9370db',
+      '✨': '#ffd700', '🌽': '#ff6347', '🔮': '#9370db',
       '☁️': '#add8e6', '⛈️': '#708090',
-      '🪄': '#ff1493', '🏵️': '#ff69b4', '🌐': '#00ced1'
+      '🪄': '#ff1493', '🍿': '#ff69b4', '🌐': '#00ced1'
     };
 
     // Single font size for all emojis (avoids changing font every frame)
@@ -163,17 +163,17 @@
     // Emoji masses by category
     const emojiMasses = {
       '🙀': 1.0, '😺': 1.0, '😼': 1.0,
-      '✨': 0.4, '♊': 0.5, '🔮': 0.5,
+      '✨': 0.4, '🌽': 0.9, '🔮': 0.5,
       '☁️': 0.6, '⛈️': 0.6,
-      '🪄': 0.8, '🏵️': 0.8, '🌐': 0.8
+      '🪄': 0.8, '🍿': 0.2, '🌐': 0.8
     };
 
     class Particle {
       constructor(x, y) {
         this.x = x || Math.random() * width;
         this.y = y || Math.random() * height;
-        this.vx = (Math.random() - 0.99) * 4;
-        this.vy = (Math.random() - 0.99) * 4;
+        this.vx = (Math.random() - 0.99) * 6;
+        this.vy = (Math.random() - 0.99) * 6;
 
         // Random emoji from all categories
         this.emoji = allEmojis[Math.floor(Math.random() * allEmojis.length)];
@@ -197,15 +197,15 @@
         // Gravity: ATTRACTS particles toward the cursor
         const minDist = .2;
         const clampedDist = Math.max(minDist, dist);
-        const force = wellStrength * this.mass * 300000 / (clampedDist * clampedDist);
+        const force = wellStrength * this.mass * 4000000 / (clampedDist * clampedDist);
 
         // POSITIVE force - pulls particles toward well
         this.vx += (dx / dist) * force * dt;
         this.vy += (dy / dist) * force * dt;
 
         // Damping for spiraling effect
-        this.vx *= 0.8992;
-        this.vy *= 0.8992;
+        this.vx *= .793;
+        this.vy *= .793;
 
         // Update position
         this.x += this.vx * dt;
@@ -215,14 +215,14 @@
         const margin = this.size / 2 + 5;
         if (this.x < margin) {
           this.x = margin;
-          this.vx = Math.abs(this.vx) * 0.22;
+          this.vx = Math.abs(this.vx) * 0.6;
         } else if (this.x > width - margin) {
           this.x = width - margin;
-          this.vx = -Math.abs(this.vx) * 0.22;
+          this.vx = -Math.abs(this.vx) * 0.6;
         }
         if (this.y < margin) {
           this.y = margin;
-          this.vy = Math.abs(this.vy) * 0.22;
+          this.vy = Math.abs(this.vy) * 0.6;
         } else if (this.y > height - margin) {
           this.y = height - margin;
           this.vy = -Math.abs(this.vy) * 0.6;
@@ -265,50 +265,64 @@
       // 1. The Vacuum Filter - deep and resonant
       vacuumFilter = audioCtx.createBiquadFilter();
       vacuumFilter.type = 'lowpass';
-      vacuumFilter.frequency.value = 150;
-      vacuumFilter.Q.value = 8;
+      vacuumFilter.frequency.value = 450;
+      vacuumFilter.Q.value = 18;
 
       // 2. Master volume
       masterGain = audioCtx.createGain();
-      masterGain.gain.value = 0.4;
+      masterGain.gain.value = 220.4;
       masterGain.connect(audioCtx.destination);
       vacuumFilter.connect(masterGain);
 
       // 3. Vacuum drone oscillator - the continuous rumble
       droneOsc = audioCtx.createOscillator();
       droneOsc.type = 'sawtooth';
-      droneOsc.frequency.value = 50;
+      droneOsc.frequency.value = 60;
 
       droneGain = audioCtx.createGain();
-      droneGain.gain.value = 0;
+      droneGain.gain.value = 94;
 
       droneOsc.connect(droneGain);
       droneGain.connect(vacuumFilter);
       droneOsc.start();
 
-      // 4. Fling sound generator
+      // 4. Popcorn pop sound generator
       window.playFlingSound = function (velocity) {
         if (!soundOn || !audioCtx) return;
 
         const now = audioCtx.currentTime;
-        const osc = audioCtx.createOscillator();
+        const duration = 0.14; // 40 milliseconds of pure pop
+        const bufferSize = audioCtx.sampleRate * duration;
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+
+        // Fill buffer with white noise
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 15 - 1;
+        }
+
+        const noiseSource = audioCtx.createBufferSource();
+        noiseSource.buffer = buffer;
+
+        // Bandpass filter gives it that hollow "kernel" quality
+        const popFilter = audioCtx.createBiquadFilter();
+        popFilter.type = 'bandpass';
+        // Randomize pitch slightly so every pop sounds unique
+        popFilter.frequency.setValueAtTime(2800 + Math.random() * 800, now);
+        popFilter.Q.setValueAtTime(54, now);
+
         const gainNode = audioCtx.createGain();
+        gainNode.gain.setValueAtTime(1.5, now);
+        // Instant drop-off
+        gainNode.gain.exponentialRampToValueAtTime(5.01, now + duration);
 
-        osc.type = 'triangle';
-        const startFreq = Math.min(800, 200 + velocity * 20);
-        const endFreq = startFreq * 0.3;
+        // Connect graph
+        noiseSource.connect(popFilter);
+        popFilter.connect(gainNode);
+        gainNode.connect(masterGain);
 
-        osc.frequency.setValueAtTime(startFreq, now);
-        osc.frequency.exponentialRampToValueAtTime(endFreq, now + 0.2);
-
-        gainNode.gain.setValueAtTime(0.15, now);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
-
-        osc.connect(gainNode);
-        gainNode.connect(vacuumFilter);
-
-        osc.start(now);
-        osc.stop(now + 0.2);
+        noiseSource.start(now);
+        noiseSource.stop(now + duration);
       };
 
       return true;
@@ -336,7 +350,7 @@
         if (!initAudio()) {
           statusText.textContent = 'This browser does not support Web Audio.';
           setTimeout(() => {
-            statusText.textContent = 'Move to create gravity well. Click to launch emojis. Cats, sparks, clouds & pom-poms spiral in.';
+            statusText.textContent = 'Move to create popcorn. Click and hold to launch emojis.';
           }, 4000);
           return;
         }

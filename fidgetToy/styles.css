@@ -13,6 +13,85 @@
   --shadow: 0 24px 70px rgba(0, 0, 0, 0.36);
   font-family:
     Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+
+
+}
+
+/* ─── Light mode ──────────────────────────────────────────────── */
+
+/* Set html background so browser never flashes white during theme repaint */
+[data-theme="light"] {
+  background-color: #f0ecff;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f4f0ff;
+  --panel: #eae6f8;
+  --panel-strong: #ddd8f5;
+  --text: #1c1828;
+  --muted: #6b6180;
+  --line: rgba(120, 100, 180, 0.18);
+  --cyan: #0097a7;
+  --pink: #b5006b;
+  --lime: #87c32d;
+  --amber: #bc6a00;
+  --shadow: 0 24px 70px rgba(60, 40, 100, 0.12);
+}
+
+[data-theme="light"] body.home-page {
+  background:
+    radial-gradient(circle at 14% 5%, rgb(58, 106, 123), transparent 30rem),
+    radial-gradient(circle at 86% 29%, rgb(149, 168, 88), transparent 28rem),
+    linear-gradient(150deg, #f4f0ff 0%, #f0ecff 52%, #f5f0ff 100%);
+}
+
+[data-theme="light"] .brand-mark {
+  box-shadow:
+    10px 0 0 -4px var(--pink),
+    0 0 22px rgba(68, 229, 247, 0.4);
+}
+
+[data-theme="light"] .toy-card {
+  background: rgba(255, 253, 255, 0.72);
+  border-color: rgba(160, 130, 220, 0.22);
+}
+
+[data-theme="light"] .toy-card.live:hover,
+[data-theme="light"] .toy-card.live:focus-visible {
+  border-color: rgba(0, 151, 167, 0.55);
+  background: rgba(240, 236, 255, 0.88);
+}
+
+[data-theme="light"] .toy-card.locked {
+  color: rgba(28, 24, 40, 0.55);
+}
+
+[data-theme="light"] .back-link,
+[data-theme="light"] .sound-toggle {
+  border-color: rgba(0, 0, 0, 0.12);
+  background: rgba(244, 240, 255, 0.85);
+}
+
+[data-theme="light"] .sound-toggle[aria-pressed="true"] {
+  border-color: rgba(0, 151, 167, 0.62);
+  box-shadow: 0 0 24px rgba(0, 151, 167, 0.2);
+}
+
+[data-theme="light"] .toy-status p {
+  border-color: rgba(120, 100, 180, 0.20);
+  background: rgba(244, 240, 255, 0.82);
+  color: rgba(28, 24, 40, 0.78);
+}
+
+[data-theme="light"] .tt-thumb {
+  transform: translateX(24px);
+  background: var(--amber);
+  box-shadow: 0 0 8px rgba(250, 84, 15, 1);
+}
+
+[data-theme="light"] .theme-toggle:hover {
+  color: var(--amber);
 }
 
 * {
@@ -622,6 +701,16 @@ h1 {
   }
 }
 
+@media (max-width: 860px) {
+  .theme-toggle {
+    gap: 5px;
+  }
+
+  .tt-label {
+    display: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
 
   *,
@@ -632,4 +721,57 @@ h1 {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }
+}
+
+/* ─── Theme toggle button ─────────────────────────────────────── */
+
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  transition: color 150ms ease;
+}
+
+.theme-toggle:hover {
+  color: var(--cyan);
+}
+
+.tt-track {
+  position: relative;
+  width: 48px;
+  height: 26px;
+  border-radius: 999px;
+  border: 1.5px solid var(--line);
+  background: var(--panel);
+  flex-shrink: 0;
+  transition: background 200ms ease, border-color 200ms ease;
+}
+
+.tt-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--cyan);
+  box-shadow: 0 0 8px rgba(54, 247, 255, 0.5);
+  transition:
+    transform 220ms cubic-bezier(0.34, 1.56, 0.64, 1),
+    background 200ms ease,
+    box-shadow 200ms ease;
+}
+
+.tt-label {
+  font-size: 0.9rem;
+  line-height: 1;
+  user-select: none;
 }

@@ -124,6 +124,64 @@
       }
     }
 
+    @keyframes dead-flicker {
+
+      /* Misfire Arcade: a failing sign — steady, then it stutters */
+      0%,
+      91%,
+      100% {
+        opacity: 1;
+        border-color: #1f3a24;
+        box-shadow: 0 0 10px rgba(0, 255, 42, 0.07), 0 10px 38px rgba(0, 0, 0, 0.62);
+      }
+
+      92% {
+        opacity: 0.35;
+      }
+
+      93% {
+        opacity: 0.9;
+        border-color: rgba(0, 255, 42, 0.55);
+        box-shadow: 0 0 22px rgba(0, 255, 42, 0.22), 0 10px 38px rgba(0, 0, 0, 0.62);
+      }
+
+      94% {
+        opacity: 0.45;
+        border-color: rgba(250, 15, 78, 0.45);
+      }
+
+      96% {
+        opacity: 0.85;
+      }
+    }
+
+    @keyframes dead-flicker-fast {
+
+      /* Misfire Arcade on hover: the failure accelerates */
+      0%,
+      100% {
+        opacity: 1;
+        border-color: rgba(0, 255, 42, 0.55);
+        box-shadow: 0 0 22px rgba(0, 255, 42, 0.22), 0 10px 38px rgba(0, 0, 0, 0.62);
+      }
+
+      20% {
+        opacity: 0.4;
+        border-color: #1f3a24;
+      }
+
+      45% {
+        opacity: 0.95;
+        border-color: rgba(250, 15, 78, 0.5);
+        box-shadow: 0 0 18px rgba(250, 15, 78, 0.18), 0 10px 38px rgba(0, 0, 0, 0.62);
+      }
+
+      70% {
+        opacity: 0.55;
+      }
+    }
+
+
     /* ── Particle field ──────────────────────────────────────── */
 
     @keyframes garden-fall {
@@ -423,6 +481,46 @@
     }
 
 
+    /* ── Misfire Arcade ──────────────── Dead pixel, broken on purpose */
+
+    #card-games {
+      background-color: #0a0a0dd9;
+      border: 1px solid #1f3a24;
+      animation: dead-flicker 4.6s linear infinite;
+      margin-top: 20px;
+    }
+
+    #card-games:hover {
+      animation-name: dead-flicker-fast;
+      animation-duration: 0.7s;
+    }
+
+    #card-games .card-title {
+      font-family: 'Space Mono', monospace;
+      font-size: 19px;
+      color: #00ff2a;
+      text-shadow: 0 0 12px rgba(0, 255, 42, 0.35);
+    }
+
+    #card-games .card-label {
+      font-family: 'Space Mono', monospace;
+      font-size: 9px;
+      color: #5d7a62;
+    }
+
+    #card-games .card-body {
+      font-family: 'Space Mono', monospace;
+      font-size: 13px;
+      color: #5d7a62;
+    }
+
+    #card-games .card-cta {
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      color: #fa0f4e;
+    }
+
+
     /* ═══════════════════════════════════════════════════════════
        ABOUT CORNER
        Nearly invisible — hover to see it, click to expand
@@ -568,6 +666,16 @@
         </div>
       </a>
 
+      <!-- MISFIRE ARCADE — Dead pixel / broken on purpose -->
+      <a href="games/games-index.html" style="text-decoration:none;color:inherit;">
+        <div id="card-games" class="card">
+          <div class="card-title" id="games-title">M1SF1RE ARC▓DE</div>
+          <div class="card-label">s0mething is wr0ng in here</div>
+          <div class="card-body">▓▓░ games ░▓ that ▓░░ chose chaos. do not adjust your set.</div>
+          <div class="card-cta">enter anyway →</div>
+        </div>
+      </a>
+
     </div>
   </div>
 
@@ -710,6 +818,28 @@
     document.getElementById('about-toggle').addEventListener('click', () => {
       document.getElementById('about-content').classList.toggle('hidden');
     });
+
+
+    // ═══════════════════════════════════════════════════════════
+    // MISFIRE ARCADE TITLE CORRUPTION
+    // Every few seconds the card title glitches through corrupted
+    // variants, then settles back on the broken-but-readable one.
+    // ═══════════════════════════════════════════════════════════
+
+    const GAMES_TITLES = ['MISFIRE ARCADE', 'M▓SF▓RE A▓C▓DE', 'M1SF1RE ARC▓DE'];
+
+    setInterval(() => {
+      const title = document.getElementById('games-title');
+      let step = 0;
+      const stutter = setInterval(() => {
+        title.textContent = GAMES_TITLES[step % GAMES_TITLES.length];
+        step++;
+        if (step > 4) {
+          clearInterval(stutter);
+          title.textContent = GAMES_TITLES[2];  // always dies mid-corruption
+        }
+      }, 90);
+    }, 3800);
 
 
     // ═══════════════════════════════════════════════════════════

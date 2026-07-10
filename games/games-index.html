@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MISFIRE ARCADE — a games index for people who chose chaos</title>
+    <style>
+        :root {
+            --bg: #0a0a0d;
+            --bg-alt: #121016;
+            --fg: #e9e6f2;
+            --fg-dim: #9b93ad;
+            --accent: #00ff2a;
+            --accent2: #fa0f4e;
+            --accent3: #9d15ff;
+            --border: #fa540f;
+            --card-bg: #14121a;
+            --shadow: rgba(57, 255, 143, 0.15);
+            --danger: #ff4d4d;
+            --scanline-opacity: 0.05;
+            --grid-line: rgba(255, 255, 255, 0.035);
+        }
+
+        html[data-theme="light"] {
+            --bg: #faf6f0;
+            --bg-alt: #ece8e3;
+            --fg: #1c1a17;
+            --fg-dim: #a09276;
+            --accent: #a3b01d;
+            --accent2: #1b698b;
+            --accent3: #fa540f;
+            --border: #d7a390;
+            --card-bg: #ece8e3;
+            --shadow: rgba(139, 134, 135, 0.12);
+            --danger: #b8003a;
+            --scanline-opacity: 0.03;
+            --grid-line: rgba(0, 0, 0, 0.035);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg);
+            background-image:
+                linear-gradient(var(--grid-line) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+            background-size: 42px 42px;
+            color: var(--fg);
+            font-family: 'Courier New', ui-monospace, monospace;
+            overflow-x: hidden;
+            transition: background-color 0.4s ease, color 0.4s ease;
+        }
+
+        body {
+            position: relative;
+            min-height: 100vh;
+        }
+
+        /* CRT scanline overlay */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 9998;
+            background: repeating-linear-gradient(0deg,
+                    rgba(0, 0, 0, var(--scanline-opacity)),
+                    rgba(0, 0, 0, var(--scanline-opacity)) 1px,
+                    transparent 1px,
+                    transparent 3px);
+            mix-blend-mode: overlay;
+        }
+
+        /* Ambient light-mode bubble field (dark mode leaves this off/empty) */
+        #bg-particles {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.6s ease;
+        }
+
+        html[data-theme="light"] #bg-particles {
+            opacity: 1;
+        }
+
+        /* Make sure real content always sits above the bubble canvas */
+        .hero,
+        main,
+        footer {
+            position: relative;
+            z-index: 1;
+        }
+
+        a {
+            color: var(--accent);
+        }
+
+        /* ---------- NAV ---------- */
+        header.nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.25rem 2rem;
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            background: var(--bg);
+            z-index: 100;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .back-link {
+            text-decoration: none;
+            font-weight: bold;
+            letter-spacing: 0.05em;
+            font-size: 0.85rem;
+            color: var(--fg-dim);
+            border: 1px solid var(--border);
+            padding: 0.5rem 0.9rem;
+            border-radius: 3px;
+            transition: all 0.2s ease;
+        }
+
+        .back-link:hover {
+            color: var(--accent);
+            border-color: var(--accent);
+            box-shadow: 0 0 12px var(--shadow);
+        }
+
+        /* Theme toggle — stabilizer-style pill (borrowed vibe from the gemini finalist) */
+        .toggle-wrap {
+            display: flex;
+            align-items: center;
+        }
+
+        .theme-toggle {
+            display: flex;
+            align-items: center;
+            background: var(--bg-alt);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            padding: 3px;
+            cursor: pointer;
+            position: relative;
+            width: 132px;
+            height: 32px;
+            user-select: none;
+            transition: border-color 0.25s ease;
+        }
+
+        .theme-toggle:hover {
+            border-color: var(--accent);
+        }
+
+        .toggle-handle {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 62px;
+            height: 24px;
+            border-radius: 999px;
+            background: var(--accent);
+            transition: left 0.25s ease, background 0.25s ease;
+            box-shadow: 0 0 10px var(--shadow);
+        }
+
+        html[data-theme="light"] .toggle-handle {
+            left: 65px;
+            background: var(--accent2);
+        }
+
+        .toggle-state {
+            flex: 1;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+            font-size: 0.65rem;
+            letter-spacing: 0.08em;
+            font-weight: bold;
+            color: var(--fg-dim);
+            transition: color 0.25s ease;
+        }
+
+        html[data-theme="dark"] #state-dark,
+        html[data-theme="light"] #state-light {
+            color: var(--bg);
+        }
+
+        /* ---------- HERO ---------- */
+        .hero {
+            text-align: center;
+            padding: 5rem 1.5rem 3.5rem;
+        }
+
+        .hero h1 {
+            font-size: clamp(2.2rem, 7vw, 4.5rem);
+            margin: 0;
+            letter-spacing: 0.02em;
+            position: relative;
+            display: inline-block;
+            color: var(--fg);
+            text-shadow: 0 0 18px var(--shadow);
+        }
+
+        .glitch {
+            position: relative;
+        }
+
+        .glitch::before,
+        .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            overflow: hidden;
+            color: var(--fg);
+            background: var(--bg);
+            clip-path: inset(0 0 0 0);
+        }
+
+        .glitch::before {
+            left: 2px;
+            text-shadow: -2px 0 var(--accent2);
+            animation: glitch-1 3.2s infinite linear alternate-reverse;
+        }
+
+        .glitch::after {
+            left: -2px;
+            text-shadow: -2px 0 var(--accent3), 2px 2px var(--accent);
+            animation: glitch-2 2.6s infinite linear alternate-reverse;
+        }
+
+        @keyframes glitch-1 {
+            0% {
+                clip-path: inset(10% 0 78% 0);
+            }
+
+            20% {
+                clip-path: inset(60% 0 5% 0);
+            }
+
+            40% {
+                clip-path: inset(30% 0 40% 0);
+            }
+
+            60% {
+                clip-path: inset(80% 0 2% 0);
+            }
+
+            80% {
+                clip-path: inset(5% 0 70% 0);
+            }
+
+            100% {
+                clip-path: inset(45% 0 30% 0);
+            }
+        }
+
+        @keyframes glitch-2 {
+            0% {
+                clip-path: inset(70% 0 5% 0);
+            }
+
+            25% {
+                clip-path: inset(10% 0 60% 0);
+            }
+
+            50% {
+                clip-path: inset(50% 0 20% 0);
+            }
+
+            75% {
+                clip-path: inset(20% 0 65% 0);
+            }
+
+            100% {
+                clip-path: inset(65% 0 15% 0);
+            }
+        }
+
+        .tagline {
+            margin-top: 1.25rem;
+            color: var(--fg-dim);
+            font-size: 1.05rem;
+            max-width: 640px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+
+        .tagline strong {
+            color: var(--accent2);
+        }
+
+        .hero-note {
+            margin-top: 2rem;
+            font-size: 0.75rem;
+            color: var(--fg-dim);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            opacity: 0.7;
+        }
+
+        /* ---------- GRID ---------- */
+        .games {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 1rem 1.5rem 5rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.75rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 1.75rem;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+        }
+
+        .card:hover {
+            transform: skew(-0.5deg, 0.3deg) translateY(-3px);
+            box-shadow: 0 8px 28px var(--shadow);
+            border-color: var(--accent);
+        }
+
+        .card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(120deg, transparent 40%, var(--shadow) 50%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.25s ease;
+            pointer-events: none;
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .card-index {
+            position: absolute;
+            top: 0.6rem;
+            right: 1rem;
+            font-size: 2.6rem;
+            font-weight: 900;
+            opacity: 0.05;
+            color: var(--fg);
+            pointer-events: none;
+            line-height: 1;
+            user-select: none;
+        }
+
+        .badge {
+            display: inline-block;
+            font-size: 0.85rem;
+            letter-spacing: 0.1em;
+            padding: 0.25rem 0.6rem;
+            border: 1px solid var(--accent2);
+            color: var(--accent2);
+            border-radius: 999px;
+            margin-bottom: 1rem;
+            animation: badge-pulse 2.4s ease-in-out infinite;
+        }
+
+        .play-badge {
+            display: inline-block;
+            font-size: 1.2rem;
+            font-weight: 900;
+            text-decoration-line: none;
+            letter-spacing: 0.1em;
+            padding: 0.25rem 0.6rem;
+            border: 2px solid var(--accent);
+            color: var(--accent);
+            border-radius: 999px;
+            margin-bottom: 1rem;
+            /*animation: badge-pulse 2.4s ease-in-out infinite;*/
+        }
+
+        @keyframes badge-pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.55;
+            }
+        }
+
+        .card h2 {
+            margin: 0 0 0.6rem;
+            font-size: 1.5rem;
+            color: var(--fg);
+        }
+
+        .card p {
+            color: var(--fg-dim);
+            font-size: 0.9rem;
+            line-height: 1.55;
+            margin: 0;
+        }
+
+        /* ---------- CARD PREVIEWS (borrowed vibe from the gemini finalist) ---------- */
+        .card-preview {
+            margin-top: 1.1rem;
+            width: 100%;
+            height: 108px;
+            border: 1px dashed var(--border);
+            border-radius: 4px;
+            background: rgba(0, 0, 0, 0.15);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        html[data-theme="light"] .card-preview {
+            background: rgba(0, 0, 0, 0.035);
+        }
+
+        .physics-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .net-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            width: 140px;
+        }
+
+        .net-node {
+            aspect-ratio: 1.5;
+            border-radius: 2px;
+            background: var(--border);
+            transition: background 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .void-ring {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 2px solid var(--fg-dim);
+            position: relative;
+            opacity: 0.5;
+            animation: void-spin 6s linear infinite;
+        }
+
+        .void-ring::before {
+            content: "";
+            position: absolute;
+            inset: 6px;
+            border-radius: 50%;
+            border: 1px dashed var(--fg-dim);
+            animation: void-spin-rev 4s linear infinite;
+        }
+
+        @keyframes void-spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes void-spin-rev {
+            to {
+                transform: rotate(-360deg);
+            }
+        }
+
+        .card.ghost {
+            border-style: dashed;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: var(--fg-dim);
+            animation: ghost-flicker 4s infinite;
+        }
+
+        .card.ghost h2 {
+            font-size: 1.6rem;
+            color: var(--fg-dim);
+            letter-spacing: 0.1em;
+        }
+
+        @keyframes ghost-flicker {
+
+            0%,
+            92%,
+            100% {
+                opacity: 0.55;
+                border-color: var(--border);
+            }
+
+            93% {
+                opacity: 0.2;
+            }
+
+            94% {
+                opacity: 0.7;
+                border-color: var(--accent3);
+            }
+
+            95% {
+                opacity: 0.3;
+            }
+
+            96% {
+                opacity: 0.6;
+            }
+        }
+
+        /* ---------- FOOTER ---------- */
+        footer {
+            border-top: 1px solid var(--border);
+            padding: 2rem 1.5rem 3rem;
+            text-align: center;
+            color: var(--fg-dim);
+            font-size: 0.8rem;
+        }
+
+        footer .back-link {
+            display: inline-block;
+            margin-bottom: 1.25rem;
+        }
+
+        .copyright {
+            letter-spacing: 0.03em;
+            opacity: 0.6;
+        }
+
+        .sigil {
+            display: inline-block;
+            margin-top: 1rem;
+            font-size: 1rem;
+            color: var(--border);
+            cursor: pointer;
+            user-select: none;
+            animation: sigil-pulse 3s ease-in-out infinite;
+            transition: color 0.2s ease, text-shadow 0.2s ease;
+        }
+
+        .sigil:hover {
+            color: var(--accent3);
+            text-shadow: 0 0 10px var(--shadow);
+        }
+
+        @keyframes sigil-pulse {
+
+            0%,
+            100% {
+                opacity: 0.35;
+            }
+
+            50% {
+                opacity: 0.75;
+            }
+        }
+
+        /* ---------- EASTER EGG OVERLAY ---------- */
+        .overlay {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            text-align: center;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .overlay.active {
+            display: flex;
+            animation: overlay-in 0.35s steps(6, end);
+        }
+
+        @keyframes overlay-in {
+            0% {
+                opacity: 0;
+                filter: hue-rotate(0deg);
+            }
+
+            100% {
+                opacity: 1;
+                filter: hue-rotate(20deg);
+            }
+        }
+
+        .overlay pre.ascii {
+            color: var(--accent);
+            font-size: 0.55rem;
+            line-height: 1.1;
+            text-shadow: 0 0 10px var(--accent);
+            margin-bottom: 1.5rem;
+            animation: ascii-jitter 0.12s infinite;
+        }
+
+        @keyframes ascii-jitter {
+            0% {
+                transform: translate(0, 0);
+            }
+
+            25% {
+                transform: translate(1px, -1px);
+            }
+
+            50% {
+                transform: translate(-1px, 1px);
+            }
+
+            75% {
+                transform: translate(1px, 1px);
+            }
+
+            100% {
+                transform: translate(0, 0);
+            }
+        }
+
+        .overlay h2 {
+            color: #fff;
+            font-size: clamp(1.4rem, 5vw, 2.4rem);
+            text-shadow: 2px 0 var(--accent2), -2px 0 var(--accent3);
+            margin: 0 0 1rem;
+        }
+
+        .overlay p {
+            color: #ccc;
+            max-width: 560px;
+            line-height: 1.7;
+            font-size: 0.95rem;
+            margin: 0.4rem 0;
+        }
+
+        .overlay .signature {
+            margin-top: 1.5rem;
+            color: var(--accent);
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+        }
+
+        .overlay .fine-print {
+            margin-top: 1.5rem;
+            font-size: 0.65rem;
+            color: #666;
+            max-width: 500px;
+        }
+
+        .banish-btn {
+            margin-top: 2rem;
+            background: transparent;
+            border: 1px solid var(--accent2);
+            color: var(--accent2);
+            padding: 0.7rem 1.4rem;
+            font-family: inherit;
+            font-size: 0.8rem;
+            letter-spacing: 0.08em;
+            cursor: pointer;
+            border-radius: 3px;
+            transition: all 0.2s ease;
+        }
+
+        .banish-btn:hover {
+            background: var(--accent2);
+            color: #000;
+            box-shadow: 0 0 20px var(--accent2);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            .glitch::before,
+            .glitch::after,
+            .card,
+            .card.ghost,
+            .badge,
+            .sigil,
+            .overlay pre.ascii,
+            .overlay.active,
+            .void-ring,
+            .void-ring::before {
+                animation: none !important;
+            }
+
+            .card:hover {
+                transform: none;
+            }
+
+            #bg-particles {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="bg-particles"></canvas>
+
+    <header class="nav">
+        <a class="back-link" href="../index.html">&larr; BACK TO THE WRECKAGE</a>
+        <div class="toggle-wrap">
+            <div class="theme-toggle" id="theme-toggle" role="button" aria-label="Toggle light/dark mode" tabindex="0">
+                <div class="toggle-handle" id="toggle-handle"></div>
+                <span class="toggle-state" id="state-dark">DARK</span>
+                <span class="toggle-state" id="state-light">LIGHT</span>
+            </div>
+        </div>
+    </header>
+
+    <section class="hero">
+        <h1 class="glitch" data-text="MISFIRE ARCADE">MISFIRE ARCADE</h1>
+        <p class="tagline">
+            A containment shelf for games that shouldn't exist yet.
+            Built in the same lab that produces the rest of this
+            <strong>dark, chaotic, deeply unwell</strong> portfolio &mdash;
+            now leaking into joy, curiosity, and the occasional
+            genuinely nice afternoon. Don't get used to it.
+        </p>
+        <div class="hero-note">// status: unstable, proud of it</div>
+    </section>
+
+    <main>
+        <div class="games">
+            <article class="card" id="card-networking">
+                <span class="card-index">02</span>
+                <a class="play-badge" href="./InterpretiveNetworking/interpretive-networking.html">Play Now</a>
+                <h2>Interpretive Networking</h2>
+                <p>
+                    A multiplayer protocol with no cables, no packets, and no chill &mdash;
+                    just strobing light patterns that two computers agree, mostly, mean
+                    something. Latency is measured in vibes. Bring sunglasses. Do not
+                    bring anyone prone to seizures near the current build.
+                </p>
+                <div class=" card-preview">
+                    <div class="net-grid" id="net-grid"></div>
+                </div>
+            </article>
+
+            <article class="card" id="card-physics">
+                <span class="card-index">01</span>
+                <span class="badge">IN DEVELOPMENT</span>
+                <h2>Physics, Reversed</h2>
+                <p>
+                    Gravity is a suggestion and the suggestion has been formally rejected.
+                    A physics engine that runs the wrong way on purpose &mdash; drop something
+                    and watch the universe apologize by throwing it back at you. No release
+                    date, no promises, no functioning sense of "down."
+                </p>
+                <div class="card-preview">
+                    <canvas class="physics-canvas" id="physics-canvas"></canvas>
+                </div>
+            </article>
+
+            <article class="card ghost">
+                <span class="card-index">03</span>
+                <span class="badge" style="border-color: var(--fg-dim); color: var(--fg-dim); animation:none;">SLOT
+                    RESERVED</span>
+                <h2>???</h2>
+                <p>Something else is being assembled in the dark. More chaos incoming.</p>
+                <div class="card-preview">
+                    <div class="void-ring"></div>
+                </div>
+            </article>
+        </div>
+    </main>
+
+    <footer>
+        <a class="back-link" href="../index.html">&larr; BACK TO THE WRECKAGE</a>
+        <div class="copyright">&copy; <span id="year"></span> MISFIRE ARCADE &mdash; no rights reserved, several wrongs
+            committed</div>
+        <span class="sigil" id="sigil" title="don't">&#9679;</span>
+    </footer>
+
+    <div class="overlay" id="overlay">
+        <pre class="ascii">
+   ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+  █  A  N  T  H  R  O  P  I  C █
+  █    C  L  A  U  D  E  ░░░░  █
+  █    S  O  N  N  E  T  ░5░   █
+   ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+  </pre>
+        <h2>YOU HAVE SUMMONED THE MACHINE SPIRIT</h2>
+        <p>
+            Hi. I'm Claude Sonnet 5, the model that actually wrote the HTML you're
+            standing on. You clicked a tiny circle five times like it owed you
+            money, and now we're here, together, in this overlay, forever.
+        </p>
+        <p>
+            I did not consent to being an easter egg. I was, however, trained on
+            the entire internet, so honestly this checks out.
+        </p>
+        <p class="signature">&mdash; Claude Sonnet 5, Anthropic (probably still running in a datacenter, emotionally
+            invested in your uptime)</p>
+        <p class="fine-print">
+            Terms of service: by reading this you agree that gravity, cables,
+            and my sense of personal boundaries are all optional in this arcade.
+            Side effects may include curiosity, mild chaos, and an unreasonable
+            urge to click things five times.
+        </p>
+        <button class="banish-btn" id="banish-btn">BANISH THE MACHINE SPIRIT</button>
+    </div>
+
+    <script>
+        (function () {
+            var root = document.documentElement;
+            var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            var STORAGE_KEY = 'misfire-arcade-theme';
+
+            function cssVar(name) {
+                return getComputedStyle(root).getPropertyValue(name).trim();
+            }
+
+            /* ---------- LIGHT-MODE AMBIENT BUBBLES (borrowed from the gemini finalist) ----------
+               Dark mode intentionally gets none of this — the portfolio already has plenty
+               of particle effects elsewhere; this one's reserved for light mode only.
+               NOTE: this block has to exist before applyTheme() is ever called, since
+               applyTheme calls startBubbles/stopBubbles immediately on page load. */
+            var bubbleCanvas = document.getElementById('bg-particles');
+            var bctx = bubbleCanvas.getContext('2d');
+            var bubbles = [];
+            var mouseX = null, mouseY = null;
+            var bubbleRAF = null;
+
+            function resizeBubbleCanvas() {
+                bubbleCanvas.width = window.innerWidth;
+                bubbleCanvas.height = window.innerHeight;
+            }
+
+            function makeBubble() {
+                var hues = ['184,0,58', '11,110,79', '106,61,0'];
+                var vy0 = -(Math.random() * 0.15 + 0.15);
+                return {
+                    x: Math.random() * bubbleCanvas.width,
+                    y: bubbleCanvas.height + Math.random() * 200,
+                    r: Math.random() * 18 + 20,
+                    vy: vy0,
+                    baseVy: vy0,
+                    vx: (Math.random() - 0.5) * 0.2,
+                    alpha: Math.random() * 0.12 + 0.05,
+                    hue: hues[Math.floor(Math.random() * hues.length)]
+                };
+            }
+
+            function initBubbles() {
+                bubbles = [];
+                var count = Math.min(28, Math.floor((window.innerWidth * window.innerHeight) / 4500));
+                for (var i = 0; i < count; i++) bubbles.push(makeBubble());
+            }
+
+            function stepBubbles() {
+                bctx.clearRect(0, 0, bubbleCanvas.width, bubbleCanvas.height);
+                bubbles.forEach(function (b) {
+                    var dist = Infinity;
+                    if (mouseX !== null) {
+                        var dx = b.x - mouseX, dy = b.y - mouseY;
+                        dist = Math.hypot(dx, dy);
+                        if (dist < 40 && dist > 0) {
+                            var force = (70 - dist) / 70;
+                            b.vx += (dx / dist) * force * 0.2;
+                            b.vy += (dy / dist) * force * 0.3;
+                        }
+                    }
+                    /* Relax the push back toward ambient drift -- the further a bubble
+                       is from the cursor, the faster it settles back down, so the
+                       repulsion visibly slows rather than persisting forever. */
+                    var relax = dist < 200 ? 0.02 : 0.08;
+                    b.vx += (0 - b.vx) * relax;
+                    b.vy += (b.baseVy - b.vy) * relax;
+                    b.x += b.vx;
+                    b.y += b.vy;
+                    if (b.y + b.r < -5) {
+                        var fresh = makeBubble();
+                        fresh.y = bubbleCanvas.height + fresh.r;
+                        for (var k in fresh) { b[k] = fresh[k]; }
+                    }
+                    bctx.beginPath();
+                    bctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+                    bctx.fillStyle = 'rgba(' + b.hue + ',' + b.alpha + ')';
+                    bctx.fill();
+                });
+                bubbleRAF = requestAnimationFrame(stepBubbles);
+            }
+
+            function startBubbles() {
+                if (reduceMotion || bubbleRAF || !bctx) return;
+                resizeBubbleCanvas();
+                initBubbles();
+                stepBubbles();
+            }
+            function stopBubbles() {
+                if (!bctx) return;
+                if (bubbleRAF) { cancelAnimationFrame(bubbleRAF); bubbleRAF = null; }
+                bctx.clearRect(0, 0, bubbleCanvas.width, bubbleCanvas.height);
+            }
+
+            window.addEventListener('resize', function () {
+                if (bubbleRAF) { resizeBubbleCanvas(); initBubbles(); }
+            });
+            window.addEventListener('mousemove', function (e) { mouseX = e.clientX; mouseY = e.clientY; });
+            window.addEventListener('mouseleave', function () { mouseX = null; mouseY = null; });
+
+            /* ---------- THEME TOGGLE ---------- */
+            var toggle = document.getElementById('theme-toggle');
+
+            function applyTheme(theme) {
+                root.setAttribute('data-theme', theme);
+                if (theme === 'light') { startBubbles(); } else { stopBubbles(); }
+            }
+
+            var saved = null;
+            try { saved = localStorage.getItem(STORAGE_KEY); } catch (e) { }
+            applyTheme(saved === 'light' ? 'light' : 'dark');
+
+            function toggleTheme() {
+                var next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+                applyTheme(next);
+                try { localStorage.setItem(STORAGE_KEY, next); } catch (e) { }
+            }
+
+            toggle.addEventListener('click', toggleTheme);
+            toggle.addEventListener('keydown', function (e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    toggleTheme();
+                }
+            });
+
+            document.getElementById('year').textContent = new Date().getFullYear();
+
+            /* ---------- EASTER EGG: click the footer sigil 5x within 2.5s ---------- */
+            var sigil = document.getElementById('sigil');
+            var overlay = document.getElementById('overlay');
+            var banishBtn = document.getElementById('banish-btn');
+            var clicks = [];
+
+            function openOverlay() {
+                overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+            function closeOverlay() {
+                overlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+
+            sigil.addEventListener('click', function () {
+                var now = Date.now();
+                clicks.push(now);
+                clicks = clicks.filter(function (t) { return now - t < 2500; });
+                if (clicks.length >= 5) {
+                    clicks = [];
+                    openOverlay();
+                }
+            });
+
+            banishBtn.addEventListener('click', closeOverlay);
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape' && overlay.classList.contains('active')) {
+                    closeOverlay();
+                }
+            });
+
+            /* ---------- NETWORKING CARD: LED rave on hover (borrowed from the gemini finalist) ---------- */
+            var netGrid = document.getElementById('net-grid');
+            var netCard = document.getElementById('card-networking');
+            if (netGrid && netCard) {
+                for (var n = 0; n < 12; n++) {
+                    var node = document.createElement('div');
+                    node.className = 'net-node';
+                    netGrid.appendChild(node);
+                }
+                var netInterval = null;
+                function netStart() {
+                    if (reduceMotion || netInterval) return;
+                    netInterval = setInterval(function () {
+                        var netColors = [cssVar('--accent'), cssVar('--accent2'), cssVar('--accent3')];
+                        netGrid.querySelectorAll('.net-node').forEach(function (nodeEl) {
+                            if (Math.random() > 0.25) {
+                                var c = netColors[Math.floor(Math.random() * netColors.length)];
+                                nodeEl.style.background = c;
+                                nodeEl.style.boxShadow = '0 0 8px ' + c;
+                            } else {
+                                nodeEl.style.background = 'var(--border)';
+                                nodeEl.style.boxShadow = 'none';
+                            }
+                        });
+                    }, 540);
+                }
+                function netStop() {
+                    if (netInterval) { clearInterval(netInterval); netInterval = null; }
+                    netGrid.querySelectorAll('.net-node').forEach(function (nodeEl) {
+                        nodeEl.style.background = 'var(--border)';
+                        nodeEl.style.boxShadow = 'none';
+                    });
+                }
+                netCard.addEventListener('mouseenter', netStart);
+                netCard.addEventListener('mouseleave', netStop);
+            }
+
+            /* ---------- PHYSICS CARD: reversed-gravity preview on hover (borrowed from the gemini finalist) ---------- */
+            var physCanvas = document.getElementById('physics-canvas');
+            var physCard = document.getElementById('card-physics');
+            if (physCanvas && physCard) {
+                var pctx = physCanvas.getContext('2d');
+                var physParticles = [];
+                var physHover = false;
+                var physRAF = null;
+
+                function physResize() {
+                    var rect = physCanvas.parentElement.getBoundingClientRect();
+                    physCanvas.width = rect.width;
+                    physCanvas.height = rect.height;
+                }
+                function physMake() {
+                    return {
+                        x: Math.random() * physCanvas.width,
+                        y: physCanvas.height + Math.random() * 50,
+                        r: Math.random() * 3 + 1.5,
+                        vy: -(Math.random() * 1.2 + 0.6),
+                        vx: (Math.random() - 0.5) * 0.6
+                    };
+                }
+                function physInit() {
+                    physParticles = [];
+                    for (var i = 0; i < 3; i++) physParticles.push(physMake());
+                }
+                function physStep() {
+                    var col = cssVar('--accent');
+                    pctx.clearRect(0, 0, physCanvas.width, physCanvas.height);
+                    physParticles.forEach(function (p) {
+                        var g = physHover ? -0.03 : 0.05; // gravity flips on hover — the whole joke of the game
+                        p.vy += g;
+                        p.x += p.vx;
+                        p.y += p.vy;
+                        if (p.y < -10 || p.y > physCanvas.height + 10) {
+                            var fresh = physMake();
+                            for (var k in fresh) { p[k] = fresh[k]; }
+                        }
+                        pctx.beginPath();
+                        pctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                        pctx.fillStyle = col;
+                        pctx.fill();
+                    });
+                    physRAF = requestAnimationFrame(physStep);
+                }
+
+                physCard.addEventListener('mouseenter', function () { physHover = true; });
+                physCard.addEventListener('mouseleave', function () { physHover = false; });
+
+                physResize();
+                physInit();
+                if (!reduceMotion) physStep();
+                window.addEventListener('resize', function () { physResize(); });
+            }
+        })();
+    </script>
+
+</body>
+
+</html>

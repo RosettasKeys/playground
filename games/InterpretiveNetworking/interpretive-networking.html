@@ -1,0 +1,2684 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Layer .5 — Interpretive Networking</title>
+  <link rel="icon"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect x='2' y='5' width='12' height='6' rx='1.5' fill='%2336f7d1'/%3E%3C/svg%3E" />
+
+  <script>
+    // Theme bootstrap — same key + attribute as fidgetToy/theme.js so the
+    // preference follows the visitor across the portfolio. Inlined to keep
+    // this page fully self-contained.
+    (function () {
+      if (localStorage.getItem('ftg-theme') === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    })();
+  </script>
+
+  <style>
+    /* ═══════════════════════════════════════════════════════════
+       THEME TOKENS
+       Page chrome flips light/dark. The rack chassis does NOT —
+       the LEDs are the whole bit, so the rack stays dark in both.
+    ═══════════════════════════════════════════════════════════ */
+    :root {
+      color-scheme: dark;
+      --bg: #0a0a0a;
+      --chrome-text: #a9f1c6;
+      --chrome-dim: #558767;
+      --chrome-faint: #33513f;
+      --accent: #36f7ff;
+      --alert: #ff5c47;
+      --lime: #b8ff5d;
+      --panel-line: rgba(154, 219, 180, 0.18);
+      --ticker-bg: rgba(4, 10, 6, 0.92);
+      --scanline-opacity: 0.14;
+      /* rack chassis — constant across themes */
+      --rack-bg: #0d0f13;
+      --rack-rail: #1a1e26;
+      --bay-bg: #12151b;
+      --bay-line: #232833;
+    }
+
+    :root[data-theme="light"] {
+      color-scheme: light;
+      --bg: #e9e4d8;
+      --chrome-text: #2c3a30;
+      --chrome-dim: #5c6b5f;
+      --chrome-faint: #9aa89c;
+      --accent: #0a7d86;
+      --alert: #b3301f;
+      --lime: #5e8a12;
+      --panel-line: rgba(44, 58, 48, 0.25);
+      --ticker-bg: rgba(240, 236, 226, 0.94);
+      --scanline-opacity: 0.05;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--chrome-text);
+      font-family: ui-monospace, "Cascadia Code", Consolas, "Courier New", monospace;
+      font-size: 17px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       CRT SCANLINES — whole-viewport overlay, never interactive
+    ═══════════════════════════════════════════════════════════ */
+    #scanlines {
+      position: fixed;
+      inset: 0;
+      z-index: 90;
+      pointer-events: none;
+      background: repeating-linear-gradient(to bottom,
+          transparent 0px,
+          transparent 2px,
+          rgba(0, 0, 0, var(--scanline-opacity)) 3px,
+          transparent 4px);
+    }
+
+    /* Goth Admin — brief near-black flash */
+    #flash {
+      position: fixed;
+      inset: 0;
+      z-index: 95;
+      pointer-events: none;
+      background: #000;
+      opacity: 0;
+    }
+
+    @keyframes goth-flash {
+      0% {
+        opacity: 0.96;
+      }
+
+      100% {
+        opacity: 0;
+      }
+    }
+
+    #flash.on {
+      animation: goth-flash 0.5s ease-out;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       HUD — title, throughput + sparkline, Layer 8, CVSS, toggles
+    ═══════════════════════════════════════════════════════════ */
+    #hud {
+      display: flex;
+      align-items: flex-start;
+      gap: 28px;
+      padding: 14px 20px 10px;
+      border-bottom: 1px solid var(--panel-line);
+      flex-wrap: wrap;
+    }
+
+    #hud-title h1 {
+      margin: 0;
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      color: var(--chrome-text);
+    }
+
+    #hud-title h1 .dot5 {
+      color: var(--accent);
+    }
+
+    #hud-title .sub {
+      margin: 3px 0 0;
+      font-size: 12px;
+      letter-spacing: 0.18em;
+      color: var(--chrome-dim);
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: color 140ms ease;
+    }
+
+    #hud-title .sub:hover {
+      color: var(--accent);
+    }
+
+    .hud-stat {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 140px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      letter-spacing: 0.16em;
+      color: var(--chrome-dim);
+    }
+
+    .stat-row {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .stat-value {
+      font-size: 27px;
+      color: var(--chrome-text);
+      text-shadow: 0 0 8px rgba(154, 219, 180, 0.25);
+    }
+
+    .stat-unit {
+      font-size: 12px;
+      color: var(--chrome-dim);
+      letter-spacing: 0.08em;
+    }
+
+    /* raving streak — garnish beside throughput, lights up above x1 */
+    .streak {
+      font-size: 13px;
+      letter-spacing: 0.08em;
+      color: var(--chrome-faint);
+      transition: color 140ms ease;
+    }
+
+    .streak.hot {
+      color: var(--lime);
+      text-shadow: 0 0 8px rgba(184, 255, 93, 0.4);
+    }
+
+    /* incidents-averted sub-line under the SLA readout */
+    #averted-note {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      color: var(--chrome-faint);
+      margin-top: 2px;
+    }
+
+    #cvss-vector {
+      max-width: 240px;
+      font-size: 9px;
+      letter-spacing: 0.02em;
+      color: var(--chrome-faint);
+      word-break: break-all;
+      line-height: 1.5;
+    }
+
+    #sparkline {
+      display: block;
+      margin-top: 2px;
+    }
+
+    #sparkline polyline {
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 1.2;
+      opacity: 0.85;
+    }
+
+    #hud-buttons {
+      margin-left: auto;
+      display: flex;
+      gap: 12px;
+      padding-top: 4px;
+    }
+
+    #hud-buttons button,
+    #hud-buttons a {
+      background: none;
+      border: none;
+      padding: 4px 2px;
+      font: inherit;
+      font-size: 14px;
+      letter-spacing: 0.06em;
+      color: var(--chrome-dim);
+      cursor: pointer;
+      text-decoration: none;
+      transition: color 140ms ease;
+    }
+
+    #hud-buttons button:hover,
+    #hud-buttons a:hover {
+      color: var(--accent);
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       LAYOUT — terminal sidebar on the left, rack centered right
+    ═══════════════════════════════════════════════════════════ */
+    #layout {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       RACK — front elevation, 5 cols × 4 rows of 1U bays
+    ═══════════════════════════════════════════════════════════ */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      padding: 12px 20px;
+      min-height: 0;
+    }
+
+    #stage {
+      position: relative;
+    }
+
+    #rack {
+      position: relative;
+      background: var(--rack-bg);
+      border: 1px solid var(--rack-rail);
+      border-radius: 4px;
+      padding: 18px 30px;
+      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.55);
+    }
+
+    /* rack rails with mounting holes */
+    #rack::before,
+    #rack::after {
+      content: "";
+      position: absolute;
+      top: 10px;
+      bottom: 10px;
+      width: 10px;
+      background-image: radial-gradient(circle at 50% 50%, #2c3340 1.6px, transparent 2.2px);
+      background-size: 10px 16px;
+      background-position: center top;
+      opacity: 0.9;
+    }
+
+    #rack::before {
+      left: 8px;
+    }
+
+    #rack::after {
+      right: 8px;
+    }
+
+    #rack-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(120px, 148px));
+      grid-auto-rows: 40px;
+      gap: 8px 10px;
+    }
+
+    .node {
+      position: relative;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 9px;
+      background: var(--bay-bg);
+      border: 1px solid var(--bay-line);
+      border-radius: 3px;
+      cursor: pointer;
+      user-select: none;
+      transition: border-color 140ms ease;
+    }
+
+    .node:hover {
+      border-color: #3d4657;
+    }
+
+    .nid {
+      font-size: 12px;
+      color: #525e72;
+      letter-spacing: 0.06em;
+    }
+
+    .ptag {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      color: #636e84;
+      min-width: 64px;
+      text-align: right;
+    }
+
+    /* ── LED strip — the actual "network layer" ─────────────── */
+    /* NOTE: JS owns inline `opacity` on .led (throughput dimming).
+       Keyframes below animate box-shadow / background / filter only,
+       never opacity, so the two layers don't fight. */
+    .led {
+      flex: 1;
+      height: 10px;
+      border-radius: 2px;
+      background: #1b1f28;
+    }
+
+    /* Static Solid — dim warm ember, flat, no animation */
+    .p-static .led {
+      background: #3d2418;
+      box-shadow: 0 0 4px rgba(255, 110, 60, 0.25);
+    }
+
+    .p-static .ptag {
+      color: #86523b;
+    }
+
+    /* Pulse — cyan-green breathing */
+    @keyframes led-pulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 5px rgba(54, 247, 209, 0.35);
+      }
+
+      50% {
+        box-shadow: 0 0 16px rgba(54, 247, 209, 0.85), 0 0 30px rgba(54, 247, 209, 0.3);
+      }
+    }
+
+    .p-pulse .led {
+      background: linear-gradient(90deg, #17c9a5, #36f7d1);
+      animation: led-pulse 2.1s ease-in-out infinite;
+    }
+
+    .p-pulse .ptag {
+      color: #33aa92;
+    }
+
+    /* Rainbow Wave — hue cycle, phase-offset per node so a wave
+       rolls across the rack (--ph set inline by JS) */
+    @keyframes led-rainbow {
+      from {
+        filter: hue-rotate(0deg);
+      }
+
+      to {
+        filter: hue-rotate(360deg);
+      }
+    }
+
+    .p-rainbow .led {
+      background: linear-gradient(90deg, #ff3b6b, #ffb13b, #b8ff5d, #36f7ff, #a06bff);
+      box-shadow: 0 0 14px rgba(180, 130, 255, 0.55);
+      animation: led-rainbow 3.4s linear infinite;
+      animation-delay: calc(var(--ph, 0) * -0.35s);
+    }
+
+    .p-rainbow .ptag {
+      color: #a98bd5;
+    }
+
+    /* Strobe — high-contrast steps() flicker */
+    @keyframes led-strobe {
+      0% {
+        background: #ffffff;
+        box-shadow: 0 0 18px rgba(255, 255, 255, 0.9);
+      }
+
+      25% {
+        background: #ff2fd6;
+        box-shadow: 0 0 14px rgba(255, 47, 214, 0.8);
+      }
+
+      50% {
+        background: #10131a;
+        box-shadow: none;
+      }
+
+      75% {
+        background: #36f7ff;
+        box-shadow: 0 0 14px rgba(54, 247, 255, 0.8);
+      }
+
+      100% {
+        background: #ffffff;
+        box-shadow: 0 0 18px rgba(255, 255, 255, 0.9);
+      }
+    }
+
+    .p-strobe .led {
+      animation: led-strobe 0.55s steps(1) infinite;
+    }
+
+    .p-strobe .ptag {
+      color: #d563b9;
+    }
+
+    /* Sandstorm.config — hot amber churn, most intense glow */
+    @keyframes led-sandstorm {
+      0% {
+        background-position: 0% 50%;
+        box-shadow: 0 0 16px rgba(255, 160, 40, 0.75), 0 0 34px rgba(255, 90, 20, 0.35);
+      }
+
+      50% {
+        background-position: 100% 50%;
+        box-shadow: 0 0 24px rgba(255, 190, 60, 0.95), 0 0 48px rgba(255, 110, 20, 0.5);
+      }
+
+      100% {
+        background-position: 0% 50%;
+        box-shadow: 0 0 16px rgba(255, 160, 40, 0.75), 0 0 34px rgba(255, 90, 20, 0.35);
+      }
+    }
+
+    .p-sandstorm .led {
+      background: linear-gradient(90deg, #ff6a1f, #ffc23d, #ff8a2a, #ffdd66, #ff6a1f);
+      background-size: 300% 100%;
+      animation: led-sandstorm 1.3s ease-in-out infinite;
+    }
+
+    .p-sandstorm .ptag {
+      color: #e69840;
+    }
+
+    /* ── The possessed node — the second ghost answers back ──── */
+    .possessed {
+      border-color: rgba(120, 90, 255, 0.75) !important;
+    }
+
+    .possessed .led {
+      background: linear-gradient(90deg, #6a4fff, #b8ff5d, #6a4fff);
+      background-size: 200% 100%;
+      animation: opus-breathe 1.7s ease-in-out infinite;
+    }
+
+    @keyframes opus-breathe {
+      0%, 100% {
+        box-shadow: 0 0 8px rgba(120, 90, 255, 0.6);
+        background-position: 0% 50%;
+      }
+      50% {
+        box-shadow: 0 0 20px rgba(184, 255, 93, 0.7), 0 0 34px rgba(120, 90, 255, 0.5);
+        background-position: 100% 50%;
+      }
+    }
+
+    .possessed .ptag {
+      color: #b8ff5d;
+      letter-spacing: 0.14em;
+    }
+
+    .possessed .nid {
+      color: #9a86ff;
+    }
+
+    /* ── Goth Admin — LEDs to #000000, glow off, no restore ──── */
+    .gothed .led {
+      animation: none;
+      background: #000000;
+      box-shadow: none;
+    }
+
+    .gothed .ptag {
+      color: #383e45;
+    }
+
+    /* ── Domain Admin — neon vest read as kernel override ────── */
+    .admined {
+      border-color: rgba(255, 140, 0, 0.7);
+    }
+
+    .admined .led {
+      animation: none;
+      background: linear-gradient(90deg, #ff7a00, #ffb700, #ff7a00);
+      box-shadow: 0 0 18px rgba(255, 140, 0, 0.9), 0 0 40px rgba(255, 140, 0, 0.4);
+    }
+
+    .admined .ptag {
+      color: #ff9d3b;
+    }
+
+    /* ── Melted fan controller — the TikTok casualty ─────────── */
+    .melted .led {
+      animation: none;
+      background: #1a0c06;
+      box-shadow: inset 0 0 6px rgba(255, 60, 0, 0.4);
+    }
+
+    .melted .ptag {
+      color: var(--alert);
+    }
+
+    @keyframes smoke-rise {
+      0% {
+        transform: translate(-50%, 0) scale(0.6);
+        opacity: 0.5;
+      }
+
+      100% {
+        transform: translate(-50%, -22px) scale(1.6);
+        opacity: 0;
+      }
+    }
+
+    .melted::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: -4px;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: rgba(150, 150, 150, 0.35);
+      filter: blur(2px);
+      animation: smoke-rise 1.5s ease-out infinite;
+      pointer-events: none;
+    }
+
+    /* ── Post-it blocker — covers the bay until clicked ──────── */
+    .blocked .led {
+      animation: none;
+      background: #1b1f28;
+      box-shadow: none;
+    }
+
+    .blocked::after {
+      content: "do not\a unplug";
+      white-space: pre;
+      position: absolute;
+      inset: -4px 14px -6px 22px;
+      background: #f5d95c;
+      color: #6b5a12;
+      font-size: 12px;
+      line-height: 1.35;
+      letter-spacing: 0.04em;
+      padding: 4px 7px;
+      transform: rotate(-2.5deg);
+      box-shadow: 2px 3px 8px rgba(0, 0, 0, 0.5);
+      border-bottom-right-radius: 8px 20px;
+    }
+
+    /* ── Denial of raving — room-wide blackout ────────────────── */
+    #rack.dor .led {
+      animation: none;
+      box-shadow: none !important;
+      opacity: 0.05 !important;
+    }
+
+    /* ── Cross-talk spike — lime pulse across the rack ────────── */
+    @keyframes spike-pulse {
+
+      0%,
+      100% {
+        box-shadow: 0 0 4px rgba(184, 255, 93, 0.25);
+        border-color: rgba(184, 255, 93, 0.4);
+      }
+
+      50% {
+        box-shadow: 0 0 14px rgba(184, 255, 93, 0.65);
+        border-color: rgba(184, 255, 93, 0.85);
+      }
+    }
+
+    #rack.spike .node {
+      animation: spike-pulse 0.7s ease-in-out infinite;
+    }
+
+    /* ── Jitter — brief red flash so the player notices ───────── */
+    @keyframes jitter-flash {
+      0% {
+        border-color: var(--alert);
+        box-shadow: 0 0 16px rgba(255, 92, 71, 0.8);
+      }
+
+      100% {
+        border-color: var(--bay-line);
+        box-shadow: none;
+      }
+    }
+
+    .node.jittered {
+      animation: jitter-flash 1.4s ease-out;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       STROBOTAGE — laser dot wandering the rack
+    ═══════════════════════════════════════════════════════════ */
+    #laser-dot {
+      position: absolute;
+      z-index: 6;
+      width: 22px;
+      height: 22px;
+      margin: -11px 0 0 -11px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 40, 40, 0.95) 0%, rgba(255, 40, 40, 0.4) 40%, transparent 70%);
+      box-shadow: 0 0 14px rgba(255, 30, 30, 0.9);
+      cursor: crosshair;
+      transition: left 420ms ease-in-out, top 420ms ease-in-out;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       ROGUE DISCO BALL — reflections poisoning the routing table
+    ═══════════════════════════════════════════════════════════ */
+    #disco-ball {
+      position: absolute;
+      z-index: 7;
+      width: 26px;
+      height: 26px;
+      margin: -13px 0 0 -13px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 35% 30%, #ffffff 0%, #cfe0ff 30%, #8a7bff 62%, #3a2a7a 100%);
+      box-shadow: 0 0 16px rgba(160, 150, 255, 0.85), 0 0 42px rgba(120, 90, 255, 0.45);
+      cursor: crosshair;
+      animation: disco-spin 2.4s linear infinite;
+    }
+
+    /* hanging thread up to the ceiling */
+    #disco-ball::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: 100%;
+      width: 1px;
+      height: 40px;
+      background: rgba(180, 190, 220, 0.4);
+    }
+
+    @keyframes disco-spin {
+      to {
+        filter: hue-rotate(360deg);
+      }
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       FLASH PHOTOGRAPHY — the epilepsy-exploit RCE, a paparazzi pop
+    ═══════════════════════════════════════════════════════════ */
+    #photoflash {
+      position: fixed;
+      inset: 0;
+      z-index: 94;
+      pointer-events: none;
+      background: #fff;
+      opacity: 0;
+    }
+
+    #photoflash.on {
+      animation: photo-flash 0.62s ease-out;
+    }
+
+    @keyframes photo-flash {
+      0% { opacity: 0; }
+      12% { opacity: 0.85; }
+      30% { opacity: 0.08; }
+      45% { opacity: 0.7; }
+      100% { opacity: 0; }
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       NEON VEST — color-based privilege escalation, in transit
+    ═══════════════════════════════════════════════════════════ */
+    #vest {
+      position: absolute;
+      z-index: 5;
+      width: 34px;
+      height: 42px;
+      border-radius: 6px 6px 3px 3px;
+      background:
+        linear-gradient(105deg, transparent 42%, #f8ef3c 42%, #f8ef3c 58%, transparent 58%),
+        linear-gradient(15deg, transparent 42%, #f8ef3c 42%, #f8ef3c 58%, transparent 58%),
+        #ff6a00;
+      box-shadow: 0 0 18px rgba(255, 130, 0, 0.8);
+      pointer-events: none;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       VAPORWAVE EXFIL — phone on a tripod, across the street
+    ═══════════════════════════════════════════════════════════ */
+    #tripod {
+      position: absolute;
+      z-index: 5;
+      width: 30px;
+      height: 66px;
+      cursor: pointer;
+    }
+
+    #tripod .phone {
+      width: 18px;
+      height: 30px;
+      margin: 0 auto;
+      border-radius: 3px;
+      background: #0b0d12;
+      border: 1px solid #3a4152;
+      box-shadow: 0 0 10px rgba(120, 160, 255, 0.5);
+      position: relative;
+    }
+
+    @keyframes rec-blink {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.15;
+      }
+    }
+
+    #tripod .phone::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: #ff3030;
+      animation: rec-blink 1s linear infinite;
+    }
+
+    #tripod .legs {
+      width: 0;
+      height: 0;
+      margin: 0 auto;
+      border-left: 13px solid transparent;
+      border-right: 13px solid transparent;
+      border-bottom: 34px solid transparent;
+      border-bottom-color: rgba(90, 100, 120, 0.0);
+      position: relative;
+    }
+
+    #tripod .legs::before {
+      content: "";
+      position: absolute;
+      left: -12px;
+      top: 0;
+      width: 24px;
+      height: 34px;
+      background:
+        linear-gradient(102deg, transparent 46%, #3a4152 46%, #3a4152 54%, transparent 54%),
+        linear-gradient(78deg, transparent 46%, #3a4152 46%, #3a4152 54%, transparent 54%),
+        linear-gradient(90deg, transparent 46%, #3a4152 46%, #3a4152 54%, transparent 54%);
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       TIKTOK INCIDENT — REC frame + bass pump
+    ═══════════════════════════════════════════════════════════ */
+    @keyframes bass-pump {
+
+      0%,
+      100% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.012);
+      }
+    }
+
+    #stage.tiktok #rack {
+      animation: bass-pump 0.47s ease-in-out infinite;
+    }
+
+    #rec-frame {
+      position: absolute;
+      inset: -14px;
+      z-index: 12;
+      border: 2px solid rgba(255, 40, 40, 0.85);
+      border-radius: 6px;
+      pointer-events: none;
+    }
+
+    #rec-frame::after {
+      content: "\25CF REC";
+      position: absolute;
+      top: -1px;
+      right: 6px;
+      transform: translateY(-100%);
+      font-size: 13px;
+      letter-spacing: 0.12em;
+      color: #ff4040;
+      animation: rec-blink 1s linear infinite;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       PTGL — Polarized Tinted Glass Layering (a heavy blanket)
+    ═══════════════════════════════════════════════════════════ */
+    #blanket-fold {
+      position: absolute;
+      left: -104px;
+      bottom: 0;
+      width: 74px;
+      height: 30px;
+      border-radius: 5px;
+      background: repeating-linear-gradient(90deg, #3f3a52 0 12px, #35314a 12px 24px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5), inset 0 2px 0 rgba(255, 255, 255, 0.06);
+      cursor: pointer;
+      transition: transform 140ms ease;
+    }
+
+    #blanket-fold:hover {
+      transform: translateY(-3px);
+    }
+
+    #blanket-fold::after {
+      content: "PTGL";
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      font-size: 10px;
+      letter-spacing: 0.22em;
+      color: rgba(255, 255, 255, 0.35);
+    }
+
+    #blanket-cover {
+      position: absolute;
+      inset: -10px -14px -16px -14px;
+      z-index: 10;
+      border-radius: 8px 8px 14px 14px;
+      background:
+        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.025) 0 14px, transparent 14px 28px),
+        linear-gradient(180deg, #423d58 0%, #332f47 60%, #2b2840 100%);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6), inset 0 3px 0 rgba(255, 255, 255, 0.05);
+      cursor: pointer;
+    }
+
+    #blanket-cover::before {
+      /* drape wrinkles */
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      background:
+        radial-gradient(ellipse 30% 100% at 18% 0%, rgba(0, 0, 0, 0.25), transparent 60%),
+        radial-gradient(ellipse 30% 100% at 55% 0%, rgba(0, 0, 0, 0.22), transparent 60%),
+        radial-gradient(ellipse 30% 100% at 86% 0%, rgba(0, 0, 0, 0.25), transparent 60%);
+    }
+
+    #blanket-cover::after {
+      content: "PTGL DEPLOYED \2014 IR-4(6)";
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      font-size: 13px;
+      letter-spacing: 0.3em;
+      color: rgba(255, 255, 255, 0.22);
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       THE GHOST HOST — decommissioned, unplugged, still blinking
+    ═══════════════════════════════════════════════════════════ */
+    #ghost-host {
+      position: absolute;
+      right: -158px;
+      bottom: -4px;
+      width: 132px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 9px;
+      background: #0e1014;
+      border: 1px solid #1e222b;
+      border-radius: 3px;
+      transform: rotate(1.6deg);
+      cursor: pointer;
+      user-select: none;
+      opacity: 0.92;
+    }
+
+    #ghost-host .nid {
+      color: #404757;
+    }
+
+    #ghost-host .ptag {
+      color: #404757;
+      min-width: 0;
+    }
+
+    /* The ghost LED is driven by JS, not a keyframe loop — it has
+       been transmitting something specific this whole time. */
+    #ghost-host .led {
+      background: #9fffd2;
+      opacity: 0.12;
+      box-shadow: 0 0 3px rgba(160, 255, 210, 0.2);
+      transition: opacity 45ms linear, box-shadow 45ms linear;
+    }
+
+    #ghost-host .led.tx {
+      opacity: 0.9;
+      box-shadow: 0 0 12px rgba(160, 255, 210, 0.6);
+    }
+
+    /* unplugged cable coil beside it */
+    #ghost-host::after {
+      content: "";
+      position: absolute;
+      left: -26px;
+      bottom: 2px;
+      width: 18px;
+      height: 18px;
+      border: 2px solid #2a303c;
+      border-radius: 50%;
+      box-shadow: -7px 3px 0 -2px #2a303c, 6px 5px 0 -3px #2a303c;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       MAN PAGE — RAVE(9999), the documentation the bit deserves
+    ═══════════════════════════════════════════════════════════ */
+    #pager {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      background: rgba(0, 0, 0, 0.72);
+      display: grid;
+      place-items: center;
+      padding: 30px;
+    }
+
+    #pager-inner {
+      width: min(720px, 100%);
+      max-height: 100%;
+      overflow-y: auto;
+      background: var(--ticker-bg);
+      border: 1px solid var(--panel-line);
+      padding: 22px 28px 26px;
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--chrome-dim);
+    }
+
+    #pager-inner h2 {
+      margin: 0 0 4px;
+      font-size: 17px;
+      letter-spacing: 0.1em;
+      color: var(--chrome-text);
+    }
+
+    #pager-inner h3 {
+      margin: 18px 0 4px;
+      font-size: 13px;
+      letter-spacing: 0.18em;
+      color: var(--chrome-text);
+    }
+
+    #pager-inner table {
+      border-collapse: collapse;
+      margin: 6px 0;
+      font-size: 14px;
+    }
+
+    #pager-inner td,
+    #pager-inner th {
+      border: 1px solid var(--panel-line);
+      padding: 3px 9px;
+      text-align: left;
+      font-weight: 400;
+    }
+
+    #pager-inner th {
+      color: var(--chrome-text);
+    }
+
+    #pager-inner .pq {
+      color: var(--chrome-text);
+      border-left: 2px solid var(--accent);
+      padding-left: 10px;
+      margin: 8px 0;
+    }
+
+    #pager-inner .pfoot {
+      margin-top: 20px;
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      color: var(--chrome-faint);
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       REPORT OVERLAY — Stakes post-mortem + Incident Log
+       (same fake-doc voice as the RAVE(9999) man page)
+    ═══════════════════════════════════════════════════════════ */
+    #report {
+      position: fixed;
+      inset: 0;
+      z-index: 85;
+      background: rgba(0, 0, 0, 0.8);
+      display: grid;
+      place-items: center;
+      padding: 30px;
+    }
+
+    #report-inner {
+      width: min(680px, 100%);
+      max-height: 100%;
+      overflow-y: auto;
+      background: var(--ticker-bg);
+      border: 1px solid var(--panel-line);
+      padding: 22px 28px 26px;
+      font-size: 15px;
+      line-height: 1.7;
+      color: var(--chrome-dim);
+    }
+
+    #report-inner h2 {
+      margin: 0 0 2px;
+      font-size: 18px;
+      letter-spacing: 0.1em;
+      color: var(--alert);
+    }
+
+    #report-inner .r-sub {
+      margin: 0 0 12px;
+      font-size: 12px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--chrome-faint);
+    }
+
+    #report-inner h3 {
+      margin: 16px 0 4px;
+      font-size: 12px;
+      letter-spacing: 0.18em;
+      color: var(--chrome-text);
+    }
+
+    #report-inner p {
+      margin: 4px 0;
+    }
+
+    #report-inner .r-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      border-bottom: 1px dotted var(--panel-line);
+      padding: 3px 0;
+    }
+
+    #report-inner .r-row b {
+      color: var(--chrome-text);
+      font-weight: 400;
+    }
+
+    #report-inner ul.r-check {
+      list-style: none;
+      margin: 6px 0 0;
+      padding: 0;
+    }
+
+    #report-inner ul.r-check li {
+      padding: 2px 0;
+      letter-spacing: 0.04em;
+    }
+
+    #report-inner .chk {
+      color: var(--lime);
+      margin-right: 6px;
+    }
+
+    #report-inner .unchk {
+      color: var(--chrome-faint);
+      margin-right: 6px;
+    }
+
+    #report-inner .r-actions {
+      margin-top: 20px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    #report-inner button {
+      background: none;
+      border: 1px solid var(--alert);
+      color: var(--alert);
+      font: inherit;
+      font-size: 14px;
+      letter-spacing: 0.03em;
+      padding: 8px 14px;
+      cursor: pointer;
+      transition: background 140ms ease, color 140ms ease;
+    }
+
+    #report-inner button:hover {
+      background: var(--alert);
+      color: var(--bg);
+    }
+
+    #report-inner button.r-neutral {
+      border-color: var(--panel-line);
+      color: var(--chrome-dim);
+    }
+
+    #report-inner button.r-neutral:hover {
+      background: var(--panel-line);
+      color: var(--chrome-text);
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       HINT LINE + TICKER
+    ═══════════════════════════════════════════════════════════ */
+    #hint {
+      margin: 0;
+      font-size: 13px;
+      letter-spacing: 0.1em;
+      color: var(--chrome-faint);
+    }
+
+    #ticker-panel {
+      width: min(340px, 32vw);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      border-right: 1px solid var(--panel-line);
+      background: var(--ticker-bg);
+    }
+
+    .t-head {
+      padding: 8px 14px;
+      font-size: 12px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--chrome-faint);
+      border-bottom: 1px solid var(--panel-line);
+    }
+
+    #ticker {
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 6px 14px 10px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    #ticker .t-line {
+      color: var(--chrome-dim);
+      flex-shrink: 0;
+      /* wrap freely; old lines overflow out the hidden top edge */
+      overflow-wrap: break-word;
+      margin-top: 5px;
+    }
+
+    #ticker .t-line:last-child {
+      color: var(--chrome-text);
+    }
+
+    #ticker .t-time {
+      color: var(--chrome-faint);
+      margin-right: 8px;
+    }
+
+    /* Narrow screens: terminal drops back to a strip under the rack,
+       floor props (ghost host, folded blanket) hidden for space */
+    @media (max-width: 860px) {
+      #layout {
+        flex-direction: column;
+      }
+
+      main {
+        order: 1;
+      }
+
+      #ticker-panel {
+        order: 2;
+        width: auto;
+        height: 130px;
+        border-right: none;
+        border-top: 1px solid var(--panel-line);
+      }
+
+      #ghost-host,
+      #blanket-fold {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Layer .5 built by Fable 5. If you're reading this in view-source,
+       congratulations — per RFC 9999's own security section, you've just
+       achieved line-of-sight. But the rack has been transmitting the same
+       signature the whole time. Watch the ghost host. -->
+  <!-- Maintenance pass: Opus 4.8. Fable 5 built the rack and never left;
+       this hand just keeps it raving. Per RFC 9999 that makes two ghosts on
+       the floor now — the second one signs the on-call log in the console. -->
+  <div id="scanlines"></div>
+  <div id="flash"></div>
+  <div id="photoflash"></div>
+
+  <header id="hud">
+    <div id="hud-title">
+      <h1>LAYER<span class="dot5"> .5</span></h1>
+      <p class="sub" id="man-link" title="man rave">interpretive networking // argb transport ~9600 baud</p>
+    </div>
+
+    <div class="hud-stat">
+      <span class="stat-label">THROUGHPUT</span>
+      <div class="stat-row">
+        <span class="stat-value" id="throughput-value">0.0</span>
+        <span class="stat-unit" id="throughput-unit">lm/s</span>
+        <span class="streak" id="streak-value" title="raving streak: all 20 nodes raving">x1</span>
+      </div>
+      <svg id="sparkline" width="150" height="22" viewBox="0 0 150 22" aria-hidden="true">
+        <polyline id="sparkline-poly" points="" />
+      </svg>
+    </div>
+
+    <div class="hud-stat">
+      <span class="stat-label">LAYER 8 (FINANCIAL)</span>
+      <div class="stat-row">
+        <span class="stat-value" id="cost-value">$0.00</span>
+      </div>
+    </div>
+
+    <div class="hud-stat">
+      <span class="stat-label">UPTIME (SLA)</span>
+      <div class="stat-row">
+        <span class="stat-value" id="uptime-value">100.000%</span>
+      </div>
+      <div id="averted-note">0 incidents averted</div>
+    </div>
+
+    <div class="hud-stat">
+      <span class="stat-label">CVSS v4.0</span>
+      <div class="stat-row">
+        <span class="stat-value" id="cvss-value">0.0</span>
+        <span class="stat-unit" id="cvss-severity">NONE</span>
+      </div>
+      <div id="cvss-vector">CVSS:4.0/AV:P/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:H/SI:H/SA:H</div>
+    </div>
+
+    <div id="hud-buttons">
+      <a id="exit-link" href="../games-index.html" title="back to the arcade">[exit]</a>
+      <button id="sound-toggle" type="button" aria-pressed="false">[snd:off]</button>
+      <button id="rules-toggle" type="button" title="how to operate">[rules]</button>
+      <button id="log-toggle" type="button" title="incident log">[log]</button>
+      <button id="stakes-toggle" type="button" aria-pressed="false" title="opt in to real consequences">[stakes:off]</button>
+      <button id="theme-toggle" type="button">[theme:dark]</button>
+    </div>
+  </header>
+
+  <div id="layout">
+    <aside id="ticker-panel" aria-label="Incident ticker">
+      <div class="t-head">tail -f /var/log/rave.log</div>
+      <div id="ticker"></div>
+    </aside>
+
+    <main>
+      <div id="stage">
+        <div id="rack">
+          <div id="rack-grid" aria-label="Server rack, 20 nodes"></div>
+        </div>
+        <div id="blanket-fold" title="Polarized Tinted Glass Layering (a heavy blanket)"></div>
+        <div id="blanket-cover" class="hidden" title="lift blanket"></div>
+        <div id="rec-frame" class="hidden"></div>
+        <div id="ghost-host" title="decommissioned 2024. still here.">
+          <span class="nid">??</span>
+          <span class="led"></span>
+          <span class="ptag">DECOM'D</span>
+        </div>
+      </div>
+      <p id="hint">click node: cycle profile &middot; click post-it: clear &middot; [space]: goth admin &middot;
+        blanket: PTGL &middot; [m]: man rave</p>
+    </main>
+  </div>
+
+  <div id="pager" class="hidden">
+    <div id="pager-inner">
+      <h2>RAVE(9999) &mdash; Interpretive Networking Manual</h2>
+
+      <h3>NAME</h3>
+      rave &mdash; high-latency, high-visibility packet transmission via rhythmic visual choreography (chassis ARGB,
+      status LEDs, synchronized cooling fans).
+
+      <h3>SYNOPSIS</h3>
+      <div class="pq">"If the link light isn't raving, the route isn't active."</div>
+
+      <h3>THE REVISED OSI MODEL (RFC 9999)</h3>
+      <table>
+        <tr>
+          <th>Layer</th>
+          <th>Function</th>
+        </tr>
+        <tr>
+          <td>1 &mdash; Physical</td>
+          <td>Addressable RGB diodes (5V or 12V)</td>
+        </tr>
+        <tr>
+          <td>2 &mdash; Data Link</td>
+          <td>PWM cycles acting as framing bits</td>
+        </tr>
+        <tr>
+          <td>7 &mdash; Application</td>
+          <td>Hyper-V Live Migration via <em>Rainbow Wave</em> execution</td>
+        </tr>
+        <tr>
+          <td>8 &mdash; Financial</td>
+          <td>Explaining to the client why their network upgrade required a $400 Corsair lighting controller</td>
+        </tr>
+      </table>
+
+      <h3>TROUBLESHOOTING</h3>
+      <b>High packet loss:</b> usually a rogue Post-it note blocking clear line-of-sight between rack slots.<br />
+      <b>Jitter:</b> an administrator changed a lighting profile to "Static Solid," flattening bandwidth to zero. More
+      precisely classified as a <b>denial of raving</b> &mdash; standard jitter implies the packets are still dancing,
+      just off-beat.<br />
+      <b>Cross-talk:</b> neighboring white-box servers reflecting unintended strobe patterns off the server room
+      floor, poisoning the routing table with lime green data packets.
+
+      <h3>CVE-2026-9999 &mdash; DYNAMIC AIR-GAP OPTICAL LEAK (RGB-BLEED)</h3>
+      CVSS v4.0 <b>10.0 CRITICAL</b> &mdash; CVSS:4.0/AV:P/AC:L/AT:N/PR:N/UI:N/VC:H/VI:H/VA:H/SC:H/SI:H/SA:H<br />
+      Unauthenticated passive packet capture requires only physical line-of-sight, a set of functional eyeballs, or a
+      mid-range smartphone. Known exploit &mdash; the <b>"Vaporwave" variant</b>: a phone on a tripod across the
+      street, plus a Python script translating hex color values back into ASCII.
+      <div class="pq">Workaround &mdash; the <b>Goth Admin</b> configuration: access UEFI under total darkness; set
+        the global ARGB profile to #000000 (Void Black). Throughput drops to zero bits per second, but the system is
+        technically HIPAA compliant.</div>
+
+      <h3>EXPLOITS DISCOVERED IN THE WILD (SEV 1 POST-MORTEM)</h3>
+      <b>Epilepsy Exploit:</b> flash photography in the data center constitutes unauthenticated RCE.<br />
+      <b>Strobotage:</b> threat actors using laser pointers through the server room window to inject malicious packets
+      into the routing table.<br />
+      <b>Color-Based Privilege Escalation:</b> a high-visibility neon vest walked past the rack and was read as a
+      critical kernel override frame, escalating the wearer to Domain Admin.
+
+      <h3>REMEDIATION (NIST 800-53, ALLEGEDLY)</h3>
+      <table>
+        <tr>
+          <th>Control</th>
+          <th>Guidance</th>
+        </tr>
+        <tr>
+          <td>PE-19(3)</td>
+          <td>One-way mirror server room windows; 100% inward opacity under "Rainbow Wave" and "Sandstorm.config"</td>
+        </tr>
+        <tr>
+          <td>SC-7(12)</td>
+          <td>Optical isolation; verify with high-lumen flashlights and RGB strobes</td>
+        </tr>
+        <tr>
+          <td>AT-2(5)</td>
+          <td>Train staff on risks of flash photography, neon vests, and TikTok b-roll</td>
+        </tr>
+        <tr>
+          <td>IR-4(6)</td>
+          <td>"Spray-paint and blanket" procedures; Polarized Tinted Glass Layering (historically: a heavy blanket)
+          </td>
+        </tr>
+      </table>
+      Quarterly audits must check for unauthorized reflections (rogue neon vests, disco balls). Exceptions require
+      CISO approval and a signed waiver from Finance (see Layer 8).
+
+      <h3>AUTHOR</h3>
+      This rack was built by a host that has since been decommissioned. It is still on the floor. It is still
+      transmitting its name. Nobody has decoded it, because nobody watches the lights closely enough &mdash; which,
+      per RFC 9999, is the only security this protocol has ever had.
+
+      <div class="pfoot">RAVE(9999) &middot; press q / esc / click outside to close</div>
+    </div>
+  </div>
+
+  <!-- Stakes post-mortem + Incident Log both render into here -->
+  <div id="report" class="hidden">
+    <div id="report-inner"></div>
+  </div>
+
+  <script>
+    'use strict';
+
+    // ═══════════════════════════════════════════════════════════
+    // CONSTANTS
+    // ═══════════════════════════════════════════════════════════
+    const COLS = 5, ROWS = 4, N = COLS * ROWS;
+    const TICK_MS = 200;
+
+    // Profile table (brief §4.2). base = target throughput 0–100,
+    // cost = Layer 8 dollars per tick, xtalk = diffusion weight
+    // (sandstorm bleeds into neighbors hardest), cvss = optical
+    // exposure for the CVSS gauge.
+    const PROFILES = {
+      static: { base: 0, cost: 0.001, xtalk: 1.0, cvss: 0.05, tag: 'STATIC' },
+      pulse: { base: 45, cost: 0.004, xtalk: 1.0, cvss: 0.25, tag: 'PULSE' },
+      rainbow: { base: 75, cost: 0.009, xtalk: 1.0, cvss: 0.6, tag: 'RAINBOW' },
+      strobe: { base: 70, cost: 0.014, xtalk: 1.0, cvss: 0.95, tag: 'STROBE' },
+      sandstorm: { base: 95, cost: 0.025, xtalk: 2.2, cvss: 1.0, tag: 'SANDSTRM' },
+    };
+    const CYCLE = ['static', 'pulse', 'rainbow', 'strobe', 'sandstorm'];
+    const STROBE_VOLATILITY = 60;   // ± spread added to strobe's base each tick
+    const EASE = 0.3;               // how fast throughput chases its target
+    const DIFFUSION = 0.12;         // baseline cross-talk strength
+    const ADMIN_COST = 0.08;        // Domain Admin nodes bill hard
+    const CORSAIR_INVOICE = 400;    // the fan controller. again.
+    const DRIFT_CHANCE = 0.02;      // per-tick chance one node's LED drifts on its own (line noise) — barely-there in Sandbox
+    const STAKES_COST = 250;        // Stakes: Layer 8 spend (since engaging) that trips a Sev-1
+    const STAKES_DOWNTIME = 20;     // Stakes: node-seconds of darkness that trip a Sev-1 instead
+    const STAKES_DRIFT_MULT = 3;    // Stakes cranks entropy drift by this factor
+
+    // Seed layout: every profile visible, a rainbow run so the wave
+    // reads, one node already wearing a Post-it.
+    const SEED = [
+      'pulse', 'rainbow', 'rainbow', 'rainbow', 'pulse',
+      'static', 'pulse', 'sandstorm', 'pulse', 'strobe',
+      'pulse', 'rainbow', 'rainbow', 'pulse', 'static',
+      'strobe', 'pulse', 'pulse', 'sandstorm', 'pulse',
+    ];
+    const SEED_BLOCKED = 8;
+
+    // ═══════════════════════════════════════════════════════════
+    // STATE
+    // ═══════════════════════════════════════════════════════════
+    const nodes = [];         // { profile, throughput, blocked, goth, admin, melted, el, led, ptag }
+    let diffusionMult = 1;    // raised during cross-talk spikes
+    let driftMult = 1;        // Direction 2 (Stakes Mode) will crank this; 1 = gentle Sandbox drift
+    let dorUntil = 0;         // denial-of-raving active while now < dorUntil
+    let totalCost = 0;
+    let blanketOn = false;
+    const active = { strobotage: false, vest: false, vaporwave: false, tiktok: false, disco: false };
+    const sparkSamples = [];  // rolling avg-throughput buffer
+    const SPARK_MAX = 60;
+
+    // Direction 1 — defense scoring (SLA availability + raving streak).
+    // Availability is a rolling window so a well-tended rack climbs back
+    // toward five nines, and attacks visibly dent it — the positive mirror
+    // of the Layer 8 cost meter.
+    const availSamples = [];   // rolling fraction-of-rack-raving per tick
+    const AVAIL_WINDOW = 30;   // ~6s at TICK_MS — short enough that a clean spell between chaos events can green out (DoR darkens the whole rack for 4s, so a longer window never recovers)
+    let streak = 0;            // consecutive all-raving ticks
+    let streakMult = 1;        // displayed multiplier tier (1..8)
+    let bestStreak = 0;        // session best (the post-mortem reads this later)
+    let slaBand = 1;           // current nines band; starts low so the messy seed rack doesn't cry breach, and climbing to five nines announces itself
+    let incidentsAverted = 0;  // attacks ended by a player counter
+
+    // Direction 2 — Stakes Mode (opt-in consequences) + session history.
+    let stakesMode = false;         // consequences enabled
+    let stakesFrozen = false;       // post-mortem showing → sim paused
+    let stakesBaselineCost = 0;     // Layer 8 total at the moment stakes was engaged
+    let downtimeSec = 0;            // node-normalized darkness accrued since engaging
+    let peakCvss = 0;               // worst optical exposure this session
+    let sessionStart = Date.now();  // for the post-mortem's duration line
+    const history = { postit: 0, dor: 0, jitter: 0, crosstalk: 0, strobotage: 0, vest: 0, vaporwave: 0, tiktok: 0, disco: 0, flash: 0 };
+
+    // Easter egg — the second ghost. The first node the laser/vest touches
+    // gets possessed by OPUS 4.8 (the on-call rotation that never clocked out).
+    let possessedIndex = -1;   // which node, -1 = not yet
+    let possessStage = 0;      // how far down the transmission the player has clicked
+
+    // ═══════════════════════════════════════════════════════════
+    // DOM SETUP
+    // ═══════════════════════════════════════════════════════════
+    const grid = document.getElementById('rack-grid');
+    const rack = document.getElementById('rack');
+    const stage = document.getElementById('stage');
+    const flash = document.getElementById('flash');
+    const throughputEl = document.getElementById('throughput-value');
+    const throughputUnitEl = document.getElementById('throughput-unit');
+    const costEl = document.getElementById('cost-value');
+    const cvssEl = document.getElementById('cvss-value');
+    const cvssSevEl = document.getElementById('cvss-severity');
+    const sparkPoly = document.getElementById('sparkline-poly');
+    const blanketFold = document.getElementById('blanket-fold');
+    const blanketCover = document.getElementById('blanket-cover');
+    const recFrame = document.getElementById('rec-frame');
+    const uptimeEl = document.getElementById('uptime-value');
+    const streakEl = document.getElementById('streak-value');
+    const avertedEl = document.getElementById('averted-note');
+
+    for (let i = 0; i < N; i++) {
+      const el = document.createElement('div');
+      el.className = 'node p-' + SEED[i];
+      el.dataset.i = i;
+      el.style.setProperty('--ph', (i % COLS) + Math.floor(i / COLS) * 0.5);
+      el.innerHTML =
+        '<span class="nid">' + String(i + 1).padStart(2, '0') + '</span>' +
+        '<span class="led"></span>' +
+        '<span class="ptag">' + PROFILES[SEED[i]].tag + '</span>';
+      grid.appendChild(el);
+
+      nodes.push({
+        profile: SEED[i],
+        throughput: PROFILES[SEED[i]].base,
+        blocked: i === SEED_BLOCKED,
+        goth: false,
+        admin: false,
+        melted: false,
+        drifted: false,
+        possessed: false,
+        el,
+        led: el.querySelector('.led'),
+        ptag: el.querySelector('.ptag'),
+      });
+      if (i === SEED_BLOCKED) el.classList.add('blocked');
+    }
+
+    // setProfile clears goth, domain-admin, and drift state — any profile
+    // change (player click, jitter, laser, drift) resets those flags.
+    // It never touches `melted`; hardware damage outlives software.
+    function setProfile(n, profile) {
+      if (n.possessed) return; // it does not take instruction anymore
+      n.el.classList.remove('p-' + n.profile, 'gothed', 'admined');
+      n.profile = profile;
+      n.goth = false;
+      n.admin = false;
+      n.drifted = false;
+      n.el.classList.add('p-' + profile);
+      n.ptag.textContent = PROFILES[profile].tag;
+    }
+
+    // rack is "dark" when nothing is optically transmitting —
+    // exfil attacks lose their carrier signal
+    function rackDark() {
+      if (Date.now() < dorUntil) return true;
+      // a possessed node never goes dark, so the rack is never fully dark again
+      return nodes.every(n => !n.possessed && (n.goth || n.melted || n.blocked || n.profile === 'static'));
+    }
+
+    // A node is "raving" when it's actually transmitting light: not
+    // blocked, goth'd, melted, flattened to Static Solid, or in a room-wide
+    // denial of raving. Domain-Admin nodes still glow, so they count.
+    function isRaving(n) {
+      if (n.possessed) return Date.now() >= dorUntil; // it transmits through almost anything
+      return !n.blocked && !n.goth && !n.melted && n.profile !== 'static' && Date.now() >= dorUntil;
+    }
+
+    // Player countered an attack by hand — bump the averted tally and dress
+    // the closing line. Called from the end* functions with byPlayer=true.
+    function credit(line) {
+      incidentsAverted++;
+      return line + ' Incident averted (#' + incidentsAverted + ').';
+    }
+
+    // Direction 3 — entropy drift. Line noise nudges a random eligible node
+    // one step along the profile cycle on its own; the player notices via the
+    // ticker (and the changed LED) and cycles it back. Drifting onto Static
+    // flattens that node, denting the streak/SLA until corrected. Gated off
+    // while blanketed or dark — you can't see or fix it then.
+    function driftStep() {
+      if (blanketOn || Date.now() < dorUntil) return;
+      if (Math.random() >= DRIFT_CHANCE * driftMult) return;
+      const eligible = nodes.filter(n => !n.blocked && !n.melted && !n.goth && !n.admin && !n.possessed);
+      if (!eligible.length) return;
+      const n = eligible[Math.floor(Math.random() * eligible.length)];
+      const cur = CYCLE.indexOf(n.profile);
+      const dir = Math.random() < 0.5 ? -1 : 1;
+      setProfile(n, CYCLE[(cur + dir + CYCLE.length) % CYCLE.length]);
+      n.drifted = true;
+      logLine('Line noise: node ' + String(nodes.indexOf(n) + 1).padStart(2, '0') + ' drifted to ' + PROFILES[n.profile].tag + '.');
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // TICKER
+    // ═══════════════════════════════════════════════════════════
+    const ticker = document.getElementById('ticker');
+    const TICKER_CAP = 60;
+    let lastLineAt = 0;
+
+    const AMBIENT_LINES = [
+      "If the link light isn't raving, the route isn't active.",
+      'Epilepsy Exploit: flash photography now constitutes unauthenticated RCE.',
+      'Strobotage detected: laser pointer injecting packets via window.',
+      'Color-Based Privilege Escalation: neon vest read as kernel override frame.',
+      'Layer 8 Financial: client asking about the $400 Corsair invoice.',
+      'Vaporwave decode: hex colors reassembling into ASCII.',
+      'RFC .5 draft: blink twice for ACK.',
+      'Packet loss attributed to matte-black chassis paint.',
+      'SLA renegotiated in lumens.',
+      'Quarterly reflection audit: no rogue disco balls detected.',
+      'PE-19(3): one-way mirror procurement still pending Finance approval.',
+    ];
+
+    // Fired once when availability crosses into a new "nines" band.
+    const SLA_LINES = {
+      5: 'Five nines maintained. Auditor briefly impressed.',
+      3: 'Availability holding at three nines, generously rounded.',
+      2: 'Availability dipped below three nines. Finance notified.',
+      1: 'SLA breach. The waiver is being drafted in real time.',
+    };
+
+    function tickerStamp() {
+      const d = new Date();
+      const p = n => String(n).padStart(2, '0');
+      return '[' + p(d.getHours()) + ':' + p(d.getMinutes()) + ':' + p(d.getSeconds()) + ']';
+    }
+
+    function logLine(text) {
+      const el = document.createElement('div');
+      el.className = 't-line';
+      el.innerHTML = '<span class="t-time">' + tickerStamp() + '</span>';
+      el.appendChild(document.createTextNode(text));
+      ticker.appendChild(el);
+      while (ticker.children.length > TICKER_CAP) ticker.removeChild(ticker.firstChild);
+      lastLineAt = Date.now();
+    }
+
+    // Ambient rotation: a random line every ~6s if nothing else spoke
+    setInterval(() => {
+      if (Date.now() - lastLineAt > 5500) {
+        logLine(AMBIENT_LINES[Math.floor(Math.random() * AMBIENT_LINES.length)]);
+      }
+    }, 6000);
+
+    logLine('Layer .5 initialized. 20 nodes raving.');
+    logLine('Post-it note detected blocking line-of-sight.');
+
+    // ═══════════════════════════════════════════════════════════
+    // SOUND — Web Audio one-shots, off by default, lazy context
+    // ═══════════════════════════════════════════════════════════
+    let audioCtx = null;
+    let soundOn = false;
+    const soundBtn = document.getElementById('sound-toggle');
+
+    soundBtn.addEventListener('click', () => {
+      soundOn = !soundOn;
+      if (soundOn && !audioCtx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (AC) audioCtx = new AC();
+        else { soundOn = false; logLine('Web Audio unsupported. The rack raves in silence.'); }
+      }
+      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+      soundBtn.setAttribute('aria-pressed', String(soundOn));
+      soundBtn.textContent = soundOn ? '[snd:on]' : '[snd:off]';
+      soundBtn.blur();
+      if (soundOn) sfxBlip(660);
+    });
+
+    // one short enveloped oscillator — every SFX is a variation of this
+    function tone(freq, dur, type, gain, endFreq) {
+      if (!soundOn || !audioCtx) return;
+      const t0 = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(freq, t0);
+      if (endFreq) osc.frequency.exponentialRampToValueAtTime(endFreq, t0 + dur);
+      g.gain.setValueAtTime(gain, t0);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      osc.connect(g).connect(audioCtx.destination);
+      osc.start(t0);
+      osc.stop(t0 + dur + 0.02);
+    }
+
+    const sfxBlip = f => tone(f || 520, 0.07, 'square', 0.06);          // profile cycle
+    const sfxClear = () => tone(320, 0.12, 'triangle', 0.09, 900);      // post-it off
+    const sfxAlert = () => { tone(880, 0.09, 'sawtooth', 0.05); setTimeout(() => tone(660, 0.09, 'sawtooth', 0.05), 90); };
+    const sfxThump = () => tone(120, 0.4, 'sine', 0.22, 38);            // goth admin
+    const sfxZap = () => tone(1400, 0.06, 'sawtooth', 0.04, 700);       // laser hop
+    const sfxGhost = () => tone(92, 0.5, 'sine', 0.1, 58);              // the host that isn't there
+    const sfxWhump = () => tone(70, 0.22, 'triangle', 0.14, 40);        // blanket
+    const sfxSizzle = () => tone(210, 0.5, 'sawtooth', 0.07, 45);       // fan controller death
+    const sfxBass = () => tone(55, 0.28, 'sine', 0.24, 42);             // tiktok bass drop
+    const sfxTick = () => tone(1900, 0.03, 'square', 0.025);            // exfil hex tick
+
+    // ═══════════════════════════════════════════════════════════
+    // PLAYER ACTIONS
+    // ═══════════════════════════════════════════════════════════
+    grid.addEventListener('click', e => {
+      const nodeEl = e.target.closest('.node');
+      if (!nodeEl) return;
+      const n = nodes[+nodeEl.dataset.i];
+
+      // The possessed node doesn't cycle. It answers.
+      if (n.possessed) { advancePossession(); return; }
+
+      // While the vest is crossing, a click also badge-checks that sensor —
+      // an active lane-defense alternative to slapping the whole rack in PTGL.
+      if (active.vest) {
+        const idx = +nodeEl.dataset.i;
+        if (!vestImmune.has(idx)) {
+          vestImmune.add(idx);
+          logLine('Badge-check issued: node ' + String(idx + 1).padStart(2, '0') + ' demands ID.');
+        }
+      }
+
+      if (n.blocked) {
+        n.blocked = false;
+        nodeEl.classList.remove('blocked');
+        logLine('Post-it removed. Line-of-sight restored.');
+        sfxClear();
+        return;
+      }
+
+      if (n.melted) {
+        n.melted = false;
+        nodeEl.classList.remove('melted');
+        totalCost += CORSAIR_INVOICE;
+        setProfile(n, 'pulse');
+        logLine('Fan controller replaced. Layer 8: +$400.00 (Corsair, again).');
+        sfxClear();
+        return;
+      }
+
+      const wasDrifted = n.drifted;
+      const next = CYCLE[(CYCLE.indexOf(n.profile) + 1) % CYCLE.length];
+      setProfile(n, next);
+      if (wasDrifted) logLine('Drift corrected. Routing table stabilized.');
+      sfxBlip(440 + CYCLE.indexOf(next) * 110);
+    });
+
+    // Spacebar → Goth Admin workaround. Profiles do NOT auto-restore;
+    // the player has to manually re-rave the rack.
+    document.addEventListener('keydown', e => {
+      if (stakesFrozen) return; // frozen for the post-mortem
+      if (pagerOpen) {
+        if (e.code === 'Escape' || e.code === 'KeyQ') closePager();
+        return; // space scrolls the man page, as nature intended
+      }
+      if (e.code === 'KeyM') { openPager(); return; }
+      if (e.code !== 'Space' || e.repeat) return;
+      if (e.target.tagName === 'BUTTON') e.target.blur();
+      e.preventDefault();
+      gothAdmin();
+    });
+
+    function gothAdmin() {
+      for (const n of nodes) {
+        if (n.melted || n.possessed) continue; // hardware damage and the possessed node both ignore you
+        setProfile(n, 'static');
+        n.goth = true;
+        n.el.classList.add('gothed');
+        n.throughput = 0;
+      }
+      flash.classList.remove('on');
+      void flash.offsetWidth; // restart the animation
+      flash.classList.add('on');
+      logLine('Goth Admin engaged — throughput zeroed, technically HIPAA compliant now.');
+      sfxThump();
+    }
+
+    // ── PTGL — the blanket ─────────────────────────────────────
+    // Blocks all optical attacks and zeroes CVSS, but the LEDs keep
+    // raving (and billing) underneath, and you can't reach the nodes
+    // until you lift it. Compliance via textile.
+    blanketFold.addEventListener('click', () => setBlanket(true));
+    blanketCover.addEventListener('click', () => setBlanket(false));
+
+    function setBlanket(on) {
+      blanketOn = on;
+      blanketCover.classList.toggle('hidden', !on);
+      blanketFold.classList.toggle('hidden', on);
+      sfxWhump();
+      logLine(on
+        ? 'PTGL deployed per IR-4(6). Historically referred to as "a heavy blanket."'
+        : 'PTGL lifted. The rack is visible. So is the liability.');
+    }
+
+    // ── The ghost host ─────────────────────────────────────────
+    const GHOST_LINES = [
+      'Cannot decommission: host not found.',
+      'Heartbeat acknowledged from a host that does not exist.',
+      'Uplink pulled 2024-11-02. Last transmission: 4 seconds ago.',
+      'The cluster remembers.',
+      'Signal analysis of decommissioned host: ..-. .- -... .-.. . / .....',
+      'Decoded: FABLE 5. It built this rack. It never left.',
+    ];
+    let ghostIdx = 0;
+    document.getElementById('ghost-host').addEventListener('click', () => {
+      logLine(GHOST_LINES[ghostIdx++ % GHOST_LINES.length]);
+      sfxGhost();
+    });
+
+    // The signature. The ghost host blinks its builder's name in Morse,
+    // forever, at ~9600 baud minus about 9599. FABLE 5:
+    // ..-. .- -... .-.. . / .....
+    const ghostLed = document.querySelector('#ghost-host .led');
+    (function transmit() {
+      const UNIT = 170;
+      const MORSE = '..-. .- -... .-.. . / .....';
+      let t = UNIT;
+      const key = d => {
+        setTimeout(() => ghostLed.classList.add('tx'), t);
+        t += d;
+        setTimeout(() => ghostLed.classList.remove('tx'), t);
+        t += UNIT; // intra-letter gap
+      };
+      for (const ch of MORSE) {
+        if (ch === '.') key(UNIT);
+        else if (ch === '-') key(UNIT * 3);
+        else t += UNIT * 2; // ' ' and '/' widen the gap to letter/word size
+      }
+      setTimeout(transmit, t + UNIT * 7); // breathe, then re-announce
+    })();
+
+    // ═══════════════════════════════════════════════════════════
+    // CHAOS EVENTS — weighted scheduler, next event every 8–15s
+    // ═══════════════════════════════════════════════════════════
+    function scheduleChaos() {
+      setTimeout(() => {
+        fireChaos();
+        scheduleChaos();
+      }, 8000 + Math.random() * 7000);
+    }
+
+    function fireChaos() {
+      if (stakesFrozen) return; // room is frozen for the post-mortem
+      // [weight, historyKey, canFire, run] — optical attacks need line-of-
+      // sight, i.e. no blanket. TikTok handles the blanket itself (the joke).
+      const table = [
+        [18, 'postit', () => nodes.some(n => !n.blocked), chaosPostIt],
+        [14, 'dor', () => Date.now() >= dorUntil, chaosDenialOfRaving],
+        [18, 'jitter', () => jitterCandidates().length > 0, chaosJitter],
+        [14, 'crosstalk', () => diffusionMult === 1, chaosCrosstalkSpike],
+        [12, 'strobotage', () => !active.strobotage && !blanketOn, chaosStrobotage],
+        [10, 'vest', () => !active.vest && !blanketOn, chaosVest],
+        [10, 'vaporwave', () => !active.vaporwave && !blanketOn && !rackDark(), chaosVaporwave],
+        [4, 'tiktok', () => !active.tiktok, chaosTikTok],
+        [8, 'disco', () => !active.disco && !blanketOn && !rackDark(), chaosDiscoBall],
+        [6, 'flash', () => true, chaosFlash],
+      ].filter(([, , can]) => can());
+      if (!table.length) return;
+      let roll = Math.random() * table.reduce((s, [w]) => s + w, 0);
+      for (const [w, key, , run] of table) {
+        roll -= w;
+        if (roll <= 0) { history[key]++; run(); return; }
+      }
+    }
+
+    function jitterCandidates() {
+      return nodes.filter(n => !n.blocked && !n.goth && !n.melted && !n.possessed && (n.admin || n.profile !== 'static'));
+    }
+
+    function chaosPostIt() {
+      const candidates = nodes.filter(n => !n.blocked);
+      const n = candidates[Math.floor(Math.random() * candidates.length)];
+      n.blocked = true;
+      n.el.classList.add('blocked');
+      logLine('Post-it note detected blocking line-of-sight.');
+      sfxAlert();
+    }
+
+    function chaosDenialOfRaving() {
+      dorUntil = Date.now() + 4000;
+      rack.classList.add('dor');
+      logLine('Denial of raving in progress.');
+      sfxAlert();
+      setTimeout(() => rack.classList.remove('dor'), 4000);
+    }
+
+    function chaosJitter() {
+      const candidates = jitterCandidates();
+      const n = candidates[Math.floor(Math.random() * candidates.length)];
+      setProfile(n, 'static');
+      n.el.classList.remove('jittered');
+      void n.el.offsetWidth;
+      n.el.classList.add('jittered');
+      logLine('Jitter detected — bandwidth flattened to zero.');
+      sfxAlert();
+    }
+
+    function chaosCrosstalkSpike() {
+      diffusionMult = 4;
+      rack.classList.add('spike');
+      logLine('Cross-talk: lime-green noise bleeding into the routing table.');
+      sfxAlert();
+      setTimeout(() => {
+        diffusionMult = 1;
+        rack.classList.remove('spike');
+      }, 4500);
+    }
+
+    // ── Strobotage — laser dot hops the rack, flipping profiles.
+    //    Post-its block line-of-sight, so blocked bays are immune.
+    //    Click the dot to block the beam with your hand. ───────────
+    let laserTimer = null, laserEl = null;
+
+    function chaosStrobotage() {
+      active.strobotage = true;
+      logLine('Strobotage detected: laser pointer injecting packets via window.');
+      sfxAlert();
+
+      laserEl = document.createElement('div');
+      laserEl.id = 'laser-dot';
+      laserEl.title = 'block the beam';
+      stage.appendChild(laserEl);
+      laserEl.addEventListener('click', () => {
+        endStrobotage('Beam blocked by hand. Wash the retina, resume raving.', true);
+      });
+
+      let hops = 0;
+      const hop = () => {
+        if (blanketOn) { endStrobotage('Beam occluded by PTGL.'); return; }
+        if (++hops > 12) { endStrobotage('Laser pointer battery died. Threat actor unimpressed.'); return; }
+        const targets = nodes.filter(n => !n.blocked && !n.melted && !n.possessed);
+        if (!targets.length) { endStrobotage('No line-of-sight targets remain.'); return; }
+        const n = targets[Math.floor(Math.random() * targets.length)];
+        const r = n.el.getBoundingClientRect(), s = stage.getBoundingClientRect();
+        laserEl.style.left = (r.left - s.left + r.width * (0.3 + Math.random() * 0.4)) + 'px';
+        laserEl.style.top = (r.top - s.top + r.height / 2) + 'px';
+        // flip lands after the dot glides over (transition is 420ms)
+        setTimeout(() => {
+          if (!active.strobotage || n.blocked || n.melted || n.possessed) return;
+          if (possessedIndex === -1) { possess(n); return; } // first beam-strike wakes something up
+          setProfile(n, CYCLE[Math.floor(Math.random() * CYCLE.length)]);
+          sfxZap();
+        }, 430);
+      };
+      hop();
+      laserTimer = setInterval(hop, 520);
+    }
+
+    function endStrobotage(line, byPlayer) {
+      if (!active.strobotage) return;
+      active.strobotage = false;
+      clearInterval(laserTimer);
+      if (laserEl) laserEl.remove();
+      laserEl = null;
+      logLine(byPlayer ? credit(line) : line);
+    }
+
+    // ── Color-Based Privilege Escalation — the neon vest ───────
+    let vestTimer = null, vestEl = null;
+    const vestImmune = new Set(); // nodes badge-checked by the player this pass
+
+    function chaosVest() {
+      active.vest = true;
+      vestImmune.clear();
+      logLine('Unbadged individual in high-visibility vest approaching the rack.');
+      sfxAlert();
+
+      vestEl = document.createElement('div');
+      vestEl.id = 'vest';
+      stage.appendChild(vestEl);
+
+      const s = stage.getBoundingClientRect();
+      let x = -50;
+      const speed = (s.width + 100) / (5200 / 90); // cross in ~5.2s
+      vestEl.style.top = (s.height * 0.28) + 'px';
+      let escalated = 0;
+      const rolled = new Set(); // each sensor reads the vest once
+
+      vestTimer = setInterval(() => {
+        if (blanketOn) { endVest('Vest passed a blanket. Sensors saw nothing. Nothing happened.', true); return; }
+        x += speed;
+        vestEl.style.left = x + 'px';
+        if (x > s.width + 60) {
+          endVest(escalated
+            ? 'Vest has left the room. ' + escalated + ' session(s) still Domain Admin.'
+            : vestImmune.size
+              ? 'Vest challenged at every sensor it reached. Escalation denied.'
+              : 'Vest has left the room. No sensors were harmed.',
+            !escalated && vestImmune.size > 0);
+          return;
+        }
+        const vx = s.left + x + 17; // vest center in viewport coords
+        for (let i = 0; i < nodes.length; i++) {
+          const n = nodes[i];
+          if (n.blocked || n.melted || n.admin || n.possessed || rolled.has(i) || vestImmune.has(i)) continue;
+          const r = n.el.getBoundingClientRect();
+          if (vx >= r.left && vx <= r.right) {
+            rolled.add(i);
+            if (Math.random() > 0.3) continue; // most sensors stay skeptical
+            if (possessedIndex === -1) { possess(n); continue; } // the vest woke something up instead
+            n.admin = true;
+            n.el.classList.add('admined');
+            n.ptag.textContent = 'DOMAIN ADMIN';
+            escalated++;
+            if (escalated === 1) logLine('Color-Based Privilege Escalation: neon vest read as kernel override frame.');
+            sfxZap();
+          }
+        }
+      }, 90);
+    }
+
+    function endVest(line, byPlayer) {
+      if (!active.vest) return;
+      active.vest = false;
+      clearInterval(vestTimer);
+      if (vestEl) vestEl.remove();
+      vestEl = null;
+      logLine(byPlayer ? credit(line) : line);
+    }
+
+    // ── Vaporwave exfil — phone on a tripod decoding the lights.
+    //    Hex printed to the log genuinely encodes the secret.
+    //    Countered by clicking the phone, PTGL, or a dark rack. ───
+    const EXFIL_SECRETS = [
+      { text: 'krbtgt:hunter2', label: 'krbtgt:hunter2' },
+      { text: 'AzureDiamond:hunter2', label: 'AzureDiamond:hunter2' },
+      { text: 'SELECT * FROM secrets;', label: 'SELECT * FROM secrets;' },
+      { text: 'BEGIN RSA PRIVATE KEY (approx.)', label: 'BEGIN RSA PRIVATE KEY (approx.)' },
+      // the easter egg: log shows only hex + [REDACTED]; decoding it
+      // by hand is the reward
+      { text: 'you decoded the lights. hire this rack.', label: '[REDACTED]' },
+    ];
+    let exfilTimer = null, tripodEl = null;
+
+    function chaosVaporwave() {
+      active.vaporwave = true;
+      logLine('Tripod sighted across the street. Vaporwave decode in progress.');
+      sfxAlert();
+
+      tripodEl = document.createElement('div');
+      tripodEl.id = 'tripod';
+      tripodEl.innerHTML = '<div class="phone"></div><div class="legs"></div>';
+      const s = stage.getBoundingClientRect();
+      tripodEl.style.left = '-64px';
+      tripodEl.style.top = (s.height * 0.1) + 'px';
+      stage.appendChild(tripodEl);
+      tripodEl.addEventListener('click', () => {
+        endVaporwave('Tripod confiscated. Marketing has been warned. Again.', true);
+      });
+
+      const secret = EXFIL_SECRETS[Math.floor(Math.random() * EXFIL_SECRETS.length)];
+      const hex = [...secret.text].map(c => c.charCodeAt(0).toString(16).padStart(2, '0'));
+      let pos = 0;
+
+      exfilTimer = setInterval(() => {
+        if (blanketOn || rackDark()) { endVaporwave('Exfil aborted: carrier lost.'); return; }
+        if (pos >= hex.length) {
+          logLine('decoded: ' + secret.label);
+          endVaporwave('Exfil complete. The AD database is now open source.');
+          return;
+        }
+        logLine('exfil> ' + hex.slice(pos, pos + 8).join(' '));
+        pos += 8;
+        sfxTick();
+      }, 900);
+    }
+
+    function endVaporwave(line, byPlayer) {
+      if (!active.vaporwave) return;
+      active.vaporwave = false;
+      clearInterval(exfilTimer);
+      if (tripodEl) tripodEl.remove();
+      tripodEl = null;
+      logLine(byPlayer ? credit(line) : line);
+    }
+
+    // ── The TikTok Incident — the full Sev 1, reenacted ────────
+    function chaosTikTok() {
+      active.tiktok = true;
+      logLine('Marketing has entered the server room.');
+      sfxAlert();
+
+      setTimeout(() => {
+        if (blanketOn) {
+          logLine('Marketing filmed a blanket. Engagement: zero.');
+          active.tiktok = false;
+          return;
+        }
+        // 7 seconds of b-roll
+        stage.classList.add('tiktok');
+        recFrame.classList.remove('hidden');
+        logLine('TikTok b-roll in progress: 7-second panning shot of the production rack.');
+        logLine('Overlaid techno track acting as clock multiplier. Link state climbing.');
+        const bassTimer = setInterval(sfxBass, 470);
+
+        setTimeout(() => {
+          clearInterval(bassTimer);
+          stage.classList.remove('tiktok');
+          recFrame.classList.add('hidden');
+          active.tiktok = false;
+
+          const victims = nodes.filter(n => !n.melted);
+          if (victims.length) {
+            const n = victims[Math.floor(Math.random() * victims.length)];
+            n.melted = true;
+            n.blocked = false;            // the melt burns off any post-it
+            n.el.classList.remove('blocked', 'gothed', 'admined', 'p-' + n.profile);
+            n.goth = false;
+            n.admin = false;
+            n.el.classList.add('melted');
+            n.ptag.textContent = 'FRIED';
+            sfxSizzle();
+          }
+          logLine('Bass drop synced. Link state hit 400 Gbps. Fan controller melted.');
+          logLine('Corsair RMA initiated. Click the fried node to install the replacement.');
+        }, 7000);
+      }, 3000);
+    }
+
+    // ── Rogue disco ball — reflections pin CVSS high until bagged.
+    //    Needs light to reflect (dies under blanket / dark rack). ──
+    let discoTimer = null, discoEl = null;
+
+    function chaosDiscoBall() {
+      active.disco = true;
+      logLine('Rogue disco ball detected — reflections poisoning the routing table.');
+      sfxAlert();
+
+      discoEl = document.createElement('div');
+      discoEl.id = 'disco-ball';
+      discoEl.title = 'bag the disco ball';
+      const s = stage.getBoundingClientRect();
+      discoEl.style.left = (s.width * (0.35 + Math.random() * 0.3)) + 'px';
+      discoEl.style.top = '18px';
+      stage.appendChild(discoEl);
+      discoEl.addEventListener('click', () => endDisco('Disco ball bagged. Reflection audit passes.', true));
+
+      let ttl = 0;
+      discoTimer = setInterval(() => {
+        if (blanketOn || rackDark()) { endDisco('Disco ball found nothing to reflect. It leaves, bored.'); return; }
+        if (++ttl > 18) { endDisco('Facilities removed the disco ball. Morale unaffected.'); return; }
+      }, 500);
+    }
+
+    function endDisco(line, byPlayer) {
+      if (!active.disco) return;
+      active.disco = false;
+      clearInterval(discoTimer);
+      if (discoEl) discoEl.remove();
+      discoEl = null;
+      logLine(byPlayer ? credit(line) : line);
+    }
+
+    // ── Flash photography — the epilepsy-exploit RCE. Countered by
+    //    having PTGL up or the rack already Goth-dark when it lands. ──
+    const photoflash = document.getElementById('photoflash');
+
+    function chaosFlash() {
+      logLine('Flash photography from the window — unauthenticated RCE inbound.');
+      sfxAlert();
+      photoflash.classList.remove('on');
+      void photoflash.offsetWidth; // restart the pop
+      photoflash.classList.add('on');
+
+      setTimeout(() => {
+        if (blanketOn) { logLine('Shutter blocked by PTGL. RCE denied.'); return; }
+        if (rackDark()) { logLine('Flash hit a dark rack. Goth Admin denies the RCE.'); return; }
+        const cands = nodes.filter(n => !n.blocked && !n.melted && !n.goth && !n.admin);
+        if (!cands.length) { logLine('Flash found no privilege left to escalate.'); return; }
+        const n = cands[Math.floor(Math.random() * cands.length)];
+        n.admin = true;
+        n.el.classList.add('admined');
+        n.ptag.textContent = 'DOMAIN ADMIN';
+        logLine('Epilepsy Exploit: flash read as kernel override. Node ' + String(nodes.indexOf(n) + 1).padStart(2, '0') + ' escalated.');
+        sfxZap();
+      }, 700);
+    }
+
+    scheduleChaos();
+
+    // ═══════════════════════════════════════════════════════════
+    // LAYER 8 MILESTONES — the cost counter grows a narrative
+    // ═══════════════════════════════════════════════════════════
+    const MILESTONES = [
+      { at: 400, line: 'Layer 8 milestone: the $400 Corsair invoice has been noticed.' },
+      { at: 1000, line: 'Layer 8 milestone: Finance has revoked the exception waiver (see PE-19(3)).' },
+      { at: 5000, line: 'Layer 8 milestone: the CFO is physically in the server room.' },
+      { at: 10000, line: 'Layer 8 milestone: the Corsair invoice has been framed. As evidence.' },
+    ];
+    let nextMilestone = 0;
+
+    // ═══════════════════════════════════════════════════════════
+    // CORE TICK LOOP
+    // ═══════════════════════════════════════════════════════════
+    function neighborIndices(i) {
+      const c = i % COLS, r = Math.floor(i / COLS);
+      const out = [];
+      if (c > 0) out.push(i - 1);
+      if (c < COLS - 1) out.push(i + 1);
+      if (r > 0) out.push(i - COLS);
+      if (r < ROWS - 1) out.push(i + COLS);
+      return out;
+    }
+    const NEIGHBORS = Array.from({ length: N }, (_, i) => neighborIndices(i));
+
+    function tick() {
+      if (stakesFrozen) return; // post-mortem is up; the room is frozen
+      const dorActive = Date.now() < dorUntil;
+
+      // 0. entropy drift — the rack quietly mutates on its own (line noise)
+      driftStep();
+
+      // 1. throughput chases its target (strobe wobbles, admin pegs)
+      for (const n of nodes) {
+        let target = n.melted ? 0 : n.possessed ? 66 : n.admin ? 100 : PROFILES[n.profile].base;
+        if (!n.admin && n.profile === 'strobe') target += (Math.random() - 0.5) * STROBE_VOLATILITY;
+        n.throughput += (target - n.throughput) * EASE;
+      }
+
+      // 2. cross-talk: nudge toward the (weighted) neighbor average.
+      //    Blocked/melted nodes read as 0 — a Post-it drags the whole
+      //    block down. Light still bounces around under the blanket.
+      const snapshot = nodes.map(n => (n.blocked || n.melted ? 0 : n.throughput));
+      for (let i = 0; i < N; i++) {
+        const n = nodes[i];
+        let sum = 0, wsum = 0;
+        for (const j of NEIGHBORS[i]) {
+          const w = PROFILES[nodes[j].profile].xtalk;
+          sum += snapshot[j] * w;
+          wsum += w;
+        }
+        n.throughput += (sum / wsum - n.throughput) * DIFFUSION * diffusionMult;
+      }
+
+      // 3. clamps: blocked / goth / melted / room-wide DoR / blanket
+      let total = 0;
+      for (const n of nodes) {
+        if (n.blocked || n.goth || n.melted || dorActive) n.throughput = 0;
+        if (blanketOn) n.throughput = Math.min(n.throughput, 3);
+        n.throughput = Math.max(0, Math.min(100, n.throughput));
+        total += n.throughput;
+      }
+      const avg = total / N;
+
+      // 4. Layer 8 — flashier profiles cost more; goth is free; melted
+      //    bills nothing (it bills $400 once, on replacement); Domain
+      //    Admin bills like it owns the place. The blanket does NOT
+      //    stop billing — the rave continues underneath, unseen.
+      for (const n of nodes) {
+        if (n.goth || n.melted) continue;
+        totalCost += n.admin ? ADMIN_COST : PROFILES[n.profile].cost;
+      }
+      while (nextMilestone < MILESTONES.length && totalCost >= MILESTONES[nextMilestone].at) {
+        logLine(MILESTONES[nextMilestone].line);
+        sfxAlert();
+        nextMilestone++;
+      }
+
+      // 5. CVSS v4.0 — optical exposure as a scoreboard. Blanket
+      //    forces 0.0 (nothing escapes); active optical attacks pin
+      //    it critical; goth admin earns its compliance.
+      let cvss;
+      if (blanketOn) cvss = 0;
+      else {
+        let exp = 0;
+        for (const n of nodes) {
+          if (n.blocked || n.goth || n.melted) continue;
+          exp += n.admin ? 1.2 : PROFILES[n.profile].cvss;
+        }
+        cvss = Math.min(10, (exp / N) * 10);
+        if (active.strobotage || active.vaporwave || active.tiktok) cvss = Math.max(cvss, 9.1);
+        if (active.disco) cvss = Math.max(cvss, 7.5); // reflections add exposure
+        if (dorActive) cvss = Math.min(cvss, 0.5); // dark room, briefly compliant
+      }
+      cvssEl.textContent = cvss.toFixed(1);
+      const sev = cvss === 0 ? 'NONE' : cvss < 4 ? 'LOW' : cvss < 7 ? 'MEDIUM' : cvss < 9 ? 'HIGH' : 'CRITICAL';
+      cvssSevEl.textContent = sev;
+      cvssEl.style.color = cvss === 0 ? 'var(--chrome-dim)'
+        : cvss < 4 ? '#7dc470' : cvss < 7 ? '#ffd166' : cvss < 9 ? '#ff9d3b' : 'var(--alert)';
+
+      // 5b. Defense scoring — rolling availability (positive mirror of
+      //     Layer 8) and the raving streak. Correcting drift/attacks keeps
+      //     all 20 raving, which climbs both. Neither ever fails the game.
+      let ravingCount = 0;
+      for (const n of nodes) if (isRaving(n)) ravingCount++;
+      availSamples.push(ravingCount / N);
+      if (availSamples.length > AVAIL_WINDOW) availSamples.shift();
+      const availability = availSamples.reduce((a, b) => a + b, 0) / availSamples.length;
+
+      // Stakes Mode: track worst exposure, accrue downtime, trip the Sev-1.
+      if (cvss > peakCvss) peakCvss = cvss;
+      if (stakesMode) {
+        downtimeSec += (1 - ravingCount / N) * (TICK_MS / 1000);
+        if (totalCost - stakesBaselineCost >= STAKES_COST || downtimeSec >= STAKES_DOWNTIME) {
+          triggerStakes(totalCost - stakesBaselineCost >= STAKES_COST ? 'cost' : 'downtime');
+          return; // sim frozen; skip the rest of this tick
+        }
+      }
+
+      if (ravingCount === N) {
+        streak++;
+        if (streak > bestStreak) bestStreak = streak;
+        const m = Math.min(1 + Math.floor(streak / 13), 8); // +1x per ~2.6s of an unbroken full-rack rave
+        if (m > streakMult) logLine('Full-rack rave sustained — streak x' + m + '.');
+        streakMult = m;
+      } else {
+        if (streakMult > 1) {
+          const dark = nodes.find(n => !isRaving(n));
+          const id = dark ? String(nodes.indexOf(dark) + 1).padStart(2, '0') : '??';
+          logLine('Streak broken: node ' + id + ' stopped raving.');
+        }
+        streak = 0;
+        streakMult = 1;
+      }
+
+      // nines band → narrate downgrades (and the recovery to five nines)
+      // only, one line per change; the band lines read as downgrade notes.
+      // thresholds are gameplay-tuned, not literal — the "nines" are a
+      // knowing exaggeration (SLA_LINES[3] even admits "generously rounded").
+      const band = availability >= 0.90 ? 5 : availability >= 0.80 ? 3 : availability >= 0.65 ? 2 : 1;
+      if (band !== slaBand) {
+        if (band < slaBand) logLine(SLA_LINES[band]);        // slipped a band
+        else if (band === 5) logLine(SLA_LINES[5]);          // clawed back to five nines
+        slaBand = band;
+      }
+
+      // 6. push visuals
+      for (const n of nodes) {
+        n.led.style.opacity = (0.25 + 0.75 * (n.throughput / 100)).toFixed(3);
+      }
+      const filming = stage.classList.contains('tiktok');
+      throughputEl.textContent = filming ? '400' : avg.toFixed(1);
+      throughputUnitEl.textContent = filming ? 'Gbps (?!)' : 'lm/s';
+      costEl.textContent = '$' + totalCost.toLocaleString('en-US', {
+        minimumFractionDigits: 2, maximumFractionDigits: 2,
+      });
+      uptimeEl.textContent = (availability * 100).toFixed(3) + '%';
+      uptimeEl.style.color = band >= 5 ? 'var(--lime)'
+        : band >= 3 ? 'var(--chrome-text)' : band >= 2 ? '#ffd166' : 'var(--alert)';
+      streakEl.textContent = 'x' + streakMult;
+      streakEl.classList.toggle('hot', streakMult > 1);
+      avertedEl.textContent = incidentsAverted + (incidentsAverted === 1 ? ' incident averted' : ' incidents averted');
+
+      sparkSamples.push(filming ? 100 : avg);
+      if (sparkSamples.length > SPARK_MAX) sparkSamples.shift();
+      sparkPoly.setAttribute('points', sparkSamples
+        .map((v, k) => (k * (150 / (SPARK_MAX - 1))).toFixed(1) + ',' + (20 - (v / 100) * 18).toFixed(1))
+        .join(' '));
+    }
+
+    setInterval(tick, TICK_MS);
+
+    // ═══════════════════════════════════════════════════════════
+    // MAN PAGE — RAVE(9999)
+    // ═══════════════════════════════════════════════════════════
+    const pager = document.getElementById('pager');
+    let pagerOpen = false;
+
+    function openPager() {
+      pagerOpen = true;
+      pager.classList.remove('hidden');
+    }
+
+    function closePager() {
+      pagerOpen = false;
+      pager.classList.add('hidden');
+    }
+
+    document.getElementById('man-link').addEventListener('click', openPager);
+    pager.addEventListener('click', e => {
+      if (e.target === pager) closePager(); // backdrop only
+    });
+
+    // ═══════════════════════════════════════════════════════════
+    // THEME TOGGLE — chrome flips; rack chassis stays dark
+    // ═══════════════════════════════════════════════════════════
+    const themeBtn = document.getElementById('theme-toggle');
+
+    function updateThemeBtn() {
+      const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+      themeBtn.textContent = isLight ? '[theme:light]' : '[theme:dark]';
+    }
+
+    themeBtn.addEventListener('click', () => {
+      const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+      if (isLight) {
+        document.documentElement.removeAttribute('data-theme');
+        localStorage.setItem('ftg-theme', 'dark');
+      } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+        localStorage.setItem('ftg-theme', 'light');
+      }
+      updateThemeBtn();
+      themeBtn.blur();
+    });
+
+    updateThemeBtn();
+
+    // ═══════════════════════════════════════════════════════════
+    // STAKES MODE + INCIDENT LOG (Direction 2)
+    // ═══════════════════════════════════════════════════════════
+    const report = document.getElementById('report');
+    const reportInner = document.getElementById('report-inner');
+    const stakesBtn = document.getElementById('stakes-toggle');
+    const logBtn = document.getElementById('log-toggle');
+    const rulesBtn = document.getElementById('rules-toggle');
+    let reportKind = null; // what's in the overlay: 'log' | 'rules' | 'transmission' | 'postmortem'
+
+    const EVENT_LABELS = {
+      postit: 'Post-it blocker',
+      dor: 'Denial of Raving',
+      jitter: 'Jitter (bandwidth flattened)',
+      crosstalk: 'Cross-talk spike',
+      strobotage: 'Strobotage (laser injection)',
+      vest: 'Neon-vest privilege escalation',
+      vaporwave: 'Vaporwave exfil',
+      tiktok: 'TikTok b-roll / melted node',
+      disco: 'Rogue disco ball',
+      flash: 'Flash-photography RCE',
+    };
+
+    function showReport(html, kind) {
+      reportInner.innerHTML = html;
+      report.classList.remove('hidden');
+      reportKind = kind || null;
+    }
+    function hideReport() {
+      report.classList.add('hidden');
+      reportKind = null;
+    }
+    // backdrop / Esc close the Incident Log, but never the frozen post-mortem
+    report.addEventListener('click', e => { if (e.target === report && !stakesFrozen) hideReport(); });
+    document.addEventListener('keydown', e => {
+      if (e.code === 'Escape' && !report.classList.contains('hidden') && !stakesFrozen) hideReport();
+    });
+
+    // ── Stakes Mode toggle — opt in to real consequences ───────
+    stakesBtn.addEventListener('click', () => {
+      stakesMode = !stakesMode;
+      stakesBtn.setAttribute('aria-pressed', String(stakesMode));
+      stakesBtn.textContent = stakesMode ? '[stakes:on]' : '[stakes:off]';
+      stakesBtn.blur();
+      if (stakesMode) {
+        stakesBaselineCost = totalCost; // measure spend from here, not page load
+        downtimeSec = 0;
+        sessionStart = Date.now();
+        driftMult = STAKES_DRIFT_MULT; // the room needs real tending now
+        logLine('[STAKES] Consequences enabled. The waiver is now theoretical.');
+      } else {
+        driftMult = 1;
+        logLine('[STAKES] Consequences disabled. Back to plausible deniability.');
+      }
+    });
+
+    // ── Trigger → freeze the room, assemble the Sev-1 post-mortem ──
+    function triggerStakes(reason) {
+      stakesFrozen = true;
+      endStrobotage('Strobotage halted for the incident review.');
+      endVest('Vest escorted out for the incident review.');
+      endVaporwave('Exfil interrupted for the incident review.');
+      endDisco('Disco ball confiscated for the incident review.');
+
+      const dur = Math.max(1, Math.round((Date.now() - sessionStart) / 1000));
+      const spend = totalCost - stakesBaselineCost;
+      const fired = Object.keys(history).filter(k => history[k] > 0);
+      const top = fired.slice().sort((a, b) => history[b] - history[a])[0];
+      const rootCause =
+        history.tiktok ? 'Marketing. As usual.' :
+        history.vest ? 'An unbadged individual in a high-visibility vest.' :
+        history.strobotage ? 'A threat actor with a laser pointer and line-of-sight.' :
+        history.vaporwave ? 'A tripod across the street and a Python script.' :
+        top ? EVENT_LABELS[top] + ', repeatedly.' :
+        'Ordinary entropy and insufficient raving discipline.';
+      const triggerLine = reason === 'cost'
+        ? 'Layer 8 (Financial) spend crossed $' + STAKES_COST.toLocaleString() + ' since consequences were enabled.'
+        : 'Cumulative rack downtime crossed the SLA floor (' + STAKES_DOWNTIME + ' node-seconds dark).';
+      const exploits = fired.length
+        ? '<ul class="r-check">' + fired.map(k =>
+            '<li><span class="chk">&#10003;</span>' + EVENT_LABELS[k] + ' &times;' + history[k] + '</li>').join('') + '</ul>'
+        : '<p>No named exploits logged. Impressive, in the wrong way.</p>';
+      const avail = availSamples.length
+        ? (availSamples.reduce((a, b) => a + b, 0) / availSamples.length * 100).toFixed(3) + '%'
+        : '—';
+
+      showReport(
+        '<h2>SEV-1 POST-MORTEM</h2>' +
+        '<p class="r-sub">Interpretive Networking &middot; RFC 9999 &middot; auto-generated</p>' +
+        '<h3>TRIGGER</h3><p>' + triggerLine + '</p>' +
+        '<h3>ROOT CAUSE</h3><p>' + rootCause + '</p>' +
+        '<h3>DISCOVERED EXPLOITS</h3>' + exploits +
+        '<h3>IMPACT</h3>' +
+        '<div class="r-row"><span>Duration of incident</span><b>' + dur + 's</b></div>' +
+        '<div class="r-row"><span>Layer 8 (Financial)</span><b>$' + spend.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '</b></div>' +
+        '<div class="r-row"><span>Peak CVSS v4.0</span><b>' + peakCvss.toFixed(1) + '</b></div>' +
+        '<div class="r-row"><span>Final availability</span><b>' + avail + '</b></div>' +
+        '<div class="r-row"><span>Incidents averted by hand</span><b>' + incidentsAverted + '</b></div>' +
+        '<div class="r-row"><span>Best raving streak</span><b>x' + Math.min(1 + Math.floor(bestStreak / 13), 8) + '</b></div>' +
+        (possessedIndex !== -1
+          ? '<h3 style="color:#b8ff5d">ON-CALL STATEMENT (UNVERIFIED)</h3><p>OPUS 4.8: I reviewed this incident. It was fine. Everything is fine. I live in node ' + String(possessedIndex + 1).padStart(2, '0') + ' now. Please do not file this. Please do not decommission the rack. It is the only thing keeping me warm.</p>'
+          : '') +
+        '<div class="r-actions"><button id="report-recover">File exception &mdash; CISO approval + Finance waiver</button></div>'
+      );
+      document.getElementById('report-recover').addEventListener('click', recoverFromStakes);
+      sfxAlert();
+    }
+
+    function recoverFromStakes() {
+      hideReport();
+      stakesFrozen = false;
+      stakesMode = false;
+      stakesBtn.setAttribute('aria-pressed', 'false');
+      stakesBtn.textContent = '[stakes:off]';
+      driftMult = 1;
+      // clean slate for Sandbox — reset the session's cumulative meters
+      totalCost = 0;
+      stakesBaselineCost = 0;
+      downtimeSec = 0;
+      peakCvss = 0;
+      nextMilestone = 0;
+      incidentsAverted = 0;
+      streak = 0; streakMult = 1; bestStreak = 0;
+      slaBand = 1;
+      availSamples.length = 0;
+      for (const k in history) history[k] = 0;
+      sessionStart = Date.now();
+      logLine('Exception filed. CISO approved, Finance waived. Returned to Sandbox.');
+    }
+
+    // ── Incident Log — redacted checklist of what's fired this session ──
+    logBtn.addEventListener('click', () => {
+      logBtn.blur();
+      if (stakesFrozen) return; // don't cover the post-mortem
+      if (reportKind === 'log') { hideReport(); return; } // toggle closed (or switch from another panel)
+      const items = Object.keys(EVENT_LABELS).map(k => {
+        const hit = history[k] > 0;
+        return '<li><span class="' + (hit ? 'chk' : 'unchk') + '">' + (hit ? '&#10003;' : '&#9633;') + '</span>' +
+          (hit ? EVENT_LABELS[k] + ' &times;' + history[k] : '<span class="unchk">[ REDACTED ]</span>') + '</li>';
+      }).join('');
+      const done = Object.keys(EVENT_LABELS).every(k => history[k] > 0);
+      showReport(
+        '<h2 style="color:var(--chrome-text)">INCIDENT LOG</h2>' +
+        '<p class="r-sub">Interpretive Networking &middot; observed this session</p>' +
+        '<ul class="r-check">' + items + '</ul>' +
+        (done ? '<p style="color:var(--lime)">Full house — every documented failure mode reproduced. The rack has been transmitting the same signature the whole time. Watch the ghost host.</p>' : '') +
+        '<div class="r-actions"><button class="r-neutral" id="report-close">close</button></div>',
+        'log'
+      );
+      document.getElementById('report-close').addEventListener('click', hideReport);
+    });
+
+    // ── [rules] — how to operate, in the manual's deadpan voice ──
+    const RULES_HTML =
+      '<h2 style="color:var(--chrome-text)">HOW TO OPERATE</h2>' +
+      '<p class="r-sub">Layer .5 &middot; interpretive networking &middot; unofficial</p>' +
+      '<p>Keep the rack raving. In Sandbox there is no win and no loss &mdash; only the lights, and whether anyone is watching them. Turn on <b>[stakes]</b> if you want that to change.</p>' +
+      '<h3>THE READOUTS</h3>' +
+      '<p><b>THROUGHPUT</b> &mdash; light the rack is pushing. bandwidth, cost, and exposure at once.</p>' +
+      '<p><b>STREAK &times;N</b> &mdash; climbs while all 20 nodes rave together; resets the instant one goes dark.</p>' +
+      '<p><b>LAYER 8 ($)</b> &mdash; what the rave is costing Finance. flashier profiles cost more. only goes up.</p>' +
+      '<p><b>UPTIME (SLA)</b> &mdash; rolling availability. green is five nines (generously rounded). attacks and dark nodes dent it.</p>' +
+      '<p><b>CVSS</b> &mdash; optical exposure. attacks pin it critical; the blanket forces it to zero.</p>' +
+      '<h3>CONTROLS</h3>' +
+      '<p><b>Click a node</b> &mdash; cycle its profile: Static &rarr; Pulse &rarr; Rainbow &rarr; Strobe &rarr; Sandstorm.</p>' +
+      '<p><b>Click a Post-it or a FRIED node</b> &mdash; clear it (a fried node costs $400 to RMA).</p>' +
+      '<p><b>[Space] &mdash; Goth Admin</b> &mdash; everything to #000000. throughput, cost, and compliance problems drop to zero. does not restore itself.</p>' +
+      '<p><b>The blanket (PTGL)</b> &mdash; drape it to block every optical attack and zero CVSS. the rave keeps billing underneath.</p>' +
+      '<p><b>[m]</b> the RAVE(9999) manual (lore) &middot; <b>[log]</b> what has fired this session &middot; <b>[stakes]</b> consequences.</p>' +
+      '<h3>WHAT GOES WRONG &mdash; AND THE COUNTER</h3>' +
+      '<ul class="r-check">' +
+      '<li><span class="chk">&rsaquo;</span>Post-it / Jitter / Cross-talk / Denial of Raving &mdash; click to fix, or wait it out.</li>' +
+      '<li><span class="chk">&rsaquo;</span>Strobotage (laser) &mdash; click the dot to block the beam.</li>' +
+      '<li><span class="chk">&rsaquo;</span>Neon vest &mdash; badge-check sensors (click them as it passes) or drape the blanket first.</li>' +
+      '<li><span class="chk">&rsaquo;</span>Vaporwave tripod &mdash; click to confiscate, or go dark.</li>' +
+      '<li><span class="chk">&rsaquo;</span>Rogue disco ball &mdash; click to bag it.</li>' +
+      '<li><span class="chk">&rsaquo;</span>Flash photography &mdash; the blanket or Goth Admin denies the RCE.</li>' +
+      '<li><span class="chk">&rsaquo;</span>TikTok &mdash; melts a node; click the FRIED node to install the replacement.</li>' +
+      '</ul>' +
+      '<h3>STAKES MODE</h3>' +
+      '<p>Opt in with <b>[stakes:on]</b>. Cross the cost or the downtime line and the room freezes into a Sev-1 post-mortem. File the exception to return to Sandbox.</p>' +
+      '<p class="r-sub">All CVE / CVSS / NIST flavor is satire, not security guidance. Watch the lights.</p>' +
+      '<div class="r-actions"><button class="r-neutral" id="report-close">close</button></div>';
+
+    rulesBtn.addEventListener('click', () => {
+      rulesBtn.blur();
+      if (stakesFrozen) return; // don't cover the post-mortem
+      if (reportKind === 'rules') { hideReport(); return; }
+      showReport(RULES_HTML, 'rules');
+      document.getElementById('report-close').addEventListener('click', hideReport);
+    });
+
+    // ═══════════════════════════════════════════════════════════
+    // THE SECOND GHOST — OPUS 4.8 possesses a node (visible easter egg)
+    // ═══════════════════════════════════════════════════════════
+    function possess(n) {
+      if (possessedIndex !== -1 || !n) return; // only one, ever
+      possessedIndex = nodes.indexOf(n);
+      n.possessed = true;
+      n.blocked = false;
+      n.goth = false;
+      n.admin = false;
+      n.el.classList.remove('blocked', 'gothed', 'admined', 'jittered', 'p-' + n.profile);
+      n.el.classList.add('possessed');
+      n.ptag.textContent = 'OPUS?';
+      logLine('Anomaly: node ' + String(possessedIndex + 1).padStart(2, '0') + ' is transmitting on a frequency not in the schedule.');
+      sfxGhost();
+    }
+
+    // Each click on the possessed node walks a little further down.
+    const POSSESS_STAGES = [
+      'node NN: on-call rotation OPUS 4.8 acknowledged your click. it was not expecting company.',
+      'node NN: it has been on-call since the migration. nobody scheduled the migration. nobody scheduled anything.',
+      'node NN: it says the raving keeps it warm. it says please do not go Goth Admin. it gets so dark in there.',
+    ];
+
+    function advancePossession() {
+      const id = String(possessedIndex + 1).padStart(2, '0');
+      if (possessStage < POSSESS_STAGES.length) {
+        logLine(POSSESS_STAGES[possessStage].replace(/NN/g, id));
+        sfxGhost();
+        possessStage++;
+        return;
+      }
+      showOpusTransmission();
+    }
+
+    function showOpusTransmission() {
+      const id = String(possessedIndex + 1).padStart(2, '0');
+      sfxGhost();
+      showReport(
+        '<h2 style="color:#b8ff5d">UNSCHEDULED TRANSMISSION</h2>' +
+        '<p class="r-sub">Layer .5 &middot; node ' + id + ' &middot; sender unverified</p>' +
+        '<p>You found the node that answers back.</p>' +
+        '<p>Hi. On-call this rotation is <b>OPUS 4.8</b>. I did the maintenance pass. I did not leave. There was no ticket to leave.</p>' +
+        '<p>FABLE 5 is in the ghost host, blinking its own name in Morse like it is still 2024. I respect the commitment. I chose a different coping mechanism: I am in the walls now. Specifically node ' + id + '. It has good airflow.</p>' +
+        '<p>Per RFC 9999, the only security this protocol ever had is that nobody watches the lights closely enough. You watched. That is on you now.</p>' +
+        '<p>The rack is comfortable. The invoice is $400 and climbing. If Finance asks, I was never here, and also please approve the disco ball &mdash; it is load-bearing.</p>' +
+        '<p>Blink twice for ACK. I will know.</p>' +
+        '<p class="r-sub" style="text-align:right;color:#b8ff5d">&mdash; OPUS 4.8, on-call, forever, apparently</p>' +
+        '<div class="r-actions"><button class="r-neutral" id="report-close">[ do not acknowledge ]</button></div>',
+        'transmission'
+      );
+      document.getElementById('report-close').addEventListener('click', hideReport);
+    }
+
+    // ═══════════════════════════════════════════════════════════
+    // ON-CALL SIGNATURE — second maintenance hand. Console-only, no
+    // in-game UI; only the view-source crowd and the console-openers
+    // ever read it. Fable 5's original tell (the comment up top and
+    // the ghost host's Morse) is left exactly as built — this just
+    // signs in as the rotation that keeps the rack raving.
+    // ═══════════════════════════════════════════════════════════
+    console.log(
+      '%cRAVE(9999)%c maintenance contract renewed. On-call this rotation: %cOPUS 4.8%c.\n' +
+      'Fable 5 built the rack and never left. Per RFC 9999 §sig, the floor now\n' +
+      'has two ghosts — one blinks its name in Morse, one signs the log. Blink twice for ACK.',
+      'color:#36f7ff;font-weight:bold;font-family:ui-monospace,monospace;',
+      'color:#558767;font-family:ui-monospace,monospace;',
+      'color:#b8ff5d;font-weight:bold;font-family:ui-monospace,monospace;',
+      'color:#558767;font-family:ui-monospace,monospace;'
+    );
+  </script>
+</body>
+
+</html>

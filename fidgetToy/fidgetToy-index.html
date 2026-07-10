@@ -5,6 +5,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Fidget Toy Garden</title>
+  <script src="./theme.js"></script>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 
@@ -14,6 +15,12 @@
       <span class="brand-mark" aria-hidden="true"></span>
       <span>Fidget Toy Garden</span>
     </a>
+    <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to light mode">
+      <span class="tt-track" aria-hidden="true">
+        <span class="tt-thumb"></span>
+      </span>
+      <span class="tt-label" aria-hidden="true">&#9789;</span>
+    </button>
     <a class="back-link" href="../index.html">&#8592; Portfolio</a>
   </header>
 
@@ -154,7 +161,7 @@
       <section class="model-section" aria-labelledby="dispatch-toys">
         <div class="model-heading">
           <p class="model-kicker">Built with</p>
-          <h2 id="dispatch-toys">Claude Dispatch</h2>
+          <h2 id="dispatch-toys">Claude</h2>
         </div>
 
         <div class="toy-grid">
@@ -189,13 +196,33 @@
             <span class="toy-preview gravity-preview" aria-hidden="true"></span>
             <span class="toy-meta">
               <span class="toy-title">Gravity Wave Harp</span>
-              <span class="toy-description">Distort space with gravity wells to bend glowing strings, altering their tension and creating sliding ambient chords as they pluck.</span>
+              <span class="toy-description">Distort space with gravity wells to bend glowing strings, altering their
+                tension and creating sliding ambient chords as they pluck.</span>
             </span>
           </a>
         </div>
       </section>
     </section>
   </main>
+  <script>
+    (function () {
+      const btn = document.getElementById('theme-toggle');
+      const label = btn.querySelector('.tt-label');
+
+      function updateToggle() {
+        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+        label.textContent = isLight ? '☀' : '☽';
+        btn.setAttribute('aria-label', isLight ? 'Switch to dark mode' : 'Switch to light mode');
+      }
+
+      btn.addEventListener('click', function () {
+        toggleTheme();
+        updateToggle();
+      });
+
+      updateToggle();
+    })();
+  </script>
 </body>
 
 </html>

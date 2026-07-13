@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Field Report 01 — The Thing In The Tunnels</title>
+<style>
+  :root {
+    --stone: #1d1b17;
+    --stone-panel: #2c281f;
+    --stone-line: #47402f;
+    --paper: #ece4d3;
+    --paper-dim: #b9ae97;
+    --danger: #b8382b;
+    --amber: #d8952e;
+    --choc: #6b3a1f;
+    --choc-light: #a5643a;
+    --font-sign: 'Arial Narrow', 'Helvetica Neue Condensed', Impact, sans-serif;
+    --font-mono: 'Consolas', 'SF Mono', 'JetBrains Mono', 'Courier New', monospace;
+    --font-body: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    color: var(--paper);
+    font-family: var(--font-body);
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px 80px;
+    background:
+      repeating-radial-gradient(circle at 50% 40%, rgba(255,255,255,0.025) 0px, transparent 3px, transparent 46px, rgba(0,0,0,0.14) 48px),
+      radial-gradient(circle at 50% 36%, rgba(168,100,58,0.18), transparent 55%),
+      radial-gradient(ellipse 160% 120% at 50% 50%, #221b13 0%, #100d09 55%, #030201 100%);
+    box-shadow: inset 0 0 160px 50px rgba(0,0,0,0.65);
+  }
+
+  .doc {
+    max-width: 640px;
+    width: 100%;
+    background: var(--stone-panel);
+    border: 1px solid var(--stone-line);
+    border-radius: 10px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    overflow: hidden;
+  }
+
+  .doc-header {
+    padding: 26px 32px 20px;
+    border-bottom: 3px solid var(--stone-line);
+    background: repeating-linear-gradient(135deg, rgba(255,255,255,0.02) 0 2px, transparent 2px 8px);
+  }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--paper-dim);
+    text-transform: uppercase;
+  }
+
+  .stamp {
+    display: inline-block;
+    margin-top: 10px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--amber);
+    border: 1px solid var(--amber);
+    padding: 3px 10px;
+    border-radius: 3px;
+    transform: rotate(-2deg);
+  }
+
+  h1 {
+    font-family: var(--font-sign);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: clamp(22px, 5vw, 30px);
+    margin: 14px 0 4px;
+  }
+
+  .subtitle {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--paper-dim);
+  }
+
+  .doc-body {
+    padding: 30px 32px 10px;
+    line-height: 1.7;
+    font-size: 16.5px;
+  }
+
+  .doc-body p { margin: 0 0 1.1em; }
+  .doc-body strong { color: var(--paper); }
+
+  .doc-footer {
+    padding: 20px 32px 30px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--stone-line);
+  }
+
+  .btn {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-decoration: none;
+    background: var(--choc);
+    color: var(--paper);
+    border: 1px solid var(--stone-line);
+    padding: 9px 16px;
+    border-radius: 6px;
+    display: inline-block;
+  }
+  .btn:hover { background: var(--choc-light); }
+
+  .btn.ghost {
+    background: transparent;
+    color: var(--paper-dim);
+  }
+  .btn.ghost:hover { color: var(--paper); border-color: var(--paper-dim); }
+</style>
+</head>
+<body>
+  <article class="doc">
+    <div class="doc-header">
+      <div class="eyebrow">Misfire Arcade &mdash; Bunker Archive</div>
+      <span class="stamp">Declassified</span>
+      <h1>The Thing In The Tunnels</h1>
+      <div class="subtitle">Field Report 01 &mdash; Chalet Ridgemont, Swiss Alps</div>
+    </div>
+
+    <div class="doc-body">
+      <p>The bunker beneath Chalet Ridgemont had exactly one rule painted above the blast door in cheerful alpine script: <strong>STAY CALM. ENJOY THE CHOCOLATE.</strong> Someone had added, in a different, angrier handwriting: <em>AND STOP ASKING ABOUT THE TUNNELS.</em></p>
+
+      <p>Four people were currently failing at all three.</p>
+
+      <p><strong>Dez</strong> had her boots up on the console like this was a layover, not a siege. "So let me get this straight," she said, unwrapping a truffle with the enthusiasm of someone defusing a very small, very chocolate-scented bomb. "There's a thing in the tunnels. Nobody's seen it. It eats <em>whatever it feels like</em> &mdash; cows, tulips, somebody's hard drive, a chunk of the actual mountain &mdash; and our tactical response is a Toblerone and a strongly worded sign."</p>
+
+      <p>"It's not <em>just</em> a sign," said <strong>Brynlee</strong>, hugging her knees on top of a supply crate, as far from the floor as physically possible. "It's a whole <em>system</em>, okay? Calm voice, snacks, boundaries. That's basically a spa day for a war crime."</p>
+
+      <p>"The floor is stone, Brynlee. It's been stone for four hundred years."</p>
+
+      <p>"It's <em>tunnel-adjacent</em> stone. It's basically contaminated." She said this while delicately using two fingers to relocate a single pebble off her sleeping bag like it might be radioactive, or worse, unfashionable.</p>
+
+      <p>Across the room, <strong>Julian Voss</strong> &mdash; Swiss-German charm, a smile calibrated by focus groups, and a cashmere sweater that had never once touched dirt &mdash; was on his satellite phone, laughing warmly at something. "No, no, tell the board everything's <em>fine</em>," he said, in the tone of a man selling a timeshare inside a collapsing mine. "Minor livestock discrepancy. We'll have numbers by Thursday." He clicked off, beamed at the room. "Great news, everyone. I've bought us seventy-two hours before anyone official gets curious."</p>
+
+      <p>"Bought us how," Dez said flatly.</p>
+
+      <p>"Reallocated some insurance paperwork." His smile didn't move. Nothing about Julian ever seemed to <em>move</em>, exactly &mdash; he just repositioned, like a shark that had learned handshakes. "Small thing. The Henderson cow was already deceased in the ledger. I simply moved the timeline."</p>
+
+      <p>"You mean you <em>fed it to the thing on purpose.</em>"</p>
+
+      <p>"I mean," said Julian warmly, "that data is a resource, and resources get <em>allocated</em>."</p>
+
+      <p>From the corner, <strong>Method</strong> &mdash; a two-hundred-pound Saint Bernard in a battered rescue harness, brandy cask long since empty and refilled twice with something stronger &mdash; let out a low, deliberate growl that everyone in the bunker had learned to translate.</p>
+
+      <p>"He says you're a war criminal," Dez said.</p>
+
+      <p>"He says nothing of the sort, he's a <em>dog</em> &mdash;"</p>
+
+      <p>Method growled again, longer.</p>
+
+      <p>"Now he says you smell like guilt and a Tuesday board meeting."</p>
+
+      <p>Julian's smile flickered for exactly one frame, like a badly cut ad. "Charming animal."</p>
+
+      <p>The wall shuddered. Somewhere below, something large and patient shifted its weight, and a fine dust of ancient mortar sifted down onto Brynlee's hair. She made a sound like a kettle discovering emotion.</p>
+
+      <p>"Okay it's <em>in the walls now</em>, we are past the chocolate phase, we need to be past the chocolate phase&mdash;"</p>
+
+      <p>"We are extremely still in the chocolate phase," Dez said, taking another truffle for emphasis. "Look at the sign. The sign has <em>rules</em>. Rule one: stay calm. You, currently, screaming: not calm. Rule two: enjoy the chocolate. You have not touched the chocolate. You are, Brynlee, failing this bunker."</p>
+
+      <p>"I am <em>allergic to dying,</em> Dez&mdash;"</p>
+
+      <p>Method stood, stretched, and ambled to the blast door with the unbothered gravity of a general who'd already fought this exact war six times and found it, frankly, a little slow. He gave one bark. Not a panic bark. A <em>logistics</em> bark.</p>
+
+      <p>"He says," Dez translated, "that it doesn't eat what you're scared of. It eats what you <em>stop paying attention to.</em> That's why the cow went. Nobody counted the cows this week. That's why the flowerbed went &mdash; gardener quit Tuesday. That's why it wants the ledger data. Because Julian's been quietly not-looking at it for weeks."</p>
+
+      <p>Julian's smile finally, genuinely cracked, just at the edges. "That's absurd. It's an <em>animal.</em> It doesn't have a filing preference."</p>
+
+      <p>Another groan from the tunnel below &mdash; long, almost thoughtful, like something enormous clearing its throat before making a point.</p>
+
+      <p>"It wants the dirt next," Dez said, chewing. "Whole mountain's worth. Because nobody's <em>looked</em> at a mountain in four hundred years. It's just been sitting there, unattended, delicious."</p>
+
+      <p>"That doesn't sound like a monster," Brynlee said, voice climbing an octave, "that sounds like a <em>metaphor</em>, and I did not come to the Alps for a <em>metaphor</em>, I came for a <em>ski trip</em> that turned into <em>this</em>&mdash;" she gestured broadly at the bunker, the dust, the dog, Julian, existence.</p>
+
+      <p>Method barked once more, short, final, and walked calmly to stand directly between the group and the door, tail down, ears forward, every inch of him saying: <em>handled.</em></p>
+
+      <p>"He says," said Dez, standing at last and brushing truffle dust off her jacket, "that the only way to starve it is to actually pay attention to something for once. All of us. At the same time. Preferably before it eats the sign, because then we lose the rules, and then, according to Method, we're just four idiots and a war criminal in a hole."</p>
+
+      <p>Julian straightened his sweater, recalibrated his smile back to full wattage, and said, with the terrifying sincerity of a man who has never once meant a word he's said: "Well. I've always believed in <em>stakeholder alignment.</em>"</p>
+
+      <p>Brynlee, finally, reached out and took a piece of chocolate. She held it like evidence. "If I die tonight," she said, "I want it on record that I was <em>extremely</em> uncomfortable about it."</p>
+
+      <p>Dez raised her truffle in a toast. "Noted. Now everybody look at <em>something.</em> Anything. The mountain's hungry and apparently we're the only thing standing between it and an all-you-can-eat buffet of neglect."</p>
+
+      <p>Below them, in the dark, in the tunnels nobody was supposed to ask about, something enormous and patient waited to see if, for once, anyone actually would.</p>
+    </div>
+
+    <div class="doc-footer">
+      <a class="btn ghost" href="./games-index.html">&larr; Back to the Arcade</a>
+      <a class="btn" href="./the-thing-in-the-tunnels-part-2.html">Chapter Two: Reconciliation &rarr;</a>
+    </div>
+  </article>
+</body>
+</html>

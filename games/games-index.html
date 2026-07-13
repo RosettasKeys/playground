@@ -487,6 +487,119 @@
             }
         }
 
+        /* ---------- FEED THE MOUNTAIN card preview: things drift up and vanish ---------- */
+        .mountain-preview {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .mountain-preview span {
+            position: absolute;
+            bottom: -20px;
+            font-size: 20px;
+            opacity: 0;
+            animation: mountain-drift 5s linear infinite;
+        }
+
+        @keyframes mountain-drift {
+            0% {
+                transform: translateY(0);
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 1;
+            }
+
+            85% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(-108px);
+                opacity: 0;
+            }
+        }
+
+        /* ---------- FIELD REPORTS / BUNKER ARCHIVE ---------- */
+        .archive {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 1rem 1.5rem 4rem;
+        }
+
+        .archive-title {
+            font-size: 1.3rem;
+            letter-spacing: 0.04em;
+            color: var(--fg);
+            margin: 0 0 0.5rem;
+        }
+
+        .archive-note {
+            color: var(--fg-dim);
+            font-size: 0.82rem;
+            line-height: 1.6;
+            max-width: 640px;
+            margin: 0 0 1.5rem;
+        }
+
+        .reports {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .report-card {
+            background: var(--card-bg);
+            border: 1px dashed var(--border);
+            border-radius: 6px;
+            padding: 1.25rem 1.5rem;
+            position: relative;
+            transition: border-color 0.2s ease, transform 0.18s ease, box-shadow 0.18s ease;
+        }
+
+        .report-index {
+            font-family: 'Courier New', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 0.1em;
+            color: var(--fg-dim);
+        }
+
+        .report-card h3 {
+            margin: 0.4rem 0 0.4rem;
+            font-size: 1.05rem;
+            color: var(--fg-dim);
+        }
+
+        .report-status {
+            margin: 0;
+            font-size: 0.78rem;
+            letter-spacing: 0.02em;
+            color: var(--fg-dim);
+            line-height: 1.5;
+        }
+
+        .report-card.unlocked {
+            border-style: solid;
+            cursor: pointer;
+        }
+
+        .report-card.unlocked h3 {
+            color: var(--fg);
+        }
+
+        .report-card.unlocked .report-status {
+            color: var(--accent);
+        }
+
+        .report-card.unlocked:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px var(--shadow);
+        }
+
         .card.ghost {
             border-style: dashed;
             display: flex;
@@ -701,11 +814,17 @@
             .overlay pre.ascii,
             .overlay.active,
             .void-ring,
-            .void-ring::before {
+            .void-ring::before,
+            .mountain-preview span,
+            .report-card.unlocked {
                 animation: none !important;
             }
 
             .card:hover {
+                transform: none;
+            }
+
+            .report-card.unlocked:hover {
                 transform: none;
             }
 
@@ -775,8 +894,29 @@
                 </div>
             </article>
 
-            <article class="card ghost">
+            <article class="card" id="card-mountain">
                 <span class="card-index">03</span>
+                <a class="play-badge" href="./feedTheMountain/feed-the-mountain.html">Play Now</a>
+                <h2>Feed The Mountain</h2>
+                <p>
+                    An attention economy with teeth. Cows, flowers, and one auditor's
+                    briefcase fall out of a mountain that eats whatever nobody's watching.
+                    Click fast, trust nothing chocolate-shaped, and try not to feed the
+                    guy in the cashmere sweater. Contains one (1) genuinely tactical dog.
+                </p>
+                <div class="card-preview">
+                    <div class="mountain-preview">
+                        <span style="left:8%; animation-delay:0s;">&#128004;</span>
+                        <span style="left:28%; animation-delay:1.1s;">&#127811;</span>
+                        <span style="left:48%; animation-delay:2.3s;">&#127811;</span>
+                        <span style="left:68%; animation-delay:0.6s;">&#128190;</span>
+                        <span style="left:85%; animation-delay:1.8s;">&#129696;</span>
+                    </div>
+                </div>
+            </article>
+
+            <article class="card ghost">
+                <span class="card-index">04</span>
                 <span class="badge" style="border-color: var(--fg-dim); color: var(--fg-dim); animation:none;">SLOT
                     RESERVED</span>
                 <h2>???</h2>
@@ -787,6 +927,29 @@
             </article>
         </div>
     </main>
+
+    <section class="archive">
+        <h2 class="archive-title">Bunker Archive &mdash; Field Reports</h2>
+        <p class="archive-note">
+            Declassified by actually playing Feed The Mountain &mdash; these unlock
+            locally in whatever browser you played in. A different device starts
+            from zero. That's not a bug, that's just how tunnels work.
+        </p>
+        <div class="reports">
+            <article class="report-card locked" id="report-ch1"
+                data-href="./feedTheMountain/the-thing-in-the-tunnels.html">
+                <span class="report-index">FIELD REPORT 01</span>
+                <h3>The Thing In The Tunnels</h3>
+                <p class="report-status">LOCKED &mdash; survive one shift in Feed The Mountain to declassify.</p>
+            </article>
+            <article class="report-card locked" id="report-ch2"
+                data-href="./feedTheMountain/the-thing-in-the-tunnels-part-2.html">
+                <span class="report-index">FIELD REPORT 02</span>
+                <h3>Reconciliation</h3>
+                <p class="report-status">LOCKED &mdash; outlast the auditor's arrival (~20s in) to declassify.</p>
+            </article>
+        </div>
+    </section>
 
     <footer>
         <a class="back-link" href="../index.html">&larr; BACK TO THE WRECKAGE</a>
@@ -950,6 +1113,36 @@
             });
 
             document.getElementById('year').textContent = new Date().getFullYear();
+
+            /* ---------- FIELD REPORTS: unlocked by playing Feed The Mountain ---------- */
+            (function () {
+                var reports = [
+                    { id: 'report-ch1', key: 'misfire:unlocked:feed-the-mountain:ch1' },
+                    { id: 'report-ch2', key: 'misfire:unlocked:feed-the-mountain:ch2' }
+                ];
+                reports.forEach(function (r) {
+                    var el = document.getElementById(r.id);
+                    if (!el) return;
+                    var unlocked = false;
+                    try { unlocked = localStorage.getItem(r.key) === '1'; } catch (e) { unlocked = false; }
+                    if (unlocked) {
+                        el.classList.remove('locked');
+                        el.classList.add('unlocked');
+                        el.querySelector('.report-status').textContent = 'DECLASSIFIED — click to read.';
+                        el.addEventListener('click', function () {
+                            window.location.href = el.getAttribute('data-href');
+                        });
+                        el.setAttribute('tabindex', '0');
+                        el.setAttribute('role', 'link');
+                        el.addEventListener('keydown', function (e) {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                window.location.href = el.getAttribute('data-href');
+                            }
+                        });
+                    }
+                });
+            })();
 
             /* ---------- EASTER EGG: click the footer sigil 5x within 2.5s ---------- */
             var sigil = document.getElementById('sigil');

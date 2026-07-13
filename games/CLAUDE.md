@@ -31,10 +31,6 @@ decision is made — only the winner (or a mashup of winners) moves in here.
   absent** — it was removed at some point, and the decision (July 2026) was
   to leave it missing rather than recreate it. Only recreate if the
   typo-catch is wanted again.
-- `games-index.html` — the actual landing page. **As of this writing, this
-  is the gemini finalist from the July 2026 three-way landing-page bake-off**
-  (deepseek / gemini / claude), not yet replaced by the mashup described
-  below.
 - `InterpretiveNetworking/` — a completed, live game subfolder
   (`interpretive-networking.html`), built by Fable 5 from its own
   `InterpretiveNetworking/CLAUDE.md`. Use that file as the template for how a

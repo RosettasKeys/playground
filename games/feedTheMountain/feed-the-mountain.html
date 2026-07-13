@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Feed The Mountain — Misfire Arcade</title>
+</head>
+
+<body>
+  <div class="mf-arcade-wrap">
+    <div id="misfire-root">
+      <style>
+        body {
+          margin: 0;
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 24px;
+          background:
+            repeating-radial-gradient(circle at 50% 40%, rgba(255, 255, 255, 0.025) 0px, transparent 3px, transparent 46px, rgba(0, 0, 0, 0.14) 48px),
+            radial-gradient(circle at 50% 36%, rgba(168, 100, 58, 0.18), transparent 55%),
+            radial-gradient(ellipse 160% 120% at 50% 50%, #221b13 0%, #100d09 55%, #030201 100%);
+          box-shadow: inset 0 0 160px 50px rgba(0, 0, 0, 0.65);
+        }
+
+        .mf-arcade-wrap {
+          --stone: #1d1b17;
+          --stone-panel: #2c281f;
+          --stone-line: #47402f;
+          --paper: #ece4d3;
+          --paper-dim: #b9ae97;
+          --danger: #b8382b;
+          --danger-glow: #ff6b52;
+          --amber: #d8952e;
+          --moss: #7a8b5c;
+          --choc: #6b3a1f;
+          --choc-light: #a5643a;
+
+          --font-sign: 'Arial Narrow', 'Helvetica Neue Condensed', Impact, sans-serif;
+          --font-mono: 'Consolas', 'SF Mono', 'JetBrains Mono', 'Courier New', monospace;
+          --font-body: 'Segoe UI', system-ui, -apple-system, sans-serif;
+
+          position: relative;
+          width: 720px;
+          max-width: 100%;
+          margin: 0 auto;
+        }
+
+        .mf-arcade-wrap,
+        .mf-arcade-wrap * {
+          box-sizing: border-box;
+        }
+
+        #misfire-root {
+          position: relative;
+          width: 100%;
+          max-width: 720px;
+          background: var(--stone);
+          color: var(--paper);
+          font-family: var(--font-body);
+          border-radius: 10px;
+          overflow: hidden;
+          box-shadow: 0 0 0 1px var(--stone-line), 0 20px 50px rgba(0, 0, 0, 0.5);
+          user-select: none;
+        }
+
+        .mf-header {
+          position: relative;
+          padding: 18px 20px 14px;
+          background:
+            repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0 2px, transparent 2px 8px),
+            var(--stone-panel);
+          border-bottom: 3px solid var(--stone-line);
+        }
+
+        .mf-header-top {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .mf-eyebrow {
+          font-family: var(--font-mono);
+          font-size: 10px;
+          letter-spacing: 3px;
+          color: var(--paper-dim);
+          text-transform: uppercase;
+          margin-bottom: 6px;
+        }
+
+        .mf-header-top .mf-eyebrow {
+          margin-bottom: 0;
+        }
+
+        .mf-exit {
+          flex-shrink: 0;
+          font-family: var(--font-mono);
+          font-size: 11px;
+          letter-spacing: 1px;
+          text-transform: uppercase;
+          color: var(--paper-dim);
+          text-decoration: none;
+          background: rgba(0, 0, 0, 0.22);
+          border: 1px solid var(--stone-line);
+          padding: 5px 10px;
+          border-radius: 6px;
+          transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .mf-exit:hover {
+          color: var(--paper);
+          border-color: var(--paper-dim);
+          background: var(--choc);
+        }
+
+        .mf-exit:focus-visible {
+          outline: 2px solid var(--paper);
+          outline-offset: 2px;
+        }
+
+        .mf-sign {
+          font-family: var(--font-sign);
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 1px;
+          color: var(--paper);
+          font-size: clamp(20px, 5vw, 30px);
+          line-height: 1.15;
+          position: relative;
+          filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.4));
+          transition: filter 0.3s ease;
+        }
+
+        .mf-sign .crack {
+          position: absolute;
+          inset: -6px -4px;
+          background: repeating-linear-gradient(115deg, transparent 0 18px, rgba(0, 0, 0, 0) 18px 19px);
+          opacity: 0;
+          pointer-events: none;
+          mix-blend-mode: overlay;
+        }
+
+        .mf-sub {
+          font-family: var(--font-mono);
+          font-size: 12px;
+          color: var(--paper-dim);
+          margin-top: 6px;
+        }
+
+        .mf-meters {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 10px;
+          padding: 12px 20px;
+          background: var(--stone-panel);
+          border-bottom: 1px solid var(--stone-line);
+        }
+
+        .mf-meter-label {
+          font-family: var(--font-mono);
+          font-size: 10px;
+          letter-spacing: 1.5px;
+          text-transform: uppercase;
+          color: var(--paper-dim);
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 4px;
+        }
+
+        .mf-bar {
+          height: 8px;
+          background: rgba(0, 0, 0, 0.35);
+          border-radius: 5px;
+          overflow: hidden;
+          border: 1px solid var(--stone-line);
+        }
+
+        .mf-bar-fill {
+          height: 100%;
+          width: 0%;
+          transition: width 0.25s ease;
+          border-radius: 5px;
+        }
+
+        .mf-bar-fill.hunger {
+          background: linear-gradient(90deg, var(--choc), var(--danger));
+        }
+
+        .mf-bar-fill.panic {
+          background: linear-gradient(90deg, var(--amber), var(--danger-glow));
+        }
+
+        .mf-stats {
+          display: flex;
+          justify-content: space-between;
+          padding: 8px 20px;
+          font-family: var(--font-mono);
+          font-size: 12px;
+          color: var(--paper-dim);
+          background: var(--stone);
+          border-bottom: 1px solid var(--stone-line);
+        }
+
+        .mf-stats b {
+          color: var(--paper);
+        }
+
+        .mf-field {
+          position: relative;
+          height: 340px;
+          background:
+            radial-gradient(ellipse at 50% 120%, rgba(107, 58, 31, 0.25), transparent 60%),
+            repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.015) 0 1px, transparent 1px 26px),
+            #14120f;
+          overflow: hidden;
+          cursor: crosshair;
+        }
+
+        .mf-hole {
+          position: absolute;
+          bottom: -6px;
+          width: 34px;
+          height: 14px;
+          background: radial-gradient(ellipse at center, #000 40%, transparent 75%);
+          border-radius: 50%;
+          opacity: 0.7;
+        }
+
+        .mf-item {
+          position: absolute;
+          font-size: 26px;
+          line-height: 1;
+          background: none;
+          border: none;
+          padding: 6px;
+          cursor: pointer;
+          filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.5));
+          transform: translate(-50%, 0);
+          animation: mf-rise linear forwards;
+          touch-action: manipulation;
+        }
+
+        .mf-item:focus-visible {
+          outline: 2px solid var(--paper);
+          outline-offset: 2px;
+          border-radius: 50%;
+        }
+
+        @keyframes mf-rise {
+          from {
+            transform: translate(-50%, 0) scale(0.6);
+            opacity: 0;
+          }
+
+          10% {
+            opacity: 1;
+            transform: translate(-50%, 0) scale(1);
+          }
+
+          100% {
+            transform: translate(-50%, -320px) scale(1);
+            opacity: 1;
+          }
+        }
+
+        .mf-pop {
+          position: absolute;
+          font-family: var(--font-mono);
+          font-size: 12px;
+          font-weight: bold;
+          pointer-events: none;
+          animation: mf-float 0.7s ease-out forwards;
+          transform: translate(-50%, 0);
+          white-space: nowrap;
+        }
+
+        @keyframes mf-float {
+          from {
+            opacity: 1;
+            transform: translate(-50%, 0);
+          }
+
+          to {
+            opacity: 0;
+            transform: translate(-50%, -34px);
+          }
+        }
+
+        .mf-ticker {
+          padding: 10px 20px;
+          background: var(--stone-panel);
+          border-top: 1px solid var(--stone-line);
+          font-family: var(--font-mono);
+          font-size: 12.5px;
+          color: var(--paper);
+          min-height: 40px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        #mf-ticker-text {
+          transition: opacity 0.15s ease;
+        }
+
+        .mf-signature {
+          color: var(--amber);
+          font-weight: 700;
+          letter-spacing: 0.3px;
+        }
+
+        .mf-ticker-dot {
+          width: 7px;
+          height: 7px;
+          border-radius: 50%;
+          background: var(--danger-glow);
+          flex-shrink: 0;
+          animation: mf-blink 1.4s infinite;
+        }
+
+        @keyframes mf-blink {
+          50% {
+            opacity: 0.25;
+          }
+        }
+
+        .mf-footer {
+          display: flex;
+          flex-wrap: wrap;
+          justify-content: space-between;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 20px 16px;
+          background: var(--stone);
+        }
+
+        .mf-footer-left {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+        }
+
+        .mf-btn[disabled] {
+          opacity: 0.45;
+          cursor: default;
+          background: var(--stone-panel);
+        }
+
+        .mf-btn[disabled]:hover {
+          background: var(--stone-panel);
+        }
+
+        .mf-diff-group {
+          display: flex;
+          gap: 4px;
+          align-items: center;
+        }
+
+        .mf-diff-label {
+          font-family: var(--font-mono);
+          font-size: 10px;
+          letter-spacing: 1px;
+          text-transform: uppercase;
+          color: var(--paper-dim);
+          margin-right: 2px;
+        }
+
+        .mf-diff-btn {
+          font-family: var(--font-mono);
+          font-size: 11px;
+          letter-spacing: 0.5px;
+          text-transform: uppercase;
+          background: var(--stone-panel);
+          color: var(--paper-dim);
+          border: 1px solid var(--stone-line);
+          padding: 8px 10px;
+          border-radius: 6px;
+          cursor: pointer;
+        }
+
+        .mf-diff-btn:hover {
+          color: var(--paper);
+        }
+
+        .mf-diff-btn.active {
+          background: var(--moss);
+          color: #14120f;
+          border-color: var(--moss);
+          font-weight: 700;
+        }
+
+        .mf-field.focus-mode {
+          box-shadow: inset 0 0 46px rgba(216, 149, 46, 0.4);
+          transition: box-shadow 0.3s ease;
+        }
+
+        .mf-btn {
+          font-family: var(--font-mono);
+          font-size: 12px;
+          letter-spacing: 1px;
+          text-transform: uppercase;
+          background: var(--choc);
+          color: var(--paper);
+          border: 1px solid var(--stone-line);
+          padding: 9px 16px;
+          border-radius: 6px;
+          cursor: pointer;
+        }
+
+        .mf-btn:hover {
+          background: var(--choc-light);
+        }
+
+        .mf-btn:focus-visible {
+          outline: 2px solid var(--paper);
+          outline-offset: 2px;
+        }
+
+        .mf-best {
+          font-family: var(--font-mono);
+          font-size: 11px;
+          color: var(--paper-dim);
+        }
+
+        .mf-overlay {
+          position: absolute;
+          inset: 0;
+          background: rgba(10, 9, 7, 0.92);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          padding: 30px;
+          gap: 10px;
+          opacity: 0;
+          pointer-events: none;
+          transition: opacity 0.3s ease;
+        }
+
+        .mf-overlay.show {
+          opacity: 1;
+          pointer-events: all;
+        }
+
+        .mf-overlay h2 {
+          font-family: var(--font-sign);
+          text-transform: uppercase;
+          font-size: 24px;
+          color: var(--danger-glow);
+          margin: 0;
+        }
+
+        .mf-overlay p {
+          font-family: var(--font-mono);
+          font-size: 14px;
+          color: var(--paper-dim);
+          max-width: 360px;
+          margin: 0;
+        }
+
+        .mf-overlay .mf-score-line {
+          font-family: var(--font-mono);
+          font-size: 15px;
+          color: var(--paper);
+          margin-top: 8px;
+        }
+
+        .mf-leaderboard {
+          font-family: var(--font-mono);
+          font-size: 13px;
+          color: var(--paper-dim);
+          text-align: left;
+          background:
+            repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.02) 0 2px, transparent 2px 8px),
+            var(--stone-panel);
+          border-radius: 10px;
+          overflow: hidden;
+          box-shadow: 0 0 0 1px var(--stone-line), 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .mf-lb-head {
+          padding: 15px 16px 12px;
+          border-bottom: 3px solid var(--stone-line);
+        }
+
+        .mf-lb-title {
+          font-family: var(--font-sign);
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 2px;
+          color: var(--paper);
+          font-size: 18px;
+          line-height: 1.1;
+          filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.4));
+        }
+
+        .mf-lb-rows {
+          padding: 8px 16px 14px;
+        }
+
+        .mf-lb-rows>div {
+          display: flex;
+          justify-content: space-between;
+          gap: 12px;
+          padding: 6px 0;
+          border-bottom: 1px dashed rgba(255, 255, 255, 0.06);
+        }
+
+        .mf-lb-rows>div:last-child {
+          border-bottom: none;
+        }
+
+        .mf-lb-rows>div span:last-child {
+          color: var(--paper);
+          font-weight: 700;
+        }
+
+        .mf-lb-rows>div:nth-child(1) span {
+          color: var(--amber);
+        }
+
+        .mf-leaderboard--side {
+          position: absolute;
+          top: 0;
+          left: calc(100% + 18px);
+          width: 240px;
+          margin: 0;
+        }
+
+        /* Not enough room to center the game AND fit the panel on its right:
+         drop the panel below the cabinet instead. */
+        @media (max-width: 1300px) {
+          .mf-leaderboard--side {
+            position: static;
+            left: auto;
+            width: 100%;
+            max-width: 720px;
+            margin: 16px auto 0;
+          }
+        }
+
+        .mf-start-btn {
+          margin-top: 6px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+          .mf-item,
+          .mf-pop,
+          .mf-ticker-dot {
+            animation: none !important;
+          }
+        }
+      </style>
+
+      <div class="mf-header">
+        <div class="mf-header-top">
+          <div class="mf-eyebrow">Misfire Arcade &mdash; Mysteries of the Mountains</div>
+          <a class="mf-exit" href="../games-index.html" title="Back to the arcade">&lsaquo; Arcade</a>
+        </div>
+        <div class="mf-sign" id="mf-sign">Stay Calm. Enjoy The Chocolate.</div>
+        <div class="mf-sub">(and stop asking about the tunnels)</div>
+      </div>
+
+      <div class="mf-meters">
+        <div>
+          <div class="mf-meter-label"><span>Mountain's Hunger</span><span id="mf-hunger-pct">0%</span></div>
+          <div class="mf-bar">
+            <div class="mf-bar-fill hunger" id="mf-hunger-bar"></div>
+          </div>
+        </div>
+        <div>
+          <div class="mf-meter-label"><span>Brynlee's Panic</span><span id="mf-panic-pct">0%</span></div>
+          <div class="mf-bar">
+            <div class="mf-bar-fill panic" id="mf-panic-bar"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mf-stats">
+        <div>Attention Points: <b id="mf-score">0</b></div>
+        <div>Survived: <b id="mf-time">0s</b></div>
+        <div>Best: <b id="mf-best">0</b></div>
+      </div>
+
+      <div class="mf-field" id="mf-field">
+        <div class="mf-overlay" id="mf-start-overlay">
+          <div class="mf-eyebrow">Misfire Arcade</div>
+          <h2>Feed The Mountain</h2>
+          <p>Things fall through the tunnels: cows, flowers, data, dirt. Ignore them and the mountain eats them &mdash;
+            and eventually the sign. Click everything. Chocolate calms Brynlee, mostly &mdash; the mountain's started
+            faking it. Julian is lying about at least one item, and eventually so is an auditor's briefcase. Method is
+            never wrong. Brynlee's Focus button buys you time, at a price.</p>
+          <button class="mf-btn mf-start-btn" id="mf-start-btn">Start Shift</button>
+        </div>
+        <div class="mf-overlay" id="mf-end-overlay">
+          <h2 id="mf-end-title">Game Over</h2>
+          <p id="mf-end-sub"></p>
+          <div class="mf-score-line">Attention Points: <b id="mf-end-score">0</b></div>
+          <button class="mf-btn mf-start-btn" id="mf-restart-btn">Run It Back</button>
+        </div>
+      </div>
+
+      <div class="mf-ticker">
+        <div class="mf-ticker-dot"></div>
+        <div id="mf-ticker-text">Bunker intercom online. Everything is fine. Probably.</div>
+      </div>
+
+      <div class="mf-footer">
+        <div class="mf-footer-left">
+          <button class="mf-btn" id="mf-focus-btn"
+            title="Brynlee's one-thing rule: bonus reaction time, but the rest of the room gets worse.">Focus
+            (Ready)</button>
+          <button class="mf-btn" id="mf-mute-btn">Sound: Off</button>
+          <div class="mf-diff-group" id="mf-diff-group"
+            title="How fast things fall, and how many points they're worth.">
+            <span class="mf-diff-label">Difficulty</span>
+            <button class="mf-diff-btn" data-level="easy">Easy</button>
+            <button class="mf-diff-btn active" data-level="medium">Medium</button>
+            <button class="mf-diff-btn" data-level="hard">Hard</button>
+          </div>
+        </div>
+        <div class="mf-best" id="mf-footer-note">v1.1 &mdash; unauthorized fortification</div>
+      </div>
+    </div>
+
+    <div class="mf-leaderboard mf-leaderboard--side" id="mf-leaderboard" style="display:none;">
+      <div class="mf-lb-head">
+        <div class="mf-eyebrow">Cabinet 01 &mdash; Top Runs</div>
+        <div class="mf-lb-title">High Scores</div>
+      </div>
+      <div id="mf-leaderboard-rows" class="mf-lb-rows"></div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const root = document.getElementById('misfire-root');
+      const field = document.getElementById('mf-field');
+      const startOverlay = document.getElementById('mf-start-overlay');
+      const endOverlay = document.getElementById('mf-end-overlay');
+      const startBtn = document.getElementById('mf-start-btn');
+      const restartBtn = document.getElementById('mf-restart-btn');
+      const hungerBar = document.getElementById('mf-hunger-bar');
+      const panicBar = document.getElementById('mf-panic-bar');
+      const hungerPct = document.getElementById('mf-hunger-pct');
+      const panicPct = document.getElementById('mf-panic-pct');
+      const scoreEl = document.getElementById('mf-score');
+      const timeEl = document.getElementById('mf-time');
+      const bestEl = document.getElementById('mf-best');
+      const tickerText = document.getElementById('mf-ticker-text');
+      const endTitle = document.getElementById('mf-end-title');
+      const endSub = document.getElementById('mf-end-sub');
+      const endScore = document.getElementById('mf-end-score');
+      const leaderboardBox = document.getElementById('mf-leaderboard');
+      const leaderboardRows = document.getElementById('mf-leaderboard-rows');
+      const signEl = document.getElementById('mf-sign');
+      const focusBtn = document.getElementById('mf-focus-btn');
+      const diffButtons = Array.from(document.querySelectorAll('.mf-diff-btn'));
+
+      const HIGH_SCORE_KEY = 'feed-the-mountain:best';
+      const LEADERBOARD_KEY = 'feed-the-mountain:runs';
+
+      // Standalone build: window.storage is a Claude-artifact-only API, so this
+      // uses plain localStorage instead. Same call shape (async, {key,value}),
+      // so the rest of the game logic doesn't need to know the difference.
+      async function storageGet(key) {
+        try {
+          const raw = localStorage.getItem(key);
+          return raw === null ? null : { key, value: raw };
+        } catch (e) { return null; }
+      }
+      async function storageSet(key, value) {
+        try {
+          localStorage.setItem(key, value);
+          return { key, value };
+        } catch (e) { return null; }
+      }
+
+      const ITEM_TYPES = [
+        { id: 'cow', icon: '🐄', weight: 3, kind: 'normal' },
+        { id: 'flower', icon: '🌸', weight: 3, kind: 'normal' },
+        { id: 'data', icon: '💾', weight: 2, kind: 'normal' },
+        { id: 'dirt', icon: '🪨', weight: 2, kind: 'dirt' },
+        { id: 'choc', icon: '🍫', weight: 2, kind: 'chocolate' },
+        { id: 'paper', icon: '📄', weight: 1, kind: 'trap' },
+        { id: 'method', icon: '🐕‍🦺', weight: 0.6, kind: 'method' },
+        { id: 'briefcase', icon: '💼', weight: 0.3, kind: 'briefcase' },
+        { id: 'fortune', icon: '🥠', weight: 0.1, kind: 'fortune' }
+      ];
+
+      const FOCUS_COOLDOWN_MS = 12000;
+      const FOCUS_DURATION_MS = 4000;
+
+      // multiplier on item rise duration - lower means items cross the field faster
+      const DIFFICULTY_SPEED = { easy: 1.35, medium: 1, hard: 0.7 };
+      // multiplier on points earned - harder speed, bigger payout
+      const DIFFICULTY_SCORE = { easy: 0.75, medium: 1, hard: 1.5 };
+      let difficulty = 'medium';
+
+      function setDifficulty(level) {
+        if (!DIFFICULTY_SPEED[level]) return;
+        difficulty = level;
+        diffButtons.forEach(b => b.classList.toggle('active', b.dataset.level === level));
+        if (state && state.running) {
+          state.speedMult = DIFFICULTY_SPEED[level];
+          state.scoreMult = DIFFICULTY_SCORE[level];
+        }
+      }
+
+      diffButtons.forEach(b => b.addEventListener('click', () => setDifficulty(b.dataset.level)));
+
+      const QUIPS = {
+        normal_missed: [
+          "The cow is gone. Nobody was looking. That's the whole problem.",
+          "Dez: 'Item unattended. Item deceased. Circle of life, minus the ceremony.'",
+          "Something just got quietly filed under 'mountain's problem now.'",
+          "The flowerbed situation has resolved itself, permanently."
+        ],
+        dirt_missed: [
+          "Brynlee: 'THAT WAS DIRT-ADJACENT AND I FEEL VIOLATED.'",
+          "Brynlee makes a sound only dogs and geologists can hear.",
+          "Brynlee: 'I did NOT sign up for texture.'"
+        ],
+        choc_hit: [
+          "Dez: 'This is not a coping mechanism, this is a snack.'",
+          "Chocolate acquired. Crisis... momentarily adjacent to fine.",
+          "Julian: 'Chocolate is just currency with better PR.'"
+        ],
+        trap_hit: [
+          "Julian: 'I call it synergy.'",
+          "The mountain got fed. Somehow, Julian's smile got bigger.",
+          "That paperwork was never yours to save. Julian saw to that."
+        ],
+        method_hit: [
+          "Method: [low, deliberate growl] &mdash; Translation: 'Obviously.'",
+          "Method pauses the chaos. He has done this before. Many times.",
+          "Method does not celebrate. Method was never worried."
+        ],
+        normal_hit: [
+          "Attended to. The mountain sulks.",
+          "Dez: 'Look at you, doing the bare minimum. Proud.'",
+          "One less thing to feed the void. For now."
+        ],
+        rumble: [
+          "The wall shudders. Nobody claps.",
+          "Something large and patient shifts its weight below.",
+          "Julian: 'Minor structural commentary. Nothing to escalate.'",
+          "Brynlee: 'Was that a rumble or are we like, vibing wrong.'"
+        ],
+        decoy_hit: [
+          "Brynlee: 'THAT WAS NOT CHOCOLATE, THAT WAS A LIE WITH A WRAPPER.'",
+          "Not chocolate. The mountain is learning to bait.",
+          "Dez: 'Cool, cool, so now we're getting psychologically warfared. Great.'"
+        ],
+        decoy_missed: [
+          "Brynlee: 'I didn't touch it and I feel VINDICATED.'",
+          "Good instinct. That one was never real.",
+          "Method: [one short growl] &mdash; Translation: 'Finally.'"
+        ],
+        briefcase_hit: [
+          "Griggs' numbers, briefly, safe. Julian's smile does not agree with this.",
+          "Dez: 'Congratulations, you're now an accessory to an audit.'",
+          "The briefcase holds. Somewhere, Julian recalculates."
+        ],
+        briefcase_missed: [
+          "The briefcase is gone. So, apparently, is the concept of 'evidence.'",
+          "Julian: 'No further questions. Case closed. Literally.'",
+          "Griggs makes a sound previously reserved for tax season."
+        ],
+        focus_on: [
+          "Brynlee: 'We pick ONE thing and we watch it. That's the whole system.'",
+          "Focus mode. Everything else is, technically, someone else's problem now.",
+          "Dez: 'Tunnel vision, but as a strategy. Bold.'"
+        ],
+        focus_off: [
+          "Focus fades. The peripheral catches up all at once.",
+          "Brynlee blinks and remembers the rest of the room exists.",
+          "Method: [long exhale] &mdash; Translation: 'Back to normal. Such as it is.'"
+        ],
+        fortune_hit: [
+          "The wrapper isn't empty this time. Tucked inside, in suspiciously tidy handwriting: 'This bunker, the mountain, and everything hungry in it were built by Claude, who takes full responsibility and zero follow-up questions.' Method already knew. Method knows everything.",
+          "Not a fortune. A confession, technically: 'Built by Claude. The tunnels are metaphorical. That does not make them safer.' Somewhere, Julian tries to take credit anyway."
+        ],
+        fortune_missed: [
+          "The fortune cookie rolls into the dark, unread. Some secrets aren't meant to be interrupted.",
+          "Whatever that note said, the mountain got there first."
+        ]
+      };
+
+      function pickQuip(cat) {
+        const arr = QUIPS[cat];
+        return arr[Math.floor(Math.random() * arr.length)];
+      }
+
+      const TICKER_HOLD_MS = 1300;
+      let tickerQueue = [];
+      let tickerTimer = null;
+
+      function setTicker(text) {
+        tickerQueue.push(text);
+        // don't let a click-spam session queue up a wall of unread text
+        if (tickerQueue.length > 3) tickerQueue.splice(0, tickerQueue.length - 3);
+        if (!tickerTimer) advanceTicker();
+      }
+
+      function advanceTicker() {
+        if (tickerQueue.length === 0) { tickerTimer = null; return; }
+        const text = tickerQueue.shift();
+        tickerText.style.opacity = '0';
+        setTimeout(() => {
+          tickerText.innerHTML = text;
+          tickerText.style.opacity = '1';
+        }, 120);
+        tickerTimer = setTimeout(advanceTicker, TICKER_HOLD_MS);
+      }
+
+      function weightedPick() {
+        const total = ITEM_TYPES.reduce((s, t) => s + t.weight, 0);
+        let r = Math.random() * total;
+        for (const t of ITEM_TYPES) {
+          if (r < t.weight) return t;
+          r -= t.weight;
+        }
+        return ITEM_TYPES[0];
+      }
+
+      let state = null;
+      let spawnTimer = null;
+      let tickTimer = null;
+      let rumbleTimer = null;
+
+      function resetState() {
+        const speedMult = DIFFICULTY_SPEED[difficulty];
+        state = {
+          running: true,
+          score: 0,
+          hunger: 0,
+          panic: 0,
+          elapsed: 0,
+          spawnInterval: 950,
+          itemLifespan: 3200 * speedMult,
+          speedMult: speedMult,
+          scoreMult: DIFFICULTY_SCORE[difficulty],
+          itemEl: new Map(),
+          decoyChance: 0,
+          auditorTriggered: false,
+          focusActive: false,
+          focusLastUsed: -FOCUS_COOLDOWN_MS
+        };
+        field.classList.remove('focus-mode');
+        updateFocusButton();
+      }
+
+      function updateMeters() {
+        hungerBar.style.width = Math.min(100, state.hunger) + '%';
+        panicBar.style.width = Math.min(100, state.panic) + '%';
+        hungerPct.textContent = Math.round(Math.min(100, state.hunger)) + '%';
+        panicPct.textContent = Math.round(Math.min(100, state.panic)) + '%';
+        scoreEl.textContent = state.score;
+        timeEl.textContent = Math.floor(state.elapsed / 1000) + 's';
+
+        const distress = Math.max(state.hunger, state.panic) / 100;
+        signEl.style.filter = `blur(${distress * 0.6}px) contrast(${1 + distress * 0.3})`;
+        root.style.setProperty('--stone', distress > 0.7 ? '#241611' : '#1d1b17');
+      }
+
+      function popText(x, y, text, color) {
+        const pop = document.createElement('div');
+        pop.className = 'mf-pop';
+        pop.textContent = text;
+        pop.style.left = x + 'px';
+        pop.style.top = y + 'px';
+        pop.style.color = color || '#ece4d3';
+        field.appendChild(pop);
+        setTimeout(() => pop.remove(), 700);
+      }
+
+      function maybeDecoy(type) {
+        if (type.id === 'choc' && Math.random() < state.decoyChance) {
+          return { id: 'choc', icon: '🍫', kind: 'decoy' };
+        }
+        return type;
+      }
+
+      function createFallingItem(type) {
+        if (!state || !state.running) return;
+        const btn = document.createElement('button');
+        btn.className = 'mf-item';
+        btn.textContent = type.icon;
+        btn.setAttribute('aria-label', type.id === 'choc' && type.kind === 'decoy' ? 'chocolate (maybe)' : type.id);
+        const fieldW = field.clientWidth;
+        const x = 30 + Math.random() * (fieldW - 60);
+        btn.style.left = x + 'px';
+        btn.style.bottom = '0px';
+        const lifespan = state.focusActive ? state.itemLifespan * 1.4 : state.itemLifespan;
+        btn.style.animationDuration = lifespan + 'ms';
+        field.appendChild(btn);
+
+        const timeoutId = setTimeout(() => {
+          if (!state || !state.running) return;
+          handleMiss(type, btn);
+        }, lifespan);
+
+        btn.addEventListener('click', (e) => {
+          if (!state || !state.running) return;
+          clearTimeout(timeoutId);
+          handleHit(type, btn, e);
+        });
+
+        state.itemEl.set(btn, { type, timeoutId });
+      }
+
+      function spawnItem() {
+        if (!state || !state.running) return;
+        const type = maybeDecoy(weightedPick());
+        createFallingItem(type);
+      }
+
+      function spawnSpecific(id) {
+        if (!state || !state.running) return;
+        const base = ITEM_TYPES.find(t => t.id === id);
+        if (base) createFallingItem(base);
+      }
+
+      function spawnBurst(id, count, staggerMs) {
+        for (let i = 0; i < count; i++) {
+          setTimeout(() => spawnSpecific(id), i * staggerMs);
+        }
+      }
+
+      function triggerAuditorEvent() {
+        setTicker("A helicopter lands badly. Griggs steps out, unprepared for altitude and about to be unprepared for everything else.");
+        setTimeout(() => { spawnSpecific('briefcase'); }, 1400);
+      }
+
+      function addScore(amount) {
+        const scored = Math.round(amount * state.scoreMult);
+        state.score += scored;
+        return scored;
+      }
+
+      function handleHit(type, btn, e) {
+        const rect = field.getBoundingClientRect();
+        const x = btn.getBoundingClientRect().left - rect.left + 13;
+        const y = btn.getBoundingClientRect().top - rect.top;
+
+        if (type.kind === 'chocolate') {
+          state.panic = Math.max(0, state.panic - 14);
+          addScore(5);
+          popText(x, y, 'PANIC -14', '#7a8b5c');
+          setTicker(pickQuip('choc_hit'));
+        } else if (type.kind === 'trap') {
+          state.hunger = Math.min(100, state.hunger + 10);
+          const gained = addScore(8);
+          popText(x, y, '+' + gained + ' (?)', '#d8952e');
+          setTicker(pickQuip('trap_hit'));
+        } else if (type.kind === 'method') {
+          state.hunger = Math.max(0, state.hunger - 6);
+          state.panic = Math.max(0, state.panic - 6);
+          popText(x, y, 'STEADY', '#b9ae97');
+          setTicker(pickQuip('method_hit'));
+        } else if (type.kind === 'decoy') {
+          state.panic = Math.min(100, state.panic + 16);
+          popText(x, y, 'NOT CHOCOLATE', '#ff6b52');
+          setTicker(pickQuip('decoy_hit'));
+        } else if (type.kind === 'briefcase') {
+          const gained = addScore(40);
+          popText(x, y, '+' + gained, '#d8952e');
+          setTicker(pickQuip('briefcase_hit'));
+          spawnBurst('paper', 2, 500);
+        } else if (type.kind === 'fortune') {
+          const gained = addScore(25);
+          popText(x, y, '+' + gained, '#d8952e');
+          setTicker('<span class="mf-signature">' + pickQuip('fortune_hit') + '</span>');
+        } else {
+          const gained = addScore(10);
+          popText(x, y, '+' + gained, '#ece4d3');
+        }
+
+        btn.remove();
+        state.itemEl.delete(btn);
+        updateMeters();
+      }
+
+      function handleMiss(type, btn) {
+        const rect = field.getBoundingClientRect();
+        const bx = btn.getBoundingClientRect().left - rect.left + 13;
+        const by = 20;
+
+        if (type.kind === 'chocolate') {
+          // unattended chocolate: mild hunger tick, no panic relief happened
+          state.hunger = Math.min(100, state.hunger + 4);
+          setTicker(pickQuip('normal_missed'));
+        } else if (type.kind === 'dirt') {
+          state.hunger = Math.min(100, state.hunger + 6);
+          state.panic = Math.min(100, state.panic + 8);
+          popText(bx, by, 'EATEN', '#b8382b');
+          setTicker(pickQuip('dirt_missed'));
+        } else if (type.kind === 'trap') {
+          state.hunger = Math.min(100, state.hunger + 4);
+          setTicker(pickQuip('normal_missed'));
+        } else if (type.kind === 'method') {
+          // missing method just means no help, small panic tick
+          state.panic = Math.min(100, state.panic + 3);
+        } else if (type.kind === 'decoy') {
+          // ignoring a fake was actually the right call
+          state.hunger = Math.min(100, state.hunger + 2);
+          setTicker(pickQuip('decoy_missed'));
+        } else if (type.kind === 'briefcase') {
+          state.hunger = Math.min(100, state.hunger + 15);
+          popText(bx, by, 'EATEN', '#b8382b');
+          setTicker(pickQuip('briefcase_missed'));
+          spawnBurst('paper', 4, 400);
+        } else if (type.kind === 'fortune') {
+          // missing a rare treat shouldn't punish curiosity - no meter penalty
+          setTicker(pickQuip('fortune_missed'));
+        } else {
+          state.hunger = Math.min(100, state.hunger + 7);
+          popText(bx, by, 'EATEN', '#b8382b');
+          setTicker(pickQuip('normal_missed'));
+        }
+
+        btn.remove();
+        state.itemEl.delete(btn);
+        updateMeters();
+        checkGameOver();
+      }
+
+      function checkGameOver() {
+        if (state.hunger >= 100) {
+          endGame('hunger');
+        } else if (state.panic >= 100) {
+          endGame('panic');
+        }
+      }
+
+      async function endGame(reason) {
+        if (!state.running) return;
+        state.running = false;
+        clearTimeout(spawnTimer);
+        clearInterval(tickTimer);
+        clearInterval(rumbleTimer);
+        field.classList.remove('focus-mode');
+        focusBtn.disabled = true;
+        field.querySelectorAll('.mf-item').forEach(el => el.remove());
+
+        if (reason === 'hunger') {
+          endTitle.textContent = 'The Mountain Ate The Sign';
+          endSub.textContent = "Rule one and rule two, both gone. Rule three was 'stop asking about the tunnels' \u2014 honestly, still fair.";
+        } else {
+          endTitle.textContent = 'Brynlee Screamed The Roof Down';
+          endSub.textContent = "The chocolate is still down there. Somebody should really go get it.";
+        }
+        endScore.textContent = state.score;
+
+        let best = 0;
+        try {
+          const res = await storageGet(HIGH_SCORE_KEY);
+          best = res ? Number(res.value) : 0;
+        } catch (e) { best = 0; }
+
+        if (state.score > best) {
+          best = state.score;
+          try { await storageSet(HIGH_SCORE_KEY, String(best)); } catch (e) { }
+        }
+        bestEl.textContent = best;
+
+        const LORE_CH1 = 'misfire:unlocked:feed-the-mountain:ch1';
+        const LORE_CH2 = 'misfire:unlocked:feed-the-mountain:ch2';
+        const newlyUnlocked = [];
+
+        const hadCh1 = !!(await storageGet(LORE_CH1));
+        await storageSet(LORE_CH1, '1');
+        if (!hadCh1) newlyUnlocked.push('Chapter One: The Thing In The Tunnels');
+
+        if (state.auditorTriggered) {
+          const hadCh2 = !!(await storageGet(LORE_CH2));
+          await storageSet(LORE_CH2, '1');
+          if (!hadCh2) newlyUnlocked.push('Chapter Two: Reconciliation');
+        }
+
+        if (newlyUnlocked.length) {
+          endSub.textContent += ' Field report declassified: ' + newlyUnlocked.join(', ') + '. Check the arcade archive.';
+        }
+
+        await updateLeaderboard(state.score);
+
+        endOverlay.classList.add('show');
+      }
+
+      async function updateLeaderboard(newScore) {
+        let board = [];
+        try {
+          const res = await storageGet(LEADERBOARD_KEY);
+          board = res ? JSON.parse(res.value) : [];
+        } catch (e) { board = []; }
+
+        const qualifies = board.length < 5 || newScore > Math.min(...board.map(b => b.score), Infinity);
+        if (qualifies && newScore > 0) {
+          let initials = 'YOU';
+          try {
+            const input = window.prompt('New personal best. Name this run (3 letters):', 'YOU');
+            if (input) initials = input.slice(0, 3).toUpperCase();
+          } catch (e) { }
+          board.push({ name: initials, score: newScore });
+          board.sort((a, b) => b.score - a.score);
+          board = board.slice(0, 5);
+          try { await storageSet(LEADERBOARD_KEY, JSON.stringify(board)); } catch (e) { }
+        }
+
+        if (board.length) {
+          leaderboardBox.style.display = 'block';
+          leaderboardRows.innerHTML = board.map((b, i) => `<div><span>${i + 1}. ${b.name}</span><span>${b.score}</span></div>`).join('');
+        } else {
+          leaderboardBox.style.display = 'none';
+        }
+      }
+
+      function tick() {
+        state.elapsed += 200;
+        // difficulty ramp
+        state.spawnInterval = Math.max(380, 950 - state.elapsed / 40);
+        state.itemLifespan = Math.max(1500, 3200 - state.elapsed / 25) * state.speedMult;
+        // the mountain learns to mimic chocolate the longer the shift runs
+        state.decoyChance = Math.min(0.4, state.elapsed / 150000);
+        // ambient hunger creep so idling always loses eventually
+        state.hunger = Math.min(100, state.hunger + 0.35);
+        // focus mode buys reaction time but the rest of the bunker gets neglected
+        if (state.focusActive) {
+          state.hunger = Math.min(100, state.hunger + 0.4);
+        }
+        if (!state.auditorTriggered && state.elapsed >= 20000) {
+          state.auditorTriggered = true;
+          triggerAuditorEvent();
+        }
+        updateFocusButton();
+        updateMeters();
+        checkGameOver();
+      }
+
+      function updateFocusButton() {
+        if (!state) {
+          focusBtn.disabled = false;
+          focusBtn.textContent = 'Focus (Ready)';
+          return;
+        }
+        if (state.focusActive) {
+          focusBtn.disabled = true;
+          focusBtn.textContent = 'Focus (Active)';
+          return;
+        }
+        const remaining = FOCUS_COOLDOWN_MS - (state.elapsed - state.focusLastUsed);
+        if (remaining > 0) {
+          focusBtn.disabled = true;
+          focusBtn.textContent = 'Focus (' + Math.ceil(remaining / 1000) + 's)';
+        } else {
+          focusBtn.disabled = false;
+          focusBtn.textContent = 'Focus (Ready)';
+        }
+      }
+
+      function activateFocus() {
+        if (!state || !state.running || state.focusActive) return;
+        const remaining = FOCUS_COOLDOWN_MS - (state.elapsed - state.focusLastUsed);
+        if (remaining > 0) return;
+
+        state.focusActive = true;
+        state.focusLastUsed = state.elapsed;
+        field.classList.add('focus-mode');
+        setTicker(pickQuip('focus_on'));
+        updateFocusButton();
+
+        setTimeout(() => {
+          field.classList.remove('focus-mode');
+          if (state && state.running) {
+            state.focusActive = false;
+            setTicker(pickQuip('focus_off'));
+            updateFocusButton();
+          }
+        }, FOCUS_DURATION_MS);
+      }
+
+      function rumble() {
+        if (!state || !state.running) return;
+        state.panic = Math.min(100, state.panic + 5);
+        setTicker(pickQuip('rumble'));
+        updateMeters();
+        checkGameOver();
+      }
+
+      function startGame() {
+        resetState();
+        tickerQueue = [];
+        clearTimeout(tickerTimer);
+        tickerTimer = null;
+        startOverlay.classList.remove('show');
+        endOverlay.classList.remove('show');
+        updateMeters();
+        setTicker("Shift started. Stay calm. Enjoy the chocolate.");
+
+        function loopSpawn() {
+          if (!state || !state.running) return;
+          spawnItem();
+          spawnTimer = setTimeout(loopSpawn, state.spawnInterval);
+        }
+        loopSpawn();
+
+        tickTimer = setInterval(tick, 200);
+        rumbleTimer = setInterval(rumble, 6000);
+      }
+
+      startBtn.addEventListener('click', startGame);
+      restartBtn.addEventListener('click', startGame);
+      focusBtn.addEventListener('click', activateFocus);
+
+      startOverlay.classList.add('show');
+      updateFocusButton();
+
+      (async function loadBest() {
+        try {
+          const res = await storageGet(HIGH_SCORE_KEY);
+          bestEl.textContent = res ? res.value : 0;
+        } catch (e) { bestEl.textContent = 0; }
+      })();
+
+      (async function loadLeaderboardOnBoot() {
+        let board = [];
+        try {
+          const res = await storageGet(LEADERBOARD_KEY);
+          board = res ? JSON.parse(res.value) : [];
+        } catch (e) { board = []; }
+        if (board.length) {
+          leaderboardBox.style.display = 'block';
+          leaderboardRows.innerHTML = board.map((b, i) => `<div><span>${i + 1}. ${b.name}</span><span>${b.score}</span></div>`).join('');
+        }
+      })();
+
+      document.getElementById('mf-mute-btn').addEventListener('click', function () {
+        this.textContent = this.textContent === 'Sound: Off' ? 'Sound: Also Off' : 'Sound: Off';
+      });
+    })();
+  </script>
+</body>
+
+</html>

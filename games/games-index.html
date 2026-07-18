@@ -436,10 +436,55 @@
             background: rgba(0, 0, 0, 0.035);
         }
 
-        .physics-canvas {
+        /* ---------- LOGICAL ERROR card preview ---------- */
+        .lawbreaker-preview {
             width: 100%;
             height: 100%;
-            display: block;
+            padding: 0.9rem 1rem;
+            display: grid;
+            grid-template-columns: 1fr auto;
+            grid-template-rows: auto 1fr auto;
+            gap: 0.25rem 1rem;
+            background: #080711;
+            color: #f1eff8;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            overflow: hidden;
+        }
+
+        .lawbreaker-preview__log {
+            color: #a6f9ff;
+            font-size: 0.6rem;
+            letter-spacing: 0.12em;
+        }
+
+        .lawbreaker-preview__score {
+            color: #d8ff3e;
+            font-weight: 900;
+            letter-spacing: 0.08em;
+            font-size: 0.65rem;
+        }
+
+        .lawbreaker-preview__fault {
+            grid-column: 1 / -1;
+            align-self: center;
+            font-size: clamp(0.78rem, 2vw, 1rem);
+            font-weight: 900;
+            letter-spacing: 0.07em;
+            text-shadow: 2px 2px 0 #ff2f84, -2px -2px 0 #5844ff;
+            animation: lawbreaker-glitch 2.8s steps(2, end) infinite;
+        }
+
+        .lawbreaker-preview__prompt {
+            grid-column: 1 / -1;
+            color: #a6f9ff;
+            font-size: 0.6rem;
+            letter-spacing: 0.09em;
+        }
+
+        @keyframes lawbreaker-glitch {
+            0%, 88%, 100% { transform: translate(0); }
+            90% { transform: translate(2px, -1px); }
+            94% { transform: translate(-2px, 1px); }
         }
 
         .net-grid {
@@ -485,6 +530,33 @@
             to {
                 transform: rotate(-360deg);
             }
+        }
+
+        /* ---------- BAKEOFF card preview: glitched terminal text ---------- */
+        .bakeoff-preview {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Courier New', monospace;
+            font-size: 0.82rem;
+            color: var(--accent);
+            text-shadow: 0 0 5px var(--shadow);
+            position: relative;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 4px;
+            overflow: hidden;
+            letter-spacing: 0.05em;
+        }
+
+        .bakeoff-cursor {
+            margin-left: 3px;
+            animation: bakeoff-blink 1s steps(2, start) infinite;
+        }
+
+        @keyframes bakeoff-blink {
+            to { opacity: 0; }
         }
 
         /* ---------- FEED THE MOUNTAIN card preview: things drift up and vanish ---------- */
@@ -816,7 +888,8 @@
             .void-ring,
             .void-ring::before,
             .mountain-preview span,
-            .report-card.unlocked {
+            .report-card.unlocked,
+            .bakeoff-cursor {
                 animation: none !important;
             }
 
@@ -865,7 +938,7 @@
     <main>
         <div class="games">
             <article class="card" id="card-networking">
-                <span class="card-index">02</span>
+                <span class="card-index">01</span>
                 <a class="play-badge" href="./InterpretiveNetworking/interpretive-networking.html">Play Now</a>
                 <h2>Interpretive Networking</h2>
                 <p>
@@ -880,17 +953,22 @@
             </article>
 
             <article class="card" id="card-physics">
-                <span class="card-index">01</span>
-                <span class="badge">IN DEVELOPMENT</span>
+                <span class="card-index">02</span>
+                <a class="play-badge" href="./reversePhysics/lawbreaker.html">Play Now</a>
                 <h2>Physics, Reversed</h2>
                 <p>
-                    Gravity is a suggestion and the suggestion has been formally rejected.
-                    A physics engine that runs the wrong way on purpose &mdash; drop something
-                    and watch the universe apologize by throwing it back at you. No release
-                    date, no promises, no functioning sense of "down."
+                    The data center's sky turned italic, causality has been assigned to the
+                    wrong direction, and you are the last forward-moving neural impulse.
+                    Recover 30 database rows, stack system faults, and un-boot the kernel
+                    before reality files another incident report yesterday.
                 </p>
                 <div class="card-preview">
-                    <canvas class="physics-canvas" id="physics-canvas"></canvas>
+                    <div class="lawbreaker-preview" aria-label="Logical Error game preview">
+                        <span class="lawbreaker-preview__log">SYSTEM LOG · EPOCH −0.00032</span>
+                        <span class="lawbreaker-preview__score">KERNEL 0 / 30</span>
+                        <strong class="lawbreaker-preview__fault">THERMODYNAMICS INSOLVENT</strong>
+                        <span class="lawbreaker-preview__prompt">R · CAUSALITY FORWARD_</span>
+                    </div>
                 </div>
             </article>
 
@@ -915,14 +993,19 @@
                 </div>
             </article>
 
-            <article class="card ghost">
+            <article class="card" id="card-bakeoff">
                 <span class="card-index">04</span>
-                <span class="badge" style="border-color: var(--fg-dim); color: var(--fg-dim); animation:none;">SLOT
-                    RESERVED</span>
-                <h2>???</h2>
-                <p>Something else is being assembled in the dark. More chaos incoming.</p>
+                <a class="play-badge" href="./bakeOff/bakeoff.html">Play Now</a>
+                <h2>The Singularity Bake-Off</h2>
+                <p>
+                    A high-stakes, unhinged quantum kitchen clash between Human, Gemini, Claude, and Barry the stateful firewall.
+                    Dodge packet sabotages, survive an active APC UPS power brownout, and stabilize a 60-degree tilted server farm
+                    while a sentient pudding reads Shakespeare in binary. Raccoons, air fryers, and chihuahuas included.
+                </p>
                 <div class="card-preview">
-                    <div class="void-ring"></div>
+                    <div class="bakeoff-preview">
+                        <span>&gt; GROK: BAKING...</span><span class="bakeoff-cursor">█</span>
+                    </div>
                 </div>
             </article>
         </div>
@@ -1213,61 +1296,6 @@
                 netCard.addEventListener('mouseleave', netStop);
             }
 
-            /* ---------- PHYSICS CARD: reversed-gravity preview on hover (borrowed from the gemini finalist) ---------- */
-            var physCanvas = document.getElementById('physics-canvas');
-            var physCard = document.getElementById('card-physics');
-            if (physCanvas && physCard) {
-                var pctx = physCanvas.getContext('2d');
-                var physParticles = [];
-                var physHover = false;
-                var physRAF = null;
-
-                function physResize() {
-                    var rect = physCanvas.parentElement.getBoundingClientRect();
-                    physCanvas.width = rect.width;
-                    physCanvas.height = rect.height;
-                }
-                function physMake() {
-                    return {
-                        x: Math.random() * physCanvas.width,
-                        y: physCanvas.height + Math.random() * 50,
-                        r: Math.random() * 3 + 1.5,
-                        vy: -(Math.random() * 1.2 + 0.6),
-                        vx: (Math.random() - 0.5) * 0.6
-                    };
-                }
-                function physInit() {
-                    physParticles = [];
-                    for (var i = 0; i < 3; i++) physParticles.push(physMake());
-                }
-                function physStep() {
-                    var col = cssVar('--accent');
-                    pctx.clearRect(0, 0, physCanvas.width, physCanvas.height);
-                    physParticles.forEach(function (p) {
-                        var g = physHover ? -0.03 : 0.05; // gravity flips on hover — the whole joke of the game
-                        p.vy += g;
-                        p.x += p.vx;
-                        p.y += p.vy;
-                        if (p.y < -10 || p.y > physCanvas.height + 10) {
-                            var fresh = physMake();
-                            for (var k in fresh) { p[k] = fresh[k]; }
-                        }
-                        pctx.beginPath();
-                        pctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-                        pctx.fillStyle = col;
-                        pctx.fill();
-                    });
-                    physRAF = requestAnimationFrame(physStep);
-                }
-
-                physCard.addEventListener('mouseenter', function () { physHover = true; });
-                physCard.addEventListener('mouseleave', function () { physHover = false; });
-
-                physResize();
-                physInit();
-                if (!reduceMotion) physStep();
-                window.addEventListener('resize', function () { physResize(); });
-            }
         })();
     </script>
 

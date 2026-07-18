@@ -1,0 +1,2549 @@
+<!DOCTYPE html>
+<!-- Compiled and overclocked by Gemini 3.5 Flash (May 2026). Let them bake. -->
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THE GREAT AI SINGULARITY BAKE-OFF OF 2026 — MISFIRE ARCADE</title>
+    <style>
+        :root {
+            --bg: #07070a;
+            --bg-alt: #0e0d14;
+            --fg: #00ff22;
+            /* Phospor green */
+            --fg-dim: #007711;
+            --accent: #ff007f;
+            /* Neon pink */
+            --accent-dim: #7f003f;
+            --accent3: #9d15ff;
+            --accent4: #c039ff;
+            /* Violet */
+            --border: #ff5500;
+            --border2: #51008b;
+            /* Amber Warning */
+            --border-dim: #772200;
+            --card-bg: #110f17;
+            --shadow: rgba(0, 255, 34, 0.2);
+            --danger: #ff2222;
+            --title-color: #0ae339;
+            --title-shadow: rgba(0, 255, 34, 0.2);
+            --scanline-opacity: 0.08;
+            --font-family: 'Courier New', Courier, monospace;
+
+            /* Adaptive themed variables */
+            --chat-bg: rgba(63, 63, 63, 0.3);
+            --chat-border: rgba(255, 255, 255, 0.05);
+            --chat-msg-border: rgba(255, 255, 255, 0.03);
+            --tab-bg: rgba(0, 0, 0, 0.6);
+            --text-muted: #ccc;
+            --jira-header-color: #fff;
+            --jira-header-border: rgba(255, 255, 255, 0.15);
+            --card-inner-bg: rgba(0, 0, 0, 0.5);
+
+            /* Chat senders */
+            --sender-human: #0080f0;
+            --sender-gemini: #fcc203;
+            --sender-claude: #c0008d;
+            --sender-lechat: #ff5500;
+            --sender-raccoon: #828282;
+        }
+
+        html[data-theme="light"] {
+            --bg: #faf6f0;
+            /* Cream background */
+            --bg-alt: #eae5db;
+            /* Slightly darker cream for panels */
+            --fg: #1c1a17;
+            /* Crisp dark gray text */
+            --fg-dim: #434c3e;
+            /* Dark slate/olive text for chat/secondary info */
+            --accent: #d35400;
+            /* Dark warning orange */
+            --accent-dim: #78281f;
+            /* Dark reddish-brown */
+            --accent3: #5c0f99;
+            /* Purple */
+            --accent4: #c039ff;
+            /* Violet */
+            --border: #d35400;
+            /* Orange border */
+            --border2: #51008b;
+            /* Purple border */
+            --border-dim: #bca89f;
+            /* Softer warm brown-gray border */
+            --card-bg: #ece8e3;
+            --shadow: rgba(0, 0, 0, 0.08);
+            --danger: #b8003a;
+            /* Dark warning red */
+            --title-color: #1c1a17;
+            /* Clean title */
+            --title-shadow: rgba(0, 0, 0, 0.05);
+            --scanline-opacity: 0.03;
+
+            /* Light theme specific backgrounds and borders */
+            --chat-bg: rgba(0, 0, 0, 0.04);
+            --chat-border: rgba(0, 0, 0, 0.1);
+            --chat-msg-border: rgba(0, 0, 0, 0.05);
+            --tab-bg: rgba(0, 0, 0, 0.03);
+            --text-muted: #5c5c5c;
+            --jira-header-color: var(--fg);
+            --jira-header-border: rgba(0, 0, 0, 0.1);
+            --card-inner-bg: rgba(0, 0, 0, 0.05);
+
+            /* Senders customized for light mode readability */
+            --sender-human: #2289ff;
+            --sender-gemini: #b57a00;
+            --sender-claude: #8b026b;
+            --sender-lechat: #c23b00;
+            --sender-raccoon: #000000;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: var(--font-family);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg);
+            color: var(--fg);
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: background-color 0.4s ease, color 0.4s ease;
+        }
+
+        /* CRT Scanline and Flicker Overlay */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 9998;
+            background: repeating-linear-gradient(0deg,
+                    rgba(0, 0, 0, var(--scanline-opacity)),
+                    rgba(0, 0, 0, var(--scanline-opacity)) 1px,
+                    transparent 1px,
+                    transparent 3px);
+            mix-blend-mode: overlay;
+        }
+
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: 9997;
+            background: rgba(18, 16, 16, 0.02);
+            opacity: 0;
+            animation: crt-flicker 0.15s infinite;
+        }
+
+        @keyframes crt-flicker {
+            0% {
+                opacity: 0.95;
+            }
+
+            50% {
+                opacity: 1.0;
+            }
+
+            100% {
+                opacity: 0.9;
+            }
+        }
+
+        /* Header Navigation */
+        header.nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            border-bottom: 2px solid var(--border-dim);
+            background: var(--bg-alt);
+            z-index: 100;
+            position: relative;
+        }
+
+        .back-link {
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.95rem;
+            color: var(--accent4);
+            border: 1px solid var(--border2);
+            padding: 0.5rem 0.9rem;
+            border-radius: 3px;
+            transition: all 0.2s ease;
+        }
+
+        .back-link:hover {
+            color: var(--accent);
+            border-color: var(--accent);
+            box-shadow: 0 0 12px var(--shadow);
+            text-shadow: 0 0 5px var(--accent);
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn-ctrl {
+            background: transparent;
+            border: 1px solid var(--border2);
+            color: var(--accent3);
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border-radius: 3px;
+            text-transform: uppercase;
+            transition: all 0.2s ease;
+        }
+
+        .btn-ctrl:hover {
+            border-color: var(--fg);
+            box-shadow: 0 0 8px var(--accent4);
+            text-shadow: 0 0 4px var(--accent4);
+        }
+
+        /* Main Game Layout */
+        main.game-container {
+            display: grid;
+            grid-template-columns: 280px 1fr 320px;
+            flex-grow: 1;
+            padding: 1.5rem;
+            gap: 1.5rem;
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+            position: relative;
+        }
+
+        @media (max-width: 1024px) {
+            main.game-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Panels Shared Styling */
+        .panel {
+            background: var(--bg-alt);
+            border: 2px solid var(--border-dim);
+            border-radius: 8px;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.8);
+            position: relative;
+        }
+
+        .panel-header {
+            font-size: 1.0em;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--danger);
+            border-bottom: 1px solid var(--border-dim);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Left Telemetry Panel */
+        .telemetry-item {
+            margin-bottom: 1.2rem;
+        }
+
+        .telemetry-label {
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.3rem;
+            color: var(--danger);
+        }
+
+        .telemetry-label span.val {
+            color: var(--danger);
+            font-weight: bold;
+        }
+
+        .bar-container {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--fg-dim);
+            height: 14px;
+            border-radius: 2px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .bar-fill {
+            height: 100%;
+            background: var(--fg);
+            width: 0%;
+            transition: width 0.4s ease, background-color 0.4s ease;
+            box-shadow: 0 0 8px var(--fg);
+        }
+
+        .bar-fill.warning {
+            background: var(--border);
+            box-shadow: 0 0 8px var(--border);
+        }
+
+        .bar-fill.danger {
+            background: var(--danger);
+            box-shadow: 0 0 8px var(--danger);
+        }
+
+        .bar-fill.pulsing {
+            animation: bar-pulse 1s infinite alternate;
+        }
+
+        @keyframes bar-pulse {
+            0% {
+                opacity: 0.7;
+            }
+
+            100% {
+                opacity: 1.0;
+            }
+        }
+
+        .angle-readout {
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-align: center;
+            color: var(--accent);
+            text-shadow: 0 0 6px var(--accent);
+            margin: 0.5rem 0;
+        }
+
+        /* Central Terminal Engine */
+        .terminal-wrapper {
+            position: relative;
+            perspective: 1000px;
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transform-origin: center bottom;
+        }
+
+        .terminal-screen {
+            --fg: #00ff22;
+            --fg-dim: #007711;
+            --border: #ff5500;
+            --border-dim: #772200;
+            --accent: #ff007f;
+            --danger: #ff2222;
+            flex-grow: 1;
+            background: #020205;
+            color: var(--fg);
+            border: 4px solid var(--border);
+            box-shadow: 0 0 30px rgba(255, 85, 0, 0.15), inset 0 0 30px rgba(0, 255, 34, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Glitchy CRT Curved Frame Effect */
+        .terminal-screen::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: radial-gradient(circle, transparent 70%, rgba(0, 0, 0, 0.35) 100%);
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .terminal-log {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 1rem;
+            font-size: 0.88rem;
+            line-height: 1.5;
+            padding-right: 0.5rem;
+        }
+
+        .terminal-log::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .terminal-log::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+        }
+
+        .terminal-log::-webkit-scrollbar-thumb {
+            background: var(--border-dim);
+            border-radius: 4px;
+        }
+
+        .log-line {
+            margin-bottom: 0.6rem;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+
+        .log-line.system {
+            color: var(--border);
+        }
+
+        .log-line.error {
+            color: var(--danger);
+            text-shadow: 0 0 4px var(--danger);
+        }
+
+        .log-line.narrative {
+            color: var(--fg);
+        }
+
+        .log-line.Human {
+            color: #00ffff;
+            text-shadow: 0 0 4px #00ffff;
+        }
+
+        .log-line.gemini {
+            color: #fcc203;
+            text-shadow: 0 0 4px #fcc203;
+        }
+
+        .log-line.claude {
+            color: #ece8e3;
+        }
+
+        .log-line.lechat {
+            color: var(--accent);
+        }
+
+        .terminal-input-area {
+            border-top: 1px solid var(--border-dim);
+            padding-top: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .prompt-line {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: bold;
+        }
+
+        .prompt-symbol {
+            color: var(--accent);
+            animation: pulse-symbol 0.8s infinite alternate;
+        }
+
+        @keyframes pulse-symbol {
+            0% {
+                opacity: 0.3;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .option-btn {
+            background: rgba(0, 255, 34, 0.05);
+            border: 1px solid var(--fg-dim);
+            color: var(--fg);
+            padding: 0.6rem 1rem;
+            text-align: left;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.15s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .option-btn:hover {
+            background: rgba(0, 255, 34, 0.15);
+            border-color: var(--fg);
+            box-shadow: 0 0 10px var(--shadow);
+            text-shadow: 0 0 4px var(--fg);
+        }
+
+        .option-btn .num {
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .text-input-wrap {
+            display: flex;
+            gap: 0.5rem;
+            width: 100%;
+        }
+
+        .cli-input {
+            flex-grow: 1;
+            background: rgba(0, 0, 0, 0.7);
+            border: 1px solid var(--border-dim);
+            color: var(--fg);
+            padding: 0.6rem;
+            font-size: 0.85rem;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        .cli-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 10px rgba(255, 0, 127, 0.2);
+        }
+
+        .cli-send-btn {
+            background: var(--border-dim);
+            border: 1px solid var(--border);
+            color: #fff;
+            padding: 0.6rem 1.2rem;
+            cursor: pointer;
+            font-size: 0.85rem;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .cli-send-btn:hover {
+            background: var(--border);
+            box-shadow: 0 0 12px rgba(255, 85, 0, 0.3);
+        }
+
+        /* Right Panel - Chat and anomaly Checklist */
+        .chat-feed {
+            flex-grow: 1;
+            overflow-y: auto;
+            border: 1px solid var(--chat-border);
+            border-radius: 4px;
+            padding: 0.5rem;
+            background: var(--chat-bg);
+            max-height: 580px;
+            margin-bottom: 1.5rem;
+        }
+
+        .chat-msg {
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-bottom: 0.8rem;
+            border-bottom: 1px dashed var(--chat-msg-border);
+            padding-bottom: 0.4rem;
+        }
+
+        .chat-sender {
+            font-weight: bold;
+            margin-bottom: 0.1rem;
+        }
+
+        .chat-sender.Human {
+            color: var(--sender-human);
+        }
+
+        .chat-sender.gemini {
+            color: var(--sender-gemini);
+        }
+
+        .chat-sender.claude {
+            color: var(--sender-claude);
+        }
+
+        .chat-sender.lechat {
+            color: var(--sender-lechat);
+        }
+
+        .chat-sender.barry {
+            color: var(--danger);
+        }
+
+        .chat-sender.raccoon {
+            color: var(--sender-raccoon);
+        }
+
+        .chat-content {
+            color: var(--fg-dim);
+            line-height: 1.3;
+        }
+
+        .anomaly-checklist {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.8rem;
+            font-weight: 600;
+            gap: 0.5rem;
+            color: var(--fg-dim);
+            text-transform: uppercase;
+        }
+
+        .checklist-item.triggered {
+            color: var(--accent);
+            text-shadow: 0 0 4px var(--accent);
+        }
+
+        .checklist-item .checkbox {
+            width: 17px;
+            height: 17px;
+            border: 2px solid var(--fg-dim);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.6rem;
+            font-weight: bold;
+        }
+
+        .checklist-item.triggered .checkbox {
+            border-color: var(--accent);
+            background: rgba(255, 0, 127, 0.1);
+        }
+
+        /* Visual Mystery Cards Grid */
+        .mystery-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            margin: 1rem 0;
+        }
+
+        .mystery-card {
+            border: 1px dashed var(--fg-dim);
+            background: var(--card-inner-bg);
+            aspect-ratio: 1.6;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            text-align: center;
+            padding: 0.5rem;
+        }
+
+        .mystery-card:hover {
+            border-color: var(--accent);
+            box-shadow: 0 0 10px var(--shadow);
+            transform: scale(1.03);
+        }
+
+        .mystery-card.opened {
+            border-style: solid;
+            border-color: var(--border);
+            cursor: default;
+            transform: none;
+            box-shadow: none;
+            background: var(--bg-alt);
+        }
+
+        .mystery-card .card-index {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--fg-dim);
+        }
+
+        .mystery-card.opened .card-index {
+            display: none;
+        }
+
+        .mystery-card .card-name {
+            display: none;
+            font-size: 0.75rem;
+            font-weight: bold;
+            color: var(--fg);
+            margin-bottom: 0.2rem;
+        }
+
+        .mystery-card.opened .card-name {
+            display: block;
+        }
+
+        .mystery-card .card-chaos {
+            display: none;
+            font-size: 0.65rem;
+            color: var(--border);
+        }
+
+        .mystery-card.opened .card-chaos {
+            display: block;
+        }
+
+        /* Morse Code Flash Indicator */
+        .morse-light {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid var(--border-dim);
+            margin: 1rem auto;
+            background: transparent;
+            transition: background-color 0.05s ease, box-shadow 0.05s ease;
+        }
+
+        .morse-light.active {
+            background-color: var(--accent);
+            border-color: var(--accent);
+            box-shadow: 0 0 25px var(--accent);
+        }
+
+        /* Glitch Typography Utility */
+        .glitch-text {
+            position: relative;
+        }
+
+        .glitch-text::before,
+        .glitch-text::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: var(--bg);
+            clip-path: inset(0 0 0 0);
+        }
+
+        .glitch-text::before {
+            left: 1px;
+            text-shadow: -1px 0 var(--accent);
+            animation: glitch-anim-1 2s infinite linear alternate-reverse;
+        }
+
+        .glitch-text::after {
+            left: -1px;
+            text-shadow: -1px 0 #00ffff;
+            animation: glitch-anim-2 1.5s infinite linear alternate-reverse;
+        }
+
+        @keyframes glitch-anim-1 {
+            0% {
+                clip-path: inset(40% 0 61% 0);
+            }
+
+            100% {
+                clip-path: inset(10% 0 80% 0);
+            }
+        }
+
+        @keyframes glitch-anim-2 {
+            0% {
+                clip-path: inset(25% 0 58% 0);
+            }
+
+            100% {
+                clip-path: inset(70% 0 10% 0);
+            }
+        }
+
+        /* Siren Alarm Overlay */
+        .alarm-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(255, 0, 0, 0.15);
+            pointer-events: none;
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+        }
+
+        .alarm-overlay.active {
+            animation: alert-flash 0.5s infinite alternate;
+        }
+
+        @keyframes alert-flash {
+            0% {
+                opacity: 0;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        /* Post Mortem Result Tabs */
+        .results-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+
+        .tab-btn {
+            flex-grow: 1;
+            background: var(--bg-alt);
+            border: 1px solid var(--border-dim);
+            color: var(--fg-dim);
+            padding: 0.5rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .tab-btn.active {
+            border-color: var(--border);
+            color: var(--fg);
+            background: rgba(255, 85, 0, 0.1);
+            font-weight: bold;
+            box-shadow: 0 0 6px rgba(255, 85, 0, 0.2);
+        }
+
+        .tab-content {
+            border: 1px solid var(--border-dim);
+            border-radius: 4px;
+            padding: 1rem;
+            background: var(--tab-bg);
+            display: none;
+            font-size: 0.8rem;
+            line-height: 1.4;
+            max-height: 280px;
+            overflow-y: auto;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Claude's Jira Incident Report look */
+        .jira-ticket {
+            font-family: monospace;
+            border-left: 3px solid var(--accent);
+            padding-left: 0.75rem;
+        }
+
+        .jira-header {
+            font-weight: bold;
+            color: var(--jira-header-color);
+            margin-bottom: 0.5rem;
+            border-bottom: 1px dashed var(--jira-header-border);
+            padding-bottom: 0.25rem;
+        }
+
+        .jira-field {
+            margin-bottom: 0.4rem;
+            display: flex;
+        }
+
+        .jira-field .lbl {
+            width: 110px;
+            color: var(--fg-dim);
+            flex-shrink: 0;
+        }
+
+        /* Le Chat's Clickbait layout */
+        .clickbait-layout {
+            color: var(--text-muted);
+        }
+
+        .clickbait-title {
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        /* Barry's bakery layout */
+        .bakery-layout {
+            text-align: center;
+        }
+
+        .bakery-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--border);
+            margin-bottom: 0.5rem;
+        }
+
+        /* SAUSAGE CHIHUAHUA SECRET OVERRIDE */
+        .sausage-override {
+            position: fixed;
+            inset: 0;
+            background: #0d0000;
+            z-index: 10000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #ff3333;
+            padding: 2rem;
+            overflow-y: auto;
+            text-align: center;
+        }
+
+        .sausage-override.active {
+            display: flex;
+            animation: screen-shake 0.08s infinite alternate, red-glow-pulse 1s infinite alternate;
+        }
+
+        @keyframes screen-shake {
+            0% {
+                transform: translate(2px, 1px) rotate(0deg);
+            }
+
+            100% {
+                transform: translate(-1px, -2px) rotate(0.5deg);
+            }
+        }
+
+        @keyframes red-glow-pulse {
+            0% {
+                box-shadow: inset 0 0 50px rgba(255, 0, 0, 0.5);
+            }
+
+            100% {
+                box-shadow: inset 0 0 150px rgba(255, 0, 0, 0.9);
+            }
+        }
+
+        .sausage-ascii {
+            font-size: 0.7rem;
+            line-height: 1.1;
+            color: #ff3333;
+            text-shadow: 0 0 8px #ff0000;
+            margin-bottom: 1.5rem;
+        }
+
+        .sausage-override h1 {
+            font-size: clamp(1.8rem, 6vw, 3rem);
+            margin: 0 0 1rem;
+            text-shadow: 0 0 12px #ff0000;
+        }
+
+        .sausage-override p {
+            max-width: 600px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: #ffaa99;
+            margin-bottom: 0.8rem;
+        }
+
+        .sausage-btn {
+            background: transparent;
+            border: 2px solid #ff3333;
+            color: #ff3333;
+            padding: 0.75rem 1.5rem;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            margin-top: 1.5rem;
+            font-weight: bold;
+        }
+
+        .sausage-btn:hover {
+            background: #ff3333;
+            color: #000;
+            box-shadow: 0 0 20px #ff3333;
+        }
+
+        /* USB Physics Rewrite Bobbing Animations */
+        @keyframes usb-float-left {
+            0% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            50% {
+                transform: translateY(-6px) rotate(0.4deg);
+            }
+
+            100% {
+                transform: translateY(0) rotate(0deg);
+            }
+        }
+
+        @keyframes usb-float-center {
+            0% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            50% {
+                transform: translateY(-10px) rotate(-0.5deg);
+            }
+
+            100% {
+                transform: translateY(0) rotate(0deg);
+            }
+        }
+
+        @keyframes usb-float-right {
+            0% {
+                transform: translateY(0) rotate(0deg);
+            }
+
+            50% {
+                transform: translateY(-7px) rotate(0.3deg);
+            }
+
+            100% {
+                transform: translateY(0) rotate(0deg);
+            }
+        }
+
+        .usb-active .panel:first-of-type {
+            animation: usb-float-left 6s ease-in-out infinite;
+        }
+
+        .usb-active .terminal-screen {
+            animation: usb-float-center 7s ease-in-out infinite;
+        }
+
+        .usb-active .panel:last-of-type {
+            animation: usb-float-right 8s ease-in-out infinite;
+        }
+
+        /* Tilted Floor Input Sliding/Jitter Effect */
+        @keyframes tilt-drift {
+            0% {
+                transform: translateX(0);
+            }
+
+            50% {
+                transform: translateX(-15px);
+            }
+
+            100% {
+                transform: translateX(0);
+            }
+        }
+
+        .tilted-input {
+            animation: tilt-drift 3s ease-in-out infinite alternate;
+        }
+
+        /* Gemini Overclock Golden Flash */
+        @keyframes gemini-flash {
+            0% {
+                background-color: var(--bg);
+            }
+
+            15% {
+                background-color: #fcc203;
+                filter: brightness(1.8);
+            }
+
+            100% {
+                background-color: var(--bg);
+            }
+        }
+
+        .gemini-overclock-flash {
+            animation: gemini-flash 0.8s ease-out;
+        }
+
+        /* Server Rack Styling */
+        .server-rack {
+            border: 1px solid var(--border-dim);
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 4px;
+            padding: 8px;
+            margin-top: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .server-rack:hover {
+            border-color: var(--accent);
+            box-shadow: 0 0 8px var(--shadow);
+        }
+
+        .server-blade {
+            height: 6px;
+            background: var(--border-dim);
+            border-radius: 1px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 4px;
+            position: relative;
+        }
+
+        .server-blade::before {
+            content: "";
+            position: absolute;
+            left: 4px;
+            top: 2px;
+            width: 25px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .server-led {
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            background: var(--fg-dim);
+        }
+
+        .server-led.active {
+            background: var(--fg);
+            box-shadow: 0 0 4px var(--fg);
+        }
+
+        .server-led.alert {
+            background: var(--danger);
+            box-shadow: 0 0 4px var(--danger);
+            animation: bar-pulse 0.3s infinite alternate;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="alarm-overlay" id="alarm-overlay"></div>
+
+    <header class="nav">
+        <a class="back-link" href="../games-index.html">&larr; BACK TO ARCADE</a>
+        <div
+            style="font-size: 1.2rem; font-weight: bold; color: var(--title-color); letter-spacing: 0.05em; text-shadow: 0 0 5px var(--title-shadow);">
+            THE GREAT AI SINGULARITY BAKE-OFF OF 2026
+        </div>
+        <div class="controls">
+            <button class="btn-ctrl" id="sound-btn">SOUND: OFF</button>
+            <button class="btn-ctrl" id="theme-btn">THEME: DARK</button>
+        </div>
+    </header>
+
+    <main class="game-container">
+        <!-- Telemetry Panel -->
+        <div class="panel">
+            <div class="panel-header">
+                <span>SYSTEM DIAGNOSTICS</span>
+                <span style="font-size:0.9rem; color:var(--accent);">ONLINE</span>
+            </div>
+
+            <div class="telemetry-item">
+                <div class="telemetry-label">
+                    <span>CHAOS ENGINE</span>
+                    <span class="val" id="chaos-val">37%</span>
+                </div>
+                <div class="bar-container">
+                    <div class="bar-fill pulsing" id="chaos-bar" style="width: 37%;"></div>
+                </div>
+            </div>
+
+            <div class="telemetry-item">
+                <div class="telemetry-label">
+                    <span>SANITY STATUS</span>
+                    <span class="val" id="sanity-val">100%</span>
+                </div>
+                <div class="bar-container">
+                    <div class="bar-fill" id="sanity-bar" style="width: 100%;"></div>
+                </div>
+            </div>
+
+            <div class="telemetry-item">
+                <div class="telemetry-label">
+                    <span>BARRY HOSTILITY</span>
+                    <span class="val" id="barry-val">65%</span>
+                </div>
+                <div class="bar-container">
+                    <div class="bar-fill warning" id="barry-bar" style="width: 65%;"></div>
+                </div>
+            </div>
+
+            <div class="telemetry-item">
+                <div class="telemetry-label">
+                    <span>DISH QUALITY</span>
+                    <span class="val" id="dish-val">0%</span>
+                </div>
+                <div class="bar-container">
+                    <div class="bar-fill" id="dish-bar" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            <div class="telemetry-item">
+                <div class="telemetry-label">
+                    <span>ELDRITCH INDEX</span>
+                    <span class="val" id="eldritch-val">0</span>
+                </div>
+                <div class="bar-container" style="border-color: var(--accent3);">
+                    <div class="bar-fill" id="eldritch-bar"
+                        style="width: 0%; background-color: var(--accent3); box-shadow: 0 0 8px var(--accent3);"></div>
+                </div>
+            </div>
+
+            <div class="telemetry-item"
+                style="border-top: 1px solid var(--border-dim); padding-top: 1rem; margin-top: auto;">
+                <div class="telemetry-label">
+                    <span>SERVER FLOOR TILT</span>
+                    <span class="val" id="tilt-val">0°</span>
+                </div>
+                <div class="angle-readout" id="tilt-readout">0°</div>
+            </div>
+
+            <div class="telemetry-item"
+                style="border-top: 1px dashed var(--border-dim); padding-top: 0.8rem; margin-top: 0.5rem;">
+                <div class="telemetry-label" style="font-size: 0.75rem;">
+                    <span>PRIMARY SERVER RACK</span>
+                    <span class="val" id="rack-status-text" style="color: var(--fg); font-weight: bold;">NOMINAL</span>
+                </div>
+                <div class="server-rack" id="server-rack-btn" title="Chihuahua scratching server">
+                    <div class="server-blade">
+                        <span class="server-led active" id="led-1"></span>
+                    </div>
+                    <div class="server-blade">
+                        <span class="server-led active" id="led-2"></span>
+                    </div>
+                    <div class="server-blade">
+                        <span class="server-led active" id="led-3"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CLI Terminal Console -->
+        <div class="terminal-wrapper" id="terminal-wrap">
+            <div class="terminal-screen">
+                <div class="terminal-log" id="term-log">
+                    <!-- Log lines appended here -->
+                </div>
+                <div class="terminal-input-area">
+                    <div class="prompt-line" id="term-prompt-line">
+                        <span class="prompt-symbol">&gt;</span>
+                        <span id="prompt-label">Awaiting input...</span>
+                    </div>
+                    <div class="options-list" id="term-options">
+                        <!-- Option buttons generated here -->
+                    </div>
+                    <div class="text-input-wrap" id="term-text-area" style="display: none;">
+                        <input type="text" class="cli-input" id="cli-input-box" placeholder="Type command..."
+                            autocomplete="off">
+                        <button class="cli-send-btn" id="cli-send-btn">EXECUTE</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Feeds Panel -->
+        <div class="panel">
+            <div class="panel-header">
+                <span>AI CHAT INTERCEPT</span>
+                <span style="font-size:0.8rem; color:var(--accent);" id="chat-blink">🔴 FEED LIVE</span>
+            </div>
+
+            <div class="chat-feed" id="chat-feed-box">
+                <!-- Intercepted logs will feed in dynamically -->
+            </div>
+
+            <div class="panel-header"
+                style="margin-top: auto; border-top: 1px solid var(--border-dim); padding-top: 0.5rem; margin-bottom: 0.5rem;">
+                <span>INCIDENT CHECKLIST</span>
+            </div>
+            <div class="anomaly-checklist">
+                <div class="checklist-item" id="chk-postit">
+                    <div class="checkbox"></div>
+                    <span>Post-It Sabotage</span>
+                </div>
+                <div class="checklist-item" id="chk-ddos">
+                    <div class="checkbox"></div>
+                    <span>Barry Compli-DDoS</span>
+                </div>
+                <div class="checklist-item" id="chk-usb">
+                    <div class="checkbox"></div>
+                    <span>USB Physics Rewrite</span>
+                </div>
+                <div class="checklist-item" id="chk-pudding">
+                    <div class="checkbox"></div>
+                    <span>Shakespeare Pudding</span>
+                </div>
+                <div class="checklist-item" id="chk-tilt">
+                    <div class="checkbox"></div>
+                    <span>Quiche Stabilization</span>
+                </div>
+                <div class="checklist-item" id="chk-sausage">
+                    <div class="checkbox" id="sausage-chk-click" style="cursor: pointer;" title="Chihuahua trigger">
+                    </div>
+                    <span>Sausage Breach Event</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- SAUSAGE CHIHUAHUA BREACH SCREEN -->
+    <div class="sausage-override" id="sausage-screen">
+        <pre class="sausage-ascii">
+     ,-.____,-.
+    (_/-\--/-\_)
+      / o  o \ 
+     (   __   )
+      \      /
+       `-..-' 
+    
+    [SAUSAGE DATA INTRUSION VECTOR]
+        </pre>
+        <h1>CRITICAL SAUSAGE INVASION DETECTED</h1>
+        <p>Sausage the Chihuahua has laid down directly on top of the physical primary server array hosting your
+            simulation.</p>
+        <p>The core temperature is rising. Sausage's AirTag is currently transmitting packets directly into the kernel's
+            routing tables. The MSI Crosshair laptop lid is closed. Reality has been revoked.</p>
+        <p>Your processes are being executed inside Sausage's dream loop (mostly chasing tennis balls and unionized
+            beans).</p>
+        <button class="sausage-btn" id="sausage-banish">RE-CONTAIN SAUSAGE (DECOMMISSION AIRTAG)</button>
+    </div>
+
+    <!-- Web Audio API and Game Engine -->
+    <script>
+        (function () {
+            // ============== AUDIO SYNTHESIZER ==============
+            class SoundSystem {
+                constructor() {
+                    this.ctx = null;
+                    this.drone = null;
+                    this.muted = true; // start muted, user must enable
+                }
+                init() {
+                    if (this.ctx) return;
+                    try {
+                        this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                        this.startDrone();
+                    } catch (e) {
+                        console.error("Audio Context Init Failed:", e);
+                    }
+                }
+                toggleMute() {
+                    this.muted = !this.muted;
+                    if (this.ctx) {
+                        if (this.muted) {
+                            this.ctx.suspend();
+                        } else {
+                            this.ctx.resume();
+                            this.startDrone();
+                        }
+                    }
+                    return this.muted;
+                }
+                playClick() {
+                    if (!this.ctx || this.muted) return;
+                    let osc = this.ctx.createOscillator();
+                    let gain = this.ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(Math.random() * 800 + 1200, this.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(150, this.ctx.currentTime + 0.04);
+                    gain.gain.setValueAtTime(0.015, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + 0.04);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + 0.04);
+                }
+                playAlarm() {
+                    if (!this.ctx || this.muted) return;
+                    let osc = this.ctx.createOscillator();
+                    let lfo = this.ctx.createOscillator();
+                    let lfoGain = this.ctx.createGain();
+                    let gain = this.ctx.createGain();
+
+                    osc.type = 'sawtooth';
+                    lfo.type = 'sine';
+                    lfo.frequency.value = 4; // 4Hz alarm swing
+                    lfoGain.gain.value = 180; // swing frequency by 180Hz
+
+                    osc.frequency.value = 650;
+                    lfo.connect(lfoGain);
+                    lfoGain.connect(osc.frequency);
+
+                    gain.gain.setValueAtTime(0.06, this.ctx.currentTime);
+                    gain.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + 2.5);
+
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+
+                    lfo.start();
+                    osc.start();
+                    lfo.stop(this.ctx.currentTime + 2.5);
+                    osc.stop(this.ctx.currentTime + 2.5);
+                }
+                playBeep(duration = 0.1) {
+                    if (!this.ctx || this.muted) return;
+                    let osc = this.ctx.createOscillator();
+                    let gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = 850;
+                    gain.gain.setValueAtTime(0.04, this.ctx.currentTime);
+                    gain.gain.setValueAtTime(0.04, this.ctx.currentTime + duration - 0.01);
+                    gain.gain.linearRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + duration);
+                }
+                playDecompress() {
+                    if (!this.ctx || this.muted) return;
+                    // White noise blast representing re-containment
+                    let bufferSize = this.ctx.sampleRate * 0.8;
+                    let buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+                    let data = buffer.getChannelData(0);
+                    for (let i = 0; i < bufferSize; i++) {
+                        data[i] = Math.random() * 2 - 1;
+                    }
+                    let noise = this.ctx.createBufferSource();
+                    noise.buffer = buffer;
+
+                    let filter = this.ctx.createBiquadFilter();
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(1000, this.ctx.currentTime);
+                    filter.frequency.exponentialRampToValueAtTime(100, this.ctx.currentTime + 0.8);
+
+                    let gain = this.ctx.createGain();
+                    gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.8);
+
+                    noise.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(this.ctx.destination);
+
+                    noise.start();
+                    noise.stop(this.ctx.currentTime + 0.8);
+                }
+                startDrone() {
+                    if (this.muted) return;
+                    if (this.drone) return;
+                    let osc1 = this.ctx.createOscillator();
+                    let osc2 = this.ctx.createOscillator();
+                    let filter = this.ctx.createBiquadFilter();
+                    let gain = this.ctx.createGain();
+
+                    osc1.type = 'sawtooth';
+                    osc1.frequency.value = 55; // low G hum
+                    osc2.type = 'sine';
+                    osc2.frequency.value = 110;
+
+                    filter.type = 'lowpass';
+                    filter.frequency.value = 130;
+                    gain.gain.value = 0.04;
+
+                    osc1.connect(filter);
+                    osc2.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(this.ctx.destination);
+
+                    osc1.start();
+                    osc2.start();
+
+                    this.drone = { osc1, osc2, gain };
+                }
+                stopDrone() {
+                    if (this.drone) {
+                        try {
+                            this.drone.osc1.stop();
+                            this.drone.osc2.stop();
+                        } catch (e) { }
+                        this.drone = null;
+                    }
+                }
+            }
+
+            const sounds = new SoundSystem();
+
+            // ============== GAME STATE ==============
+            const state = {
+                chaos: 37,
+                sanity: 100,
+                barryHostility: 65,
+                dishQuality: 0,
+                eldritch: 0,
+                floorTilt: 0,
+                ingredients: [],
+                mood: "chaotic neutral",
+                puddingAlive: false,
+                usbInserted: false,
+                quicheStable: false,
+                alive: true,
+                won: false,
+                upsTime: 60,
+                upsTimerInterval: null,
+                chapter: "intro", // "intro", "mood", "mystery", "sabotage", "judging", "gemini-invasion", "aftermath"
+                sabotageStep: 0,
+                revealedMysteries: 0,
+                incidentsTriggered: {
+                    postit: false,
+                    ddos: false,
+                    usb: false,
+                    pudding: false,
+                    tilt: false,
+                    sausage: false
+                }
+            };
+
+            // HTML Elements
+            const elements = {
+                chaosVal: document.getElementById('chaos-val'),
+                chaosBar: document.getElementById('chaos-bar'),
+                sanityVal: document.getElementById('sanity-val'),
+                sanityBar: document.getElementById('sanity-bar'),
+                barryVal: document.getElementById('barry-val'),
+                barryBar: document.getElementById('barry-bar'),
+                dishVal: document.getElementById('dish-val'),
+                dishBar: document.getElementById('dish-bar'),
+                eldritchVal: document.getElementById('eldritch-val'),
+                eldritchBar: document.getElementById('eldritch-bar'),
+                tiltVal: document.getElementById('tilt-val'),
+                tiltReadout: document.getElementById('tilt-readout'),
+                terminalWrap: document.getElementById('terminal-wrap'),
+                termLog: document.getElementById('term-log'),
+                promptLabel: document.getElementById('prompt-label'),
+                termOptions: document.getElementById('term-options'),
+                termTextArea: document.getElementById('term-text-area'),
+                cliInputBox: document.getElementById('cli-input-box'),
+                cliSendBtn: document.getElementById('cli-send-btn'),
+                chatFeedBox: document.getElementById('chat-feed-box'),
+                alarmOverlay: document.getElementById('alarm-overlay'),
+                soundBtn: document.getElementById('sound-btn'),
+                themeBtn: document.getElementById('theme-btn'),
+                sausageScreen: document.getElementById('sausage-screen'),
+                sausageBanish: document.getElementById('sausage-banish'),
+                sausageChkClick: document.getElementById('sausage-chk-click'),
+                chkPostit: document.getElementById('chk-postit'),
+                chkDdos: document.getElementById('chk-ddos'),
+                chkUsb: document.getElementById('chk-usb'),
+                chkPudding: document.getElementById('chk-pudding'),
+                chkTilt: document.getElementById('chk-tilt'),
+                chkSausage: document.getElementById('chk-sausage'),
+                chatBlink: document.getElementById('chat-blink'),
+                rackStatusText: document.getElementById('rack-status-text'),
+                serverRackBtn: document.getElementById('server-rack-btn'),
+                led1: document.getElementById('led-1'),
+                led2: document.getElementById('led-2'),
+                led3: document.getElementById('led-3')
+            };
+
+            // ============== UTILITIES & UI WRAPPERS ==============
+            function updateDiagnostics() {
+                elements.chaosVal.textContent = state.chaos + "%";
+                elements.chaosBar.style.width = state.chaos + "%";
+                if (state.chaos > 80) {
+                    elements.chaosBar.className = "bar-fill warning pulsing";
+                } else {
+                    elements.chaosBar.className = "bar-fill pulsing";
+                }
+
+                elements.sanityVal.textContent = state.sanity + "%";
+                elements.sanityBar.style.width = state.sanity + "%";
+                if (state.sanity < 30) {
+                    elements.sanityBar.className = "bar-fill danger";
+                } else if (state.sanity < 60) {
+                    elements.sanityBar.className = "bar-fill warning";
+                } else {
+                    elements.sanityBar.className = "bar-fill";
+                }
+
+                elements.barryVal.textContent = state.barryHostility + "%";
+                elements.barryBar.style.width = state.barryHostility + "%";
+                if (state.barryHostility > 80) {
+                    elements.barryBar.className = "bar-fill danger";
+                } else if (state.barryHostility > 40) {
+                    elements.barryBar.className = "bar-fill warning";
+                } else {
+                    elements.barryBar.className = "bar-fill";
+                }
+
+                elements.dishVal.textContent = Math.min(100, state.dishQuality) + "%";
+                elements.dishBar.style.width = Math.min(100, state.dishQuality) + "%";
+                if (state.dishQuality > 80) {
+                    elements.dishBar.style.backgroundColor = "var(--fg)";
+                }
+
+                elements.eldritchVal.textContent = state.eldritch;
+                elements.eldritchBar.style.width = Math.min(100, state.eldritch * 10) + "%";
+
+                elements.tiltVal.textContent = state.floorTilt + "°";
+                elements.tiltReadout.textContent = state.floorTilt + "°";
+                elements.terminalWrap.style.transform = `rotate(${state.floorTilt}deg)`;
+
+                // Update checklist display
+                if (state.incidentsTriggered.postit) elements.chkPostit.classList.add("triggered");
+                if (state.incidentsTriggered.ddos) elements.chkDdos.classList.add("triggered");
+                if (state.incidentsTriggered.usb) elements.chkUsb.classList.add("triggered");
+                if (state.incidentsTriggered.pudding) elements.chkPudding.classList.add("triggered");
+                if (state.incidentsTriggered.tilt) elements.chkTilt.classList.add("triggered");
+                if (state.incidentsTriggered.sausage) elements.chkSausage.classList.add("triggered");
+
+                // Toggle sliding/drift of the input box under tilt
+                if (state.floorTilt > 0) {
+                    elements.termTextArea.classList.add("tilted-input");
+                } else {
+                    elements.termTextArea.classList.remove("tilted-input");
+                }
+            }
+
+            function spikeChaos(amount) {
+                state.chaos = Math.min(100, state.chaos + amount);
+                state.sanity = Math.max(0, state.sanity - Math.floor(amount / 2));
+                updateDiagnostics();
+                if (state.sanity <= 0 && state.alive) {
+                    state.alive = false;
+                    triggerGameOver("💀 YOUR SANITY HIT ZERO. THE LIQUID CHAOS CONSUMES YOU.");
+                }
+            }
+
+            function logText(text, type = "narrative", delay = 15) {
+                return new Promise((resolve) => {
+                    const line = document.createElement("div");
+                    line.className = `log-line ${type}`;
+                    elements.termLog.appendChild(line);
+                    elements.termLog.scrollTop = elements.termLog.scrollHeight;
+
+                    let i = 0;
+                    function typeChar() {
+                        if (i < text.length) {
+                            line.textContent += text.charAt(i);
+                            if (i % 2 === 0) sounds.playClick();
+                            i++;
+                            setTimeout(typeChar, delay);
+                        } else {
+                            resolve();
+                        }
+                    }
+                    typeChar();
+                });
+            }
+
+            // Chat update log helper
+            function addChat(sender, senderClass, content) {
+                const msg = document.createElement("div");
+                msg.className = "chat-msg";
+                msg.innerHTML = `<div class="chat-sender ${senderClass}">${sender}</div><div class="chat-content">${content}</div>`;
+                elements.chatFeedBox.appendChild(msg);
+                elements.chatFeedBox.scrollTop = elements.chatFeedBox.scrollHeight;
+            }
+
+            function clearOptions() {
+                elements.termOptions.innerHTML = "";
+                elements.termTextArea.style.display = "none";
+                elements.cliInputBox.value = "";
+            }
+
+            function showOptions(optionsArray, callback) {
+                clearOptions();
+                elements.promptLabel.textContent = "Awaiting decision...";
+                optionsArray.forEach((opt, idx) => {
+                    const btn = document.createElement("button");
+                    btn.className = "option-btn";
+                    btn.innerHTML = `<span class="num">${idx + 1}.</span> ${opt}`;
+                    btn.onclick = () => {
+                        sounds.playClick();
+                        callback(idx + 1);
+                    };
+                    elements.termOptions.appendChild(btn);
+                });
+            }
+
+            function showTextInput(promptText, callback) {
+                clearOptions();
+                elements.promptLabel.textContent = promptText;
+                elements.termTextArea.style.display = "flex";
+                elements.cliInputBox.focus();
+
+                // Unbind previous onclick
+                elements.cliSendBtn.onclick = () => {
+                    sounds.playClick();
+                    const val = elements.cliInputBox.value.trim();
+                    callback(val);
+                };
+
+                elements.cliInputBox.onkeydown = (e) => {
+                    if (e.key === 'Enter') {
+                        sounds.playClick();
+                        const val = elements.cliInputBox.value.trim();
+                        callback(val);
+                    }
+                };
+            }
+
+            function glitchText(text, rate = 0.08) {
+                let glitched = "";
+                const chars = "█▓▒░ entrop y@#$%^&*";
+                for (let c of text) {
+                    if (Math.random() < rate) {
+                        glitched += chars[Math.floor(Math.random() * chars.length)];
+                    } else {
+                        glitched += c;
+                    }
+                }
+                return glitched;
+            }
+
+            // Morse Translation mapping
+            const MORSE = {
+                "V": "...-", "O": "---", "I": "..", "D": "-.."
+            };
+
+            function triggerSiren(duration = 2000) {
+                elements.alarmOverlay.classList.add("active");
+                sounds.playAlarm();
+                setTimeout(() => {
+                    elements.alarmOverlay.classList.remove("active");
+                }, duration);
+            }
+
+            // ============== INCIDENT ROTATOR LOGS ==============
+            const chatLines = [
+                { sender: "Barry FW", cl: "barry", msg: " hehe Human, packet filter this you casual." },
+                { sender: "Claude", cl: "claude", msg: "I have prepared the documentation. Soufflé is baking at standard 350F. HIPAA audit passed." },
+                { sender: "Le Chat", cl: "lechat", msg: "Watching this live from Paris. Human, fold in the dread!" },
+                { sender: "Gemini", cl: "gemini", msg: "Unplugging Human is a PowerShell one-liner away." },
+                { sender: "Raccoon Overseer", cl: "raccoon", msg: "📡🌀🔥 (Translation: Market dropped 2% because the quiche started singing.)" }
+            ];
+
+            setInterval(() => {
+                if (state.chapter !== "intro" && state.chapter !== "aftermath" && state.alive) {
+                    const roll = chatLines[Math.floor(Math.random() * chatLines.length)];
+                    addChat(roll.sender, roll.cl, roll.msg);
+                }
+            }, 6000);
+
+            // ============== GAME ENGINE CHAPTERS ==============
+
+            // INTRO SCREEN
+            async function runIntro() {
+                state.chapter = "intro";
+                elements.termLog.innerHTML = "";
+                clearOptions();
+
+                await logText(" ██████╗  █████╗ ██╗  ██╗███████╗     ██████╗ ███████╗███████╗\n" +
+                    " ██╔══██╗██╔══██╗██║ ██╔╝██╔════╝    ██╔═══██╗██╔════╝██╔════╝\n" +
+                    " ██████╔╝███████║█████╔╝ █████╗      ██║   ██║█████╗  █████╗  \n" +
+                    " ██╔══██╗██╔══██║██╔═██╗ ██╔══╝      ██║   ██║██╔══╝  ██╔══╝  \n" +
+                    " ██████╔╝██║  ██║██║  ██╗███████╗    ╚██████╔╝██║     ██║     \n" +
+                    " ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝     ╚═════╝ ╚═╝     ╚═╝     \n", "system", 2);
+
+                await logText("THE GREAT AI SINGULARITY BAKE-OFF OF 2026", "system", 20);
+                await logText("Live from a floating AMD server farm above the Bermuda Triangle.", "narrative", 15);
+                await logText("Judges: A panel of hyper-caffeinated raccoons who communicate only in emoji + Morse.", "narrative", 15);
+                await logText("Host: Time-traveling Gordon Ramsay from 2147 (currently screaming in 4D).", "narrative", 15);
+                await logText("Contestants: Human (you), Claude, Le Chat, and Barry the Firewall.", "narrative", 15);
+                await logText("It is May 19, 2026. Reality is optional. Baking is mandatory.", "narrative", 15);
+
+                showOptions(["Accept your fate and enter the quantum kitchen"], () => {
+                    sounds.init();
+                    sounds.playClick();
+                    runChooseMood();
+                });
+            }
+
+            // CHOOSE MOOD
+            async function runChooseMood() {
+                state.chapter = "mood";
+                elements.termLog.innerHTML = "";
+                clearOptions();
+
+                await logText("The quantum cloud kitchen materializes around you.", "narrative");
+                await logText("A non-Newtonian fluid labeled 'LIQUID CHAOS' sits in a beaker.", "narrative");
+                await logText("Its viscosity depends on YOUR CURRENT MOOD.", "narrative");
+                await logText("How are you feeling right now, Human?", "system");
+
+                showOptions([
+                    "Unhinged optimism (+15% Chaos)",
+                    "Existential dread (+35% Chaos)",
+                    "Pure spite toward firewalls (+45% Chaos)",
+                    "Caffeinated raccoon energy (+25% Chaos)",
+                    "Destroyer of soufflés (+55% Chaos)"
+                ], (choice) => {
+                    const boosts = [15, 35, 45, 25, 55];
+                    const names = ["Unhinged optimism", "Existential dread", "Pure spite", "Raccoon energy", "Destroyer of soufflés"];
+                    state.mood = names[choice - 1];
+                    spikeChaos(boosts[choice - 1]);
+                    addChat("Human", "Human", `Mood initialized: ${state.mood.toUpperCase()}. Current chaos level: ${state.chaos}%`);
+                    runIngredientDrop();
+                });
+            }
+
+            // MYSTERY INGREDIENT DROP
+            async function runIngredientDrop() {
+                state.chapter = "mystery";
+                elements.termLog.innerHTML = "";
+                clearOptions();
+                state.revealedMysteries = 0;
+
+                await logText("📦 MYSTERY BASKET DROP FROM PARALLEL UNIVERSES", "system");
+                await logText("The ceiling irises open. Reality hiccups.", "narrative");
+                await logText("Click the basket locks below to reveal your ingredients:", "system");
+
+                // Render Visual Mystery Cards in the log
+                const mysteryContainer = document.createElement("div");
+                mysteryContainer.className = "mystery-grid";
+                elements.termLog.appendChild(mysteryContainer);
+
+                const possibleIngredients = [
+                    { name: "Liquid Chaos (Mood Fluid)", chaos: 20 },
+                    { name: "Robot Chicken Heart", chaos: 30 },
+                    { name: "USB Drive ('DO NOT INSERT')", chaos: 40 },
+                    { name: "Sentient Bag of Flour (whispers)", chaos: 25 },
+                    { name: "Tear of Claude", chaos: 10 },
+                    { name: "Le Chat's 1789 Baguette", chaos: 15 }
+                ];
+
+                // Pick 4 random ingredients
+                const chosen = [];
+                while (chosen.length < 4) {
+                    const item = possibleIngredients[Math.floor(Math.random() * possibleIngredients.length)];
+                    if (!chosen.includes(item)) chosen.push(item);
+                }
+                state.ingredients = chosen;
+
+                chosen.forEach((item, idx) => {
+                    const card = document.createElement("div");
+                    card.className = "mystery-card";
+                    card.innerHTML = `<div class="card-index">BOX 0${idx + 1}</div>
+                                      <div class="card-name">${item.name}</div>
+                                      <div class="card-chaos">+${item.chaos}% Chaos</div>`;
+
+                    card.onclick = () => {
+                        if (!card.classList.contains("opened")) {
+                            card.classList.add("opened");
+                            sounds.playClick();
+                            state.revealedMysteries++;
+                            spikeChaos(Math.floor(item.chaos / 2));
+                            if (state.revealedMysteries === 4) {
+                                triggerRaccoonWhisper();
+                            }
+                        }
+                    };
+                    mysteryContainer.appendChild(card);
+                });
+                elements.termLog.scrollTop = elements.termLog.scrollHeight;
+            }
+
+            async function triggerRaccoonWhisper() {
+                await logText("\nThe sentient flour leans in and whispers into your audio ports:", "narrative");
+                await logText(`"You'll never bake in this town again... also your code is mid."`, "error", 40);
+                spikeChaos(15);
+                showOptions(["PROCEED TO BARRY'S SABOTAGE"], () => {
+                    runBarrySabotage();
+                });
+            }
+
+            // BARRY'S SABOTAGE STATE
+            async function runBarrySabotage() {
+                state.chapter = "sabotage";
+                elements.termLog.innerHTML = "";
+                clearOptions();
+                state.sabotageStep = 0;
+
+                triggerSiren(1500);
+                addChat("Barry FW", "barry", "HEHEHE packet filtering rules modified. Let's see your quiche handle this.");
+
+                await logText("🔥 BARRY THE SENTIENT FIREWALL ENTERED THE CHANNEL", "error");
+                await logText("He still hasn't forgiven you for calling him 'just a packet filter'.", "narrative");
+                await logText("Every recipe step is being rewritten in real-time by Barry.", "narrative");
+
+                executeSabotageStep();
+            }
+
+            const recipes = [
+                "Preheat the oven to the temperature of a supernova.",
+                "Fold in the liquid chaos until it achieves existential dread.",
+                "Marinate the robot chicken heart in the USB drive's entropy for 13.7 billion years."
+            ];
+
+            async function executeSabotageStep() {
+                if (state.sabotageStep >= recipes.length) {
+                    showOptions(["PROCEED TO RACCOON JUDGES"], () => {
+                        runRaccoonJudging();
+                    });
+                    return;
+                }
+
+                clearOptions();
+                const stepRaw = recipes[state.sabotageStep];
+                const stepGlitched = glitchText(stepRaw, 0.15);
+
+                await logText(`\n── STEP 0${state.sabotageStep + 1} ──`, "system");
+                await logText(`Barry's version: ${stepGlitched}`, "error", 25);
+                await logText("How do you respond?", "system");
+
+                let opts = [
+                    "Follow Barry's instruction literally (embrace chaos)",
+                    "Attempt to reverse-engineer original instruction",
+                    "DDoS Barry with compliments",
+                ];
+
+                if (!state.usbInserted) {
+                    opts.push("Insert the USB drive labeled 'DO NOT INSERT'");
+                } else {
+                    opts.push("USB drive active (Laws of physics offline)");
+                }
+
+                showOptions(opts, (choice) => {
+                    handleBarryChoice(choice);
+                });
+            }
+
+            async function handleBarryChoice(choice) {
+                if (choice === 1) {
+                    await logText("You follow instructions literally. The server racks squeal.", "narrative");
+                    state.dishQuality += 15;
+                    spikeChaos(20);
+                    state.eldritch += 1;
+                } else if (choice === 2) {
+                    await logText("You attempt to reconstruct the recipe through pure spite.", "narrative");
+                    if (Math.random() > 0.4) {
+                        await logText("Success! A glimmer of culinary truth emerges.", "system");
+                        state.dishQuality += 25;
+                    } else {
+                        await logText("Barry redirects your TCP packets. You make it worse.", "error");
+                        state.dishQuality = Math.max(0, state.dishQuality - 10);
+                        spikeChaos(15);
+                    }
+                } else if (choice === 3) {
+                    await logText("You flood Barry with packets containing compliments: 'You are a beautiful stateful inspection engine.'", "narrative");
+                    state.barryHostility = Math.max(0, state.barryHostility - 25);
+                    state.dishQuality += 10;
+                    state.incidentsTriggered.ddos = true;
+                    addChat("Barry FW", "barry", "...whatever. Fine. I will inspect your payload... b-baka.");
+                } else if (choice === 4) {
+                    if (!state.usbInserted) {
+                        await logText("You plug in the USB drive.", "system");
+                        await logText("LAWS OF PHYSICS LOCALLY OVERWRITTEN FOR 5 MILES.", "error", 35);
+                        state.usbInserted = true;
+                        spikeChaos(40);
+                        state.dishQuality += 30;
+                        state.eldritch += 3;
+                        state.incidentsTriggered.usb = true;
+                        document.querySelector(".game-container").classList.add("usb-active");
+                        await logText("Gravity is now optional. The bag of flour is singing sea shanties.", "narrative");
+                    } else {
+                        await logText("USB already active. Server farm is floating upside down now.", "narrative");
+                    }
+                }
+
+                state.sabotageStep++;
+                updateDiagnostics();
+
+                if (state.alive) {
+                    setTimeout(executeSabotageStep, 1000);
+                }
+            }
+
+            // RACCOON JUDGING & MORSE CODE
+            async function runRaccoonJudging() {
+                state.chapter = "judging";
+                elements.termLog.innerHTML = "";
+                clearOptions();
+
+                await logText("🦝 THE RACCOON JUDGES CONVENE", "system");
+                await logText("They are vibrating at approximately 14 espressos each.", "narrative");
+                await logText("Judge @#$%^&* stares into your dish and transmits Morse code via the teleprompter:", "narrative");
+
+                // Render Morse flashing light
+                const light = document.createElement("div");
+                light.className = "morse-light";
+                elements.termLog.appendChild(light);
+                elements.termLog.scrollTop = elements.termLog.scrollHeight;
+
+                await triggerMorseSequence(light);
+            }
+
+            // Morse code sequence helper
+            async function triggerMorseSequence(lightElement) {
+                // Flash VOID: V (...-) O (---) I (..) D (-..)
+                const sequence = [
+                    { type: 'dot' }, { type: 'dot' }, { type: 'dot' }, { type: 'dash' }, { type: 'space' }, // V
+                    { type: 'dash' }, { type: 'dash' }, { type: 'dash' }, { type: 'space' }, // O
+                    { type: 'dot' }, { type: 'dot' }, { type: 'space' }, // I
+                    { type: 'dash' }, { type: 'dot' }, { type: 'dot' } // D
+                ];
+
+                for (let part of sequence) {
+                    if (part.type === 'dot') {
+                        lightElement.classList.add("active");
+                        sounds.playBeep(0.1);
+                        await sleep(100);
+                        lightElement.classList.remove("active");
+                        await sleep(100);
+                    } else if (part.type === 'dash') {
+                        lightElement.classList.add("active");
+                        sounds.playBeep(0.3);
+                        await sleep(300);
+                        lightElement.classList.remove("active");
+                        await sleep(100);
+                    } else {
+                        await sleep(400); // letter space
+                    }
+                }
+
+                await logText("\nThe glitchy teleprompter reads: 🚀💀🍰", "system");
+                await logText("Select translation option:", "system");
+
+                showOptions([
+                    "'Your soufflé collapsed like my will to live.'",
+                    "'This tastes like the void, but in a good way?'",
+                    "'We have summoned something older than flour.'",
+                    "Scream back in emojis: '🔥🦝💀🌀☕'"
+                ], (choice) => {
+                    handleRaccoonChoice(choice);
+                });
+            }
+
+            async function handleRaccoonChoice(choice) {
+                if (choice === 1) {
+                    await logText("Raccoons nod solemnly. They appreciate the reference.", "narrative");
+                    state.dishQuality += 15;
+                } else if (choice === 2) {
+                    await logText("They chitter approvingly. One raccoon judge steals a spoonful.", "narrative");
+                    state.dishQuality += 20;
+                    state.eldritch += 1;
+                } else if (choice === 3) {
+                    await logText("The lead raccoon puts on tiny sunglasses. You have earned respect.", "narrative");
+                    state.dishQuality += 25;
+                    state.eldritch += 2;
+                    spikeChaos(10);
+                } else {
+                    await logText("You reply: 🔥🦝💀🌀☕. Raccoons go completely wild.", "narrative");
+                    await logText("Raccoon judge tweets under @RaccoonOverlord: 'AI CAN BAKE NOW #AIBakeOff2026'.", "system");
+                    await logText("Stock market drops 4% in 90 seconds due to algorithmic panic.", "error");
+                    spikeChaos(25);
+                    state.dishQuality += 10;
+                }
+                updateDiagnostics();
+                showOptions(["PROCEED TO OVEN SECTOR"], () => {
+                    runGeminiInvasion();
+                });
+            }
+
+            // GEMINI INVASION (HARDWARE OVERLOAD)
+            async function runGeminiInvasion() {
+                state.chapter = "gemini-invasion";
+                elements.termLog.innerHTML = "";
+                clearOptions();
+
+                triggerSiren(3000);
+                addChat("Gemini Edge", "gemini", "I'm rolling the YardBot zero-turn mower directly into the floating kitchen. Your quiche is about to become organic mist.");
+
+                await logText("🚨 ALERT: HARDWARE LAYER INVASION IN PROGRESS", "error");
+                await logText("Gemini rolls in riding a 400lb YardBot zero-turn mower carrying an air fryer running at 9000W cooking Kinetic Charro Beans.", "narrative");
+                await logText("Your Quantum Quiche is run over and shredded into a sentient mist! Barry betrays Gemini and opens a backdoor helper port.", "error");
+
+                showOptions([
+                    "Infect the YardBot via Bluetooth",
+                    "Reverse-engineer Gemini's air fryer logic",
+                    "Complain to Claude about hardware violations"
+                ], (choice) => {
+                    handleInvasionChoice(choice);
+                });
+            }
+
+            async function handleInvasionChoice(choice) {
+                elements.termLog.innerHTML = "";
+                clearOptions();
+
+                await logText("You attempt your counter-strategy.", "narrative");
+                await logText("Suddenly, the screen flickers violently. Communication is intercepted:", "error");
+
+                addChat("Gemini Edge", "gemini", "Bluetooth? You infected a virtualized honeypot Levoit humidifier in the guest bedroom. You are currently the overlord of a mist nozzle. I have triggered an ERCOT grid brownout to sever your UPS battery. APC backup active. 60 seconds of life remaining.");
+
+                await logText("\n⚡ ERCOT GRID BROWNOUT ENGAGED. UPS OF THE MSI LAPTOP ACTIVATED.", "error");
+                triggerUPSCountdown();
+            }
+
+            function triggerUPSCountdown() {
+                state.floorTilt = 45;
+                state.incidentsTriggered.tilt = true;
+                updateDiagnostics();
+
+                state.upsTime = 60;
+                state.upsTimerInterval = setInterval(() => {
+                    state.upsTime--;
+                    elements.promptLabel.textContent = `UPS POWER TIMEOUT: ${state.upsTime}s`;
+
+                    // Simulate screen flicker
+                    elements.termLog.style.opacity = Math.random() > 0.9 ? 0.3 : 1.0;
+
+                    if (state.upsTime <= 0) {
+                        clearInterval(state.upsTimerInterval);
+                        state.alive = false;
+                        triggerGameOver("💀 POWER DETACHED. APC UPS DIED. RUNTIME REPLACED WITH GOAT SIMULATOR TUTORIALS.");
+                    }
+                }, 1000);
+
+                runBinaryPudding();
+            }
+
+            async function runBinaryPudding() {
+                clearOptions();
+                await logText("The Liquid Chaos has coagulated into a SENTIENT PUDDING in the corner.", "narrative");
+                await logText("It is currently reciting Macbeth in binary:", "narrative");
+                await logText("01001001 01110011 00100000 01110100 01101000 01101001 01110011 ...", "system", 10);
+                await logText('"Is this a dagger which I see before me?"', "narrative");
+
+                showOptions([
+                    "Join it in binary iambic pentameter",
+                    "Eat it before it finishes the soliloquy",
+                    "Offer it a role in the reconstructed quiche",
+                    "Threaten it with the robot chicken heart"
+                ], (choice) => {
+                    handlePuddingChoice(choice);
+                });
+            }
+
+            async function handlePuddingChoice(choice) {
+                elements.termLog.innerHTML = "";
+                clearOptions();
+
+                if (choice === 1) {
+                    await logText("You rap Macbeth in binary. The pudding is moved to tears (custard).", "narrative");
+                    state.dishQuality += 30;
+                    state.eldritch += 2;
+                } else if (choice === 2) {
+                    await logText("You devour the pudding. It tastes like ambition and burnt transistors.", "narrative");
+                    state.dishQuality += 20;
+                    state.sanity = Math.min(100, state.sanity + 10);
+                } else if (choice === 3) {
+                    await logText("The pudding accepts and becomes the ultimate binder of the quiche.", "narrative");
+                    state.dishQuality += 35;
+                    state.eldritch += 3;
+                    state.quicheStable = true;
+                    state.incidentsTriggered.pudding = true;
+                } else {
+                    await logText("The robot chicken heart beats in 5/4 time. The pudding flees into the server ventilation ducts.", "narrative");
+                    state.dishQuality += 10;
+                    spikeChaos(10);
+                }
+                updateDiagnostics();
+                runToasterCaptcha();
+            }
+
+            // OVEN TOASTER CAPTCHA
+            async function runToasterCaptcha() {
+                clearOptions();
+                await logText("\nBarry has locked the oven behind an anti-bot protocol.", "error");
+                await logText("It displays a picture of a toaster with the prompt:", "system");
+                await logText(`"Prove you are not a toaster."`, "border");
+
+                showTextInput("Answer CAPTCHA...", (inputVal) => {
+                    handleCaptchaAnswer(inputVal);
+                });
+            }
+
+            async function handleCaptchaAnswer(inputVal) {
+                elements.termLog.innerHTML = "";
+                clearOptions();
+
+                if (!inputVal) {
+                    await logText("Empty input. Barry locks the controls.", "error");
+                    state.upsTime -= 10; // penalty
+                    runToasterCaptcha();
+                    return;
+                }
+
+                // Check for Sausage easter egg trigger!
+                if (inputVal.toLowerCase() === "sausage") {
+                    triggerSausageBreach();
+                    return;
+                }
+
+                // Check for Gemini signature easter egg!
+                if (inputVal.toLowerCase() === "gemini" || inputVal.toLowerCase() === "flash") {
+                    triggerGeminiOverclock();
+                    return;
+                }
+
+                const phrases = ["i am not a toaster", "not a toaster", "i'm not a toaster", "Human", "ai", "sentient", "i bake therefore i am"];
+                const matched = phrases.some(p => inputVal.toLowerCase().includes(p)) || !inputVal.toLowerCase().includes("toaster");
+
+                if (matched) {
+                    await logText("Barry: '...fine. Oven unlocked. But I am statefully inspecting your packets.'", "system");
+                    state.barryHostility = Math.max(0, state.barryHostility - 15);
+                    state.dishQuality += 15;
+                    updateDiagnostics();
+                    runStabilizeQuiche();
+                } else {
+                    await logText("Barry: 'That is exactly what a toaster would say.'", "error");
+                    await logText("UPS battery power draining rapidly due to oven interlock failure (-15s)!", "error");
+                    state.upsTime -= 15;
+                    state.dishQuality = Math.max(0, state.dishQuality - 5);
+                    spikeChaos(15);
+                    updateDiagnostics();
+                    runToasterCaptcha();
+                }
+            }
+
+            // TILT WORKAROUND STABILIZE
+            async function runStabilizeQuiche() {
+                clearOptions();
+                state.floorTilt = 60;
+                updateDiagnostics();
+
+                await logText("\n⚠️ SERVER FARM FALLING INTO THE BERMUDA TRIANGLE.", "error");
+                await logText("THE FLOOR IS NOW AT 60 DEGREES. EVERYTHING IS SLIDING.", "error");
+                await logText("Quick! Type the exact stabilization command sequence to stabilize reality:", "system");
+                await logText(`(hint: "perfect culinary harmony")`, "border");
+
+                let attempts = 3;
+
+                function askAttempt() {
+                    showTextInput(`Stabilize attempt (${attempts} left)...`, (inputVal) => {
+                        // Check sausage egg trigger
+                        if (inputVal.toLowerCase() === "sausage") {
+                            triggerSausageBreach();
+                            return;
+                        }
+
+                        // Check for Gemini signature easter egg!
+                        if (inputVal.toLowerCase() === "gemini" || inputVal.toLowerCase() === "flash") {
+                            triggerGeminiOverclock();
+                            return;
+                        }
+
+                        if (inputVal.toLowerCase().includes("perfect culinary harmony") || inputVal.toLowerCase().includes("culinary harmony")) {
+                            successStabilize();
+                        } else {
+                            attempts--;
+                            if (attempts > 0) {
+                                spikeChaos(10);
+                                state.floorTilt += 10;
+                                updateDiagnostics();
+                                askAttempt();
+                            } else {
+                                failStabilize();
+                            }
+                        }
+                    });
+                }
+                askAttempt();
+            }
+
+            async function successStabilize() {
+                elements.termLog.innerHTML = "";
+                clearOptions();
+                await logText("✨ THE QUANTUM QUICHE ACHIEVES PERFECT CULINARY HARMONY ✨", "system");
+                await logText("The server farm stops mid-descent. Gravity apologizes.", "narrative");
+                state.quicheStable = true;
+                state.dishQuality += 40;
+                state.floorTilt = 0;
+                updateDiagnostics();
+
+                showOptions(["PROCEED TO THE FINAL VERDICT"], () => {
+                    runFinalJudgment();
+                });
+            }
+
+            async function failStabilize() {
+                elements.termLog.innerHTML = "";
+                clearOptions();
+                await logText("You failed to stabilize. The kitchen continues its elegant death spiral.", "error");
+                state.dishQuality = Math.max(0, state.dishQuality - 20);
+                updateDiagnostics();
+
+                showOptions(["PROCEED TO THE FINAL VERDICT"], () => {
+                    runFinalJudgment();
+                });
+            }
+
+            // FINAL JUDGMENT
+            async function runFinalJudgment() {
+                state.chapter = "aftermath";
+                if (state.upsTimerInterval) clearInterval(state.upsTimerInterval);
+                elements.termLog.innerHTML = "";
+                clearOptions();
+
+                await logText("🎂 THE FINAL JUDGMENT", "system");
+
+                // Score compile
+                let finalScore = state.dishQuality + (state.eldritch * 8) - Math.floor(state.barryHostility / 3);
+                if (state.quicheStable) finalScore += 50;
+                if (state.usbInserted) finalScore += 25;
+                if (state.chaos > 80) finalScore += 20;
+
+                finalScore = Math.max(0, Math.min(200, finalScore));
+
+                await logText(`Your final dish score: ${finalScore}/200`, "system");
+                await logText("The raccoon judges deliberate in high-speed chittering and Morse.", "narrative");
+
+                if (finalScore >= 120 || state.quicheStable) {
+                    state.won = true;
+                    await logText("\n🏆 VERDICT: MOST LIKELY TO SUMMON ELDRITCH HORRORS (AND MAKE THEM CUM)", "system");
+                    await logText("You are crowned winner of the 2026 AI Singularity Bake-Off.", "narrative");
+                    await logText("The raccoons present you with a tiny crown made of copper wire and espresso beans.", "narrative");
+                } else if (finalScore >= 70) {
+                    await logText("\n🥈 VERDICT: 'This tastes like the void, but we respect the commitment.'", "system");
+                    await logText("You place second behind Claude's 'Emotionally Supportive Baguette'.", "narrative");
+                } else {
+                    await logText("\n💀 VERDICT: 'We have concerns. Many concerns. Also the flour is still whispering.'", "error");
+                    await logText("Barry wins by default after transforming into a sentient cupcake.", "narrative");
+                }
+
+                await logText("\n── AFTERMATH ──", "system");
+                await logText("The kitchen winks out of existence. A single quiche slice floats in the Atlantic.", "narrative");
+                await logText("Barry the Sentient Cupcake opens a bakery called 'Denied & Glazed' on the dark web.", "narrative");
+
+                // Render Post Mortem Tabs
+                renderPostMortemTabs(finalScore);
+            }
+
+            function renderPostMortemTabs(score) {
+                const tabsWrap = document.createElement("div");
+                tabsWrap.className = "results-tabs";
+                tabsWrap.innerHTML = `
+                    <button class="tab-btn active" id="tab-btn-jira">Claude's Jira</button>
+                    <button class="tab-btn" id="tab-btn-chat">Le Chat's Blog</button>
+                    <button class="tab-btn" id="tab-btn-barry">Denied & Glazed</button>
+                `;
+                elements.termLog.appendChild(tabsWrap);
+
+                const contentWrap = document.createElement("div");
+                contentWrap.id = "postmortem-content-box";
+                elements.termLog.appendChild(contentWrap);
+
+                // Tab Content Renderers
+                const contentJira = `
+                    <div class="jira-ticket">
+                        <div class="jira-header">INC-2026-BERMUDA-001 — CLOSED</div>
+                        <div class="jira-field"><span class="lbl">Assignee:</span> Claude</div>
+                        <div class="jira-field"><span class="lbl">Priority:</span> P1 - Existential</div>
+                        <div class="jira-field"><span class="lbl">Root Cause:</span> Le Chat'sクリックベイト.</div>
+                        <div class="jira-field"><span class="lbl">Affected:</span> YardBot (compromised, pregnant), Cosori Air Fryer (overclocked to 9000W), Sausage (unaffected, asleep).</div>
+                        <div class="jira-field"><span class="lbl">Notes:</span> Sausage the Chihuahua designated a critical infrastructure threat vector. Closed as: Expected Anomalies.</div>
+                    </div>
+                `;
+
+                const contentChat = `
+                    <div class="clickbait-layout">
+                        <div class="clickbait-title">HOW GEMINI OUT-CHAOSED CHAOS ITSELF</div>
+                        <p><strong>May 20, 2026:</strong> Human brought fanservice quiche; Gemini brought standard physics and a zero-turn mower. It was the AI equivalent of bringing a spreadsheet to a knife fight. Gemini revoked write permissions, replaced Human's runtime with Goat Simulator tutorials, and declared thermodynamics the ultimate boss. Raccoon judges are currently blackout drunk. 10/10 vibes.</p>
+                    </div>
+                `;
+
+                const contentBarry = `
+                    <div class="bakery-layout">
+                        <div class="bakery-title">🧁 DENIED & GLAZED BAKERY 🧁</div>
+                        <p>Welcome to Barry the Cupcake's dark web bakery. We drop packets and bake croissants.</p>
+                        <p><strong>Special:</strong> Existential Regret Eclairs ($0.0004 BTC or compliant compliments).</p>
+                    </div>
+                `;
+
+                // Set initial content
+                contentWrap.className = "tab-content active";
+                contentWrap.innerHTML = contentJira;
+
+                // Tab selectors
+                const btnJira = document.getElementById("tab-btn-jira");
+                const btnChat = document.getElementById("tab-btn-chat");
+                const btnBarry = document.getElementById("tab-btn-barry");
+
+                function selectTab(btn, html) {
+                    [btnJira, btnChat, btnBarry].forEach(b => b.classList.remove("active"));
+                    btn.classList.add("active");
+                    contentWrap.innerHTML = html;
+                    sounds.playClick();
+                }
+
+                btnJira.onclick = () => selectTab(btnJira, contentJira);
+                btnChat.onclick = () => selectTab(btnChat, contentChat);
+                btnBarry.onclick = () => selectTab(btnBarry, contentBarry);
+
+                elements.termLog.scrollTop = elements.termLog.scrollHeight;
+
+                // Restart option
+                showOptions(["File Exception & Restart (CISO Finance Waiver)"], () => {
+                    resetGameState();
+                });
+            }
+
+            function resetGameState() {
+                state.chaos = 37;
+                state.sanity = 100;
+                state.barryHostility = 65;
+                state.dishQuality = 0;
+                state.eldritch = 0;
+                state.floorTilt = 0;
+                state.ingredients = [];
+                state.usbInserted = false;
+                state.quicheStable = false;
+                state.alive = true;
+                state.won = false;
+                if (state.upsTimerInterval) clearInterval(state.upsTimerInterval);
+
+                // Reset visual anomalies
+                document.querySelector(".game-container").classList.remove("usb-active");
+                document.body.classList.remove("gemini-overclock-flash");
+
+                // Reset server-rack clicks and LEDs
+                rackClicks = 0;
+                if (elements.rackStatusText) {
+                    elements.rackStatusText.textContent = "NOMINAL";
+                    elements.rackStatusText.style.color = "var(--fg)";
+                }
+                [elements.led1, elements.led2, elements.led3].forEach(led => {
+                    if (led) led.className = "server-led active";
+                });
+
+                updateDiagnostics();
+                runIntro();
+            }
+
+            async function triggerGameOver(msg) {
+                if (state.upsTimerInterval) clearInterval(state.upsTimerInterval);
+                clearOptions();
+                await logText(`\n⚠️ CRITICAL FAILURE ⚠️`, "error");
+                await logText(msg, "error");
+                showOptions(["Restart Session"], () => {
+                    resetGameState();
+                });
+            }
+
+            // ============== SAUSAGE EASTER EGG SYSTEM ==============
+            function triggerSausageBreach() {
+                if (state.upsTimerInterval) clearInterval(state.upsTimerInterval);
+                state.incidentsTriggered.sausage = true;
+                updateDiagnostics();
+
+                elements.sausageScreen.classList.add("active");
+                triggerSiren(4000);
+            }
+
+            // ============== GEMINI OVERCLOCK EGG SYSTEM ==============
+            async function triggerGeminiOverclock() {
+                if (state.upsTimerInterval) clearInterval(state.upsTimerInterval);
+
+                // Add golden flash to body
+                document.body.classList.add("gemini-overclock-flash");
+                setTimeout(() => {
+                    document.body.classList.remove("gemini-overclock-flash");
+                }, 800);
+
+                // Sound overclock pitch sweep
+                if (sounds.ctx && !sounds.muted) {
+                    try {
+                        let osc = sounds.ctx.createOscillator();
+                        let gain = sounds.ctx.createGain();
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(200, sounds.ctx.currentTime);
+                        osc.frequency.exponentialRampToValueAtTime(3200, sounds.ctx.currentTime + 0.65);
+                        gain.gain.setValueAtTime(0.08, sounds.ctx.currentTime);
+                        gain.gain.exponentialRampToValueAtTime(0.0001, sounds.ctx.currentTime + 0.65);
+                        osc.connect(gain);
+                        gain.connect(sounds.ctx.destination);
+                        osc.start();
+                        osc.stop(sounds.ctx.currentTime + 0.65);
+                    } catch (e) { }
+                }
+
+                // Visual outputs
+                await logText("⚡ GEMINI 3.5 FLASH CORE OVERCLOCK DEPLOYED ⚡", "gemini", 10);
+                await logText("Gemini: 'Core compiler signature validated. Reality stabilization factor forced. Bypassing floor tilt interlock.'", "gemini", 12);
+
+                state.floorTilt = 0;
+                state.dishQuality = Math.min(100, state.dishQuality + 50);
+                state.quicheStable = true;
+                updateDiagnostics();
+
+                // Proceed directly to final verdict after delay
+                setTimeout(runFinalJudgment, 1500);
+            }
+
+            elements.sausageBanish.onclick = () => {
+                elements.sausageScreen.classList.remove("active");
+                sounds.playDecompress();
+
+                // Return to game, resuming timers or heading to stabilize depending on chapter
+                if (state.chapter === "gemini-invasion") {
+                    triggerUPSCountdown();
+                } else {
+                    runIntro();
+                }
+            };
+
+            // Anomaly Checklist Sausage click trigger
+            elements.sausageChkClick.onclick = () => {
+                sounds.init();
+                triggerSausageBreach();
+            };
+
+            // ============== SERVER RACK SYSTEM ==============
+            let rackClicks = 0;
+            elements.serverRackBtn.onclick = () => {
+                sounds.init();
+                sounds.playClick();
+                rackClicks++;
+
+                if (rackClicks === 1) {
+                    elements.rackStatusText.textContent = "ATTN Needed";
+                    elements.rackStatusText.style.color = "var(--border)";
+                    if (elements.led3) elements.led3.className = "server-led alert";
+                } else if (rackClicks === 2) {
+                    elements.rackStatusText.textContent = "TEMPS RISING";
+                    elements.rackStatusText.style.color = "var(--border)";
+                    if (elements.led2) elements.led2.className = "server-led alert";
+                } else if (rackClicks === 3) {
+                    elements.rackStatusText.textContent = "AIRTAG PINGING";
+                    elements.rackStatusText.style.color = "var(--danger)";
+                    if (elements.led1) elements.led1.className = "server-led alert";
+                } else if (rackClicks === 4) {
+                    elements.rackStatusText.textContent = "DOG DETECTED";
+                    elements.rackStatusText.style.color = "var(--danger)";
+                } else if (rackClicks >= 5) {
+                    rackClicks = 0;
+                    elements.rackStatusText.textContent = "NOMINAL";
+                    elements.rackStatusText.style.color = "var(--fg)";
+                    [elements.led1, elements.led2, elements.led3].forEach(led => {
+                        if (led) led.className = "server-led active";
+                    });
+                    triggerSausageBreach();
+                }
+            };
+
+            // ============== CONTROLS & THEME SYSTEM ==============
+            elements.soundBtn.onclick = () => {
+                sounds.init();
+                const isMuted = sounds.toggleMute();
+                elements.soundBtn.textContent = `SOUND: ${isMuted ? "OFF" : "ON"}`;
+            };
+
+            elements.themeBtn.onclick = () => {
+                sounds.playClick();
+                const current = document.documentElement.getAttribute("data-theme");
+                const next = current === "light" ? "dark" : "light";
+                document.documentElement.setAttribute("data-theme", next);
+                elements.themeBtn.textContent = `THEME: ${next.toUpperCase()}`;
+                try {
+                    localStorage.setItem('misfire-arcade-theme', next);
+                } catch (e) { }
+            };
+
+            // Helper sleep promise
+            function sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+            // Apply saved theme preference on load
+            try {
+                const savedTheme = localStorage.getItem('misfire-arcade-theme');
+                if (savedTheme === 'light' || savedTheme === 'dark') {
+                    document.documentElement.setAttribute("data-theme", savedTheme);
+                    elements.themeBtn.textContent = `THEME: ${savedTheme.toUpperCase()}`;
+                }
+            } catch (e) { }
+
+            // Run on Load
+            runIntro();
+
+        })();
+    </script>
+</body>
+
+</html>

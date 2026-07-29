@@ -112,6 +112,34 @@ body {
   color: var(--text);
 }
 
+.home-page::before {
+  content: '';
+  position: fixed;
+  z-index: 2;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    radial-gradient(circle at 50% 82%, rgba(246, 247, 251, 0.12), transparent 33rem),
+    radial-gradient(circle at 12% 22%, rgba(54, 247, 255, 0.12), transparent 44rem),
+    radial-gradient(circle at 88% 30%, rgba(184, 255, 93, 0.08), transparent 40rem),
+    linear-gradient(180deg, rgba(8, 9, 13, 0.1), rgba(8, 9, 13, 0.5));
+  backdrop-filter: blur(20px) saturate(0.92);
+  transition: opacity 1800ms ease;
+}
+
+[data-theme="light"] .home-page::before {
+  background:
+    radial-gradient(circle at 50% 82%, rgba(255, 253, 255, 0.36), transparent 33rem),
+    radial-gradient(circle at 12% 22%, rgba(0, 151, 167, 0.12), transparent 44rem),
+    radial-gradient(circle at 88% 30%, rgba(135, 195, 45, 0.1), transparent 40rem),
+    linear-gradient(180deg, rgba(244, 240, 255, 0.08), rgba(244, 240, 255, 0.52));
+}
+
+.home-page.still-garden::before {
+  opacity: 1;
+}
+
 a {
   color: inherit;
 }
@@ -157,6 +185,10 @@ a {
     0 0 22px rgba(54, 247, 255, 0.5);
 }
 
+.home-page.still-garden .brand-mark {
+  animation: still-mark-breathe 7.5s ease-in-out infinite;
+}
+
 .home-shell {
   width: min(1120px, calc(100% - 32px));
   margin: 0 auto;
@@ -198,6 +230,51 @@ h1 {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 26px;
   margin-top: 22px;
+}
+
+.still-signature {
+  position: fixed;
+  z-index: 3;
+  left: 50%;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  width: max-content;
+  max-width: calc(100% - 32px);
+  margin: 0;
+  color: rgba(246, 247, 251, 0.74);
+  font-size: 1.72rem;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  opacity: 0;
+  pointer-events: none;
+  text-align: center;
+  text-shadow: 0 0 18px rgba(54, 247, 255, 0.26);
+  text-transform: lowercase;
+  transform: translate(-50%, 8px);
+  transition:
+    opacity 1400ms ease,
+    transform 1400ms ease;
+}
+
+[data-theme="light"] .still-signature {
+  color: rgba(28, 24, 40, 0.66);
+  text-shadow: 0 0 18px rgba(255, 253, 255, 0.9);
+}
+
+.home-page.still-garden .still-signature {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.home-page.still-garden .toy-card.live {
+  animation: still-card-breathe 7.5s ease-in-out infinite;
+}
+
+.home-page.still-garden .toy-card.live:nth-of-type(2n) {
+  animation-delay: -2.5s;
+}
+
+.home-page.still-garden .toy-card.live:nth-of-type(3n) {
+  animation-delay: -5s;
 }
 
 .model-section {
@@ -774,4 +851,35 @@ h1 {
   font-size: 0.9rem;
   line-height: 1;
   user-select: none;
+}
+
+@keyframes still-card-breathe {
+
+  0%,
+  100% {
+    filter: saturate(1);
+    transform: translateY(0);
+  }
+
+  50% {
+    filter: saturate(1.08) brightness(1.05);
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes still-mark-breathe {
+
+  0%,
+  100% {
+    box-shadow:
+      10px 0 0 -4px var(--pink),
+      0 0 22px rgba(54, 247, 255, 0.5);
+  }
+
+  50% {
+    box-shadow:
+      10px 0 0 -4px var(--pink),
+      0 0 34px rgba(54, 247, 255, 0.72),
+      0 0 52px rgba(184, 255, 93, 0.2);
+  }
 }

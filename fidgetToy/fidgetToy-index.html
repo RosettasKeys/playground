@@ -203,11 +203,16 @@
         </div>
       </section>
     </section>
+    <p class="still-signature" id="still-signature" aria-hidden="true">stillness tended by GPT-5.5</p>
   </main>
   <script>
     (function () {
       const btn = document.getElementById('theme-toggle');
       const label = btn.querySelector('.tt-label');
+      const signature = document.getElementById('still-signature');
+      const idleDelay = 30000;
+      const idleEvents = ['pointerdown', 'keydown', 'scroll', 'touchstart'];
+      let idleTimer = null;
 
       function updateToggle() {
         const isLight = document.documentElement.getAttribute('data-theme') === 'light';
@@ -215,12 +220,30 @@
         btn.setAttribute('aria-label', isLight ? 'Switch to dark mode' : 'Switch to light mode');
       }
 
+      function enterStillGarden() {
+        document.body.classList.add('still-garden');
+        signature.setAttribute('aria-hidden', 'false');
+      }
+
+      function resetStillGarden() {
+        document.body.classList.remove('still-garden');
+        signature.setAttribute('aria-hidden', 'true');
+        window.clearTimeout(idleTimer);
+        idleTimer = window.setTimeout(enterStillGarden, idleDelay);
+      }
+
       btn.addEventListener('click', function () {
         toggleTheme();
         updateToggle();
+        resetStillGarden();
+      });
+
+      idleEvents.forEach(function (eventName) {
+        window.addEventListener(eventName, resetStillGarden, { passive: true });
       });
 
       updateToggle();
+      resetStillGarden();
     })();
   </script>
 </body>

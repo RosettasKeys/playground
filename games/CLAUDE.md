@@ -37,6 +37,12 @@ decision is made — only the winner (or a mashup of winners) moves in here.
   new game subfolder's own CLAUDE.md should read (what-this-is → constraints
   → design spec → visual style → build phases with STOP checkpoints →
   definition of done → explicit non-goals).
+- `itOps/` — Slot 5, a satirical enterprise-ITOps console
+  (`itops.html`, linked as card 05). Unlike the other cabinets it's a
+  Vite/React build, not a self-contained static HTML file — see its own
+  `CLAUDE.md` for the dev-entry/build-output/deploy-artifact split
+  (`index.html` vs `dist/index.html` vs `itops.html`) and its multi-model
+  easter-egg ledger.
 - `physics-reversal/` — **referenced in the landing page copy
   ("Physics, Reversed") but does not exist yet.** The card is a real
   placeholder for in-progress work, not a broken link waiting to be
@@ -92,9 +98,10 @@ override any of these for itself, but this is the assumed baseline:
 
 - **No API keys of any kind in client-side code.** This repo is public and
   forkable. Hard no, regardless of framing (AI-provider keys most of all).
-- **No CDN-hosted libraries by default** (no GSAP, Google Fonts links, CDN
-  React/Tailwind). Soft rule — flag back to the user if a specific library
-  seems worth the tradeoff, don't just add one.
+- **No paid/proprietary external resources** (fonts, CDN libraries, APIs) —
+  free-to-use CDN resources (Google Fonts, cdnjs, etc.) are fine. Soft rule —
+  flag back to the user first if something would require payment to use or
+  host.
 - **No build step.** Files should open directly in a browser or deploy as-is
   to GitHub Pages with zero setup. No `npm install`, no bundler.
 - **No fail states** in toys/games unless a specific project's own CLAUDE.md

@@ -1,0 +1,239 @@
+/* OPSPIRAL design tokens — "NOC at 3 AM."
+   Deep slate surfaces lit by amber warning light. Priorities carry the only
+   other color in the room. Mono type for anything a machine said. */
+
+/* Selectors are attribute-scoped (not html-scoped) on purpose: the Phase-4
+   glitch engine stamps data-theme/data-color-scheme onto individual elements
+   when Reality Matrix stability degrades, and the tokens must re-scope on any
+   subtree. The bare `[data-theme='opspiral']` alias below keeps opspiral-dark
+   reachable as a glitch target even though it is also the :root default. */
+:root,
+[data-theme='opspiral'] {
+  /* Surfaces, darkest to most raised */
+  --bg-abyss: #101318;
+  --bg-console: #161b22;
+  --bg-rack: #1d242e;
+  --bg-rack-hover: #232c38;
+
+  --border: #2a333f;
+  --border-strong: #39455494;
+  --border-loud: #4b596b;
+
+  /* Ink */
+  --text-hi: #e9eef4;
+  --text-mid: #96a2b1;
+  --text-low: #8595a6; /* Increased contrast for readability */
+
+  /* The warning wall */
+  --amber: #f5a623;
+  --amber-hi: #ffc35c;
+  --amber-glow: rgba(245, 166, 35, 0.14);
+  --amber-line: rgba(245, 166, 35, 0.35);
+
+  /* Priority ladder: P1 burns, P4 barely registers */
+  --p1: #f0564f;
+  --p1-glow: rgba(240, 86, 79, 0.14);
+  --p2: #f5a623;
+  --p2-glow: rgba(245, 166, 35, 0.12);
+  --p3: #4cb8df;
+  --p3-glow: rgba(76, 184, 223, 0.12);
+  --p4: #97a5b6; /* Increased contrast for readability */
+  --p4-glow: rgba(151, 165, 182, 0.12);
+
+  --ok: #3fc98f;
+  --ok-glow: rgba(63, 201, 143, 0.13);
+
+  /* Type */
+  --font-sans: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Code', monospace;
+
+  /* Shape */
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 14px;
+
+  --shadow-pop: 0 12px 40px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 1px 3px rgba(0, 0, 0, 0.3);
+
+  /* Layout */
+  --sidebar-w: calc(272px * var(--font-scale));
+  --topbar-h: calc(60px * var(--font-scale));
+  --content-max: calc(1180px * var(--font-scale));
+
+  /* Semantic aliases used by shared components. */
+  --accent-ink: #1a1205;
+  --sidebar-bg: #161b22;
+  --scrim: rgba(8, 10, 13, 0.68);
+  --font-display: var(--font-sans);
+}
+
+/* OPSPIRAL — charcoal racks and amber warning light. */
+[data-theme='opspiral'][data-color-scheme='light'] {
+  --bg-abyss: #e8edf2;
+  --bg-console: #f8fafc;
+  --bg-rack: #edf2f6;
+  --bg-rack-hover: #e2e9ef;
+  --border: #cbd5de;
+  --border-strong: #aebac6;
+  --border-loud: #8797a6;
+  --text-hi: #18222d;
+  --text-mid: #526170;
+  --text-low: #4a5765; /* Increased contrast for readability */
+  --amber: #a85c00;
+  --amber-hi: #7e4300;
+  --amber-glow: rgba(168, 92, 0, 0.1);
+  --amber-line: rgba(168, 92, 0, 0.28);
+  --p1: #c6312c;
+  --p1-glow: rgba(198, 49, 44, 0.1);
+  --p2: #9a5700;
+  --p2-glow: rgba(154, 87, 0, 0.1);
+  --p3: #167293;
+  --p3-glow: rgba(22, 114, 147, 0.1);
+  --p4: #4e5b68; /* Increased contrast for readability */
+  --p4-glow: rgba(78, 91, 104, 0.1);
+  --ok: #147c54;
+  --ok-glow: rgba(20, 124, 84, 0.1);
+  --accent-ink: #fffaf1;
+  --sidebar-bg: #f3f6f8;
+  --scrim: rgba(24, 34, 45, 0.38);
+  --shadow-card: 0 1px 2px rgba(30, 45, 58, 0.08);
+  --shadow-pop: 0 18px 48px rgba(30, 45, 58, 0.2);
+}
+
+/* TUMBLEWEED — an incident desk assembled from ledger paper and saloon wood. */
+[data-theme='tumbleweed'] {
+  --bg-abyss: #17120f;
+  --bg-console: #241b16;
+  --bg-rack: #30231b;
+  --bg-rack-hover: #3b2b20;
+  --border: #4b382a;
+  --border-strong: #624b39;
+  --border-loud: #82644a;
+  --text-hi: #f4e7d2;
+  --text-mid: #c7ad8c;
+  --text-low: #b3987a; /* Increased contrast for readability */
+  --amber: #e18a4b;
+  --amber-hi: #ffb36f;
+  --amber-glow: rgba(225, 138, 75, 0.14);
+  --amber-line: rgba(225, 138, 75, 0.36);
+  --p1: #ef6654;
+  --p1-glow: rgba(239, 102, 84, 0.14);
+  --p2: #e18a4b;
+  --p2-glow: rgba(225, 138, 75, 0.13);
+  --p3: #67a7a2;
+  --p3-glow: rgba(103, 167, 162, 0.13);
+  --p4: #bba792; /* Increased contrast for readability */
+  --p4-glow: rgba(187, 167, 146, 0.13);
+  --ok: #83b86c;
+  --ok-glow: rgba(131, 184, 108, 0.13);
+  --font-sans: Georgia, 'Times New Roman', serif;
+  --font-mono: 'Cascadia Mono', 'Courier New', monospace;
+  --font-display: Georgia, 'Times New Roman', serif;
+  --radius-sm: 3px;
+  --radius: 6px;
+  --radius-lg: 9px;
+  --accent-ink: #20120b;
+  --sidebar-bg: #201711;
+  --scrim: rgba(23, 18, 15, 0.72);
+}
+
+[data-theme='tumbleweed'][data-color-scheme='light'] {
+  --bg-abyss: #e9dcc7;
+  --bg-console: #fff9ed;
+  --bg-rack: #f4e8d3;
+  --bg-rack-hover: #ebd9bd;
+  --border: #d2b994;
+  --border-strong: #b99b73;
+  --border-loud: #92724e;
+  --text-hi: #352319;
+  --text-mid: #6e5440;
+  --text-low: #5c4736; /* Increased contrast for readability */
+  --amber: #a54824;
+  --amber-hi: #7c3218;
+  --amber-glow: rgba(165, 72, 36, 0.1);
+  --amber-line: rgba(165, 72, 36, 0.28);
+  --p1: #b9382d;
+  --p1-glow: rgba(185, 56, 45, 0.1);
+  --p2: #9c541f;
+  --p2-glow: rgba(156, 84, 31, 0.1);
+  --p3: #397873;
+  --p3-glow: rgba(57, 120, 115, 0.1);
+  --p4: #594a3d; /* Increased contrast for readability */
+  --p4-glow: rgba(89, 74, 61, 0.1);
+  --ok: #4f783c;
+  --ok-glow: rgba(79, 120, 60, 0.1);
+  --accent-ink: #fff9ed;
+  --sidebar-bg: #f4e5cd;
+  --scrim: rgba(53, 35, 25, 0.42);
+  --shadow-card: 0 2px 3px rgba(72, 45, 24, 0.09);
+  --shadow-pop: 0 18px 48px rgba(72, 45, 24, 0.22);
+}
+
+/* KINDLING — polished HR language wrapped around lavender incident response. */
+[data-theme='kindling'] {
+  --bg-abyss: #151625;
+  --bg-console: #202239;
+  --bg-rack: #2a2d49;
+  --bg-rack-hover: #343858;
+  --border: #3c4062;
+  --border-strong: #53577d;
+  --border-loud: #71769e;
+  --text-hi: #f2f1fb;
+  --text-mid: #bbb9d1;
+  --text-low: #9e9dbd; /* Increased contrast for readability */
+  --amber: #ab9bff;
+  --amber-hi: #c9c0ff;
+  --amber-glow: rgba(171, 155, 255, 0.14);
+  --amber-line: rgba(171, 155, 255, 0.36);
+  --p1: #f17b80;
+  --p1-glow: rgba(241, 123, 128, 0.14);
+  --p2: #e5ae68;
+  --p2-glow: rgba(229, 174, 104, 0.13);
+  --p3: #68c6c0;
+  --p3-glow: rgba(104, 198, 192, 0.13);
+  --p4: #b0aecd; /* Increased contrast for readability */
+  --p4-glow: rgba(176, 174, 205, 0.13);
+  --ok: #6ed0ad;
+  --ok-glow: rgba(110, 208, 173, 0.13);
+  --font-sans: ui-rounded, 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'Cascadia Mono', ui-monospace, monospace;
+  --font-display: Georgia, 'Times New Roman', serif;
+  --radius-sm: 10px;
+  --radius: 15px;
+  --radius-lg: 22px;
+  --accent-ink: #1c1834;
+  --sidebar-bg: #1c1e33;
+  --scrim: rgba(21, 22, 37, 0.68);
+}
+
+[data-theme='kindling'][data-color-scheme='light'] {
+  --bg-abyss: #f0eef7;
+  --bg-console: #fffefe;
+  --bg-rack: #f5f2fb;
+  --bg-rack-hover: #ebe7f6;
+  --border: #ddd8eb;
+  --border-strong: #c6bfdc;
+  --border-loud: #9b92bd;
+  --text-hi: #25263a;
+  --text-mid: #5e6075;
+  --text-low: #5c5e73; /* Increased contrast for readability */
+  --amber: #6654c8;
+  --amber-hi: #4f3db0;
+  --amber-glow: rgba(102, 84, 200, 0.1);
+  --amber-line: rgba(102, 84, 200, 0.28);
+  --p1: #c24d56;
+  --p1-glow: rgba(194, 77, 86, 0.1);
+  --p2: #9b681f;
+  --p2-glow: rgba(155, 104, 31, 0.1);
+  --p3: #287e7b;
+  --p3-glow: rgba(40, 126, 123, 0.1);
+  --p4: #525468; /* Increased contrast for readability */
+  --p4-glow: rgba(82, 84, 104, 0.1);
+  --ok: #237f65;
+  --ok-glow: rgba(35, 127, 101, 0.1);
+  --accent-ink: #fff;
+  --sidebar-bg: #e9e5f3;
+  --scrim: rgba(37, 38, 58, 0.4);
+  --shadow-card: 0 3px 12px rgba(52, 46, 87, 0.08);
+  --shadow-pop: 0 22px 60px rgba(52, 46, 87, 0.2);
+}

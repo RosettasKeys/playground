@@ -1,0 +1,11 @@
+# Build scratch. The committed, Pages-served cabinet is ./itops.html + ./assets/,
+# produced from here by scripts/release.mjs.
+dist/
+
+node_modules/
+
+# Reference-build archives (opspiral.zip and friends carry whole node_modules trees)
+*.zip
+
+# Machine-local Claude Code permissions
+.claude/settings.local.json

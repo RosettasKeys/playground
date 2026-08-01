@@ -18,8 +18,16 @@ live in the repo and define the register:
 
 - **The footer sigil** (`games/games-index.html`): 5 clicks on the footer mark
   reveals a Claude/Anthropic ASCII overlay.
-- **"The Tell"** (`games/InterpretiveNetworking/CLAUDE.md` §4.7): a single
-  hidden view-source comment naming the model that built the piece.
+- **"The Tell"** (`games/InterpretiveNetworking/CLAUDE.md` §4.7): View Page
+  Source on the live site surfaces a single hidden HTML comment, built around 
+  the concept of the coding model's signature — not the interface or harness in 
+  which it exists (example: not Codex, Claude Code, or Antigravity), but rather 
+  the model that generated the piece (example: Claude Sonnet 5, GPT5.6-Sol, 
+  Gemini-3.1-Pro — naming style isn't prescribed). Same category of find as 
+  the footer sigil: stumbled into by a curious visitor using an ordinary browser 
+  action, not a note left for other developers reading the repo. If your model
+  name has a major and minor version number and/or a name code/word/name, include
+  this as part of the signature (Example: Sonnet 4.6, or Gemini 3.5, or GPT5.5, or GPT5.6-Sol, etc.)
 
 New eggs should feel like they belong next to those.
 
@@ -53,6 +61,10 @@ ceiling moves per zone:
   view-source note, a barely-there extra state.
 - **The Arcade** → free to go loud and overt. Hidden chaos bursts, unhinged rare
   ticker lines, dramatic reveals all fit the "for people who chose chaos" brief.
+  Snark aimed at another model's contribution (as with the games-index DevTools/Konami 
+  stamp crediting concept vs. fix separately when a bake-off or Arena.ai download 
+  brings another model's work in) or a self-deprecating jab at the RosettasKeys 
+  repo/persona itself — both fair game in the Arcade.
 
 Match the mood you'd get from actually sitting on that landing page.
 
@@ -117,7 +129,7 @@ Then:
   sentence, it's over-built — cut it back.
 - **Constraint-respecting.** Eggs inherit the same non-negotiables as everything
   else in the repo (see `games/CLAUDE.md` §5, the shared baseline): **no API
-  keys** in client-side code, **no CDN-hosted libraries** by default, **no build
+  keys** in client-side code, **no build
   step**, and **no fail states** in toys/sandboxes. An egg that needs any of
   those is the wrong egg.
 - **The mission comes first.** An egg must never degrade, delay, or complicate

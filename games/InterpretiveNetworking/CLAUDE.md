@@ -52,12 +52,12 @@ exists.
   Sysadmin," a real chat-completion call, anything like it). There's no server
   here to hide a key behind, so this isn't a "be careful with it" — it's a hard
   no, regardless of how the feature is framed.
-- **No CDN-hosted libraries, by default** (no GSAP, no Google Fonts link tags,
-  no CDN React/Tailwind). This isn't a cost/security issue like the API-key
-  rule above — it's a robustness default, since nothing here needs one and
-  avoiding it keeps the piece working offline and immune to a dependency
-  disappearing later. Soft rule, not a hard one: flag it back to the user if a
-  specific library seems worth the tradeoff.
+- **No paid or proprietary external resources** (no paid fonts, paid CDN
+  libraries, paid APIs). Free-to-use CDN resources (Google Fonts, cdnjs, etc.)
+  are fine — this isn't a cost/security issue like the API-key rule above, it's
+  about not introducing anything that requires payment to use or host. Soft
+  rule either way: flag it back to the user if a specific library, free or
+  paid, seems worth the tradeoff.
 - **Non-AI, no-auth, free public API calls are permitted in principle** if a
   future feature genuinely needs one (e.g. a public data endpoint that needs no
   key). Nothing in this v1 design requires one — treat this as a door left open
@@ -281,7 +281,9 @@ index exists yet, and hooking this in is separate, later work.
 - A rhythm-game / beat-matched timing engine.
 - Procedural rack layout generation.
 - Hidden unlockable modes, achievements systems, or a meta-progression layer.
-- Any CDN-hosted library (GSAP, fonts, icon packs, etc.).
+- Any CDN-hosted library or resource that requires payment to use or host
+  (GSAP, paid fonts/icon packs, etc.) — free-to-use CDN resources are fine
+  per §2.
 - Any feature that calls out to an AI API (Claude, Mistral, GPT, or otherwise)
   — there's no backend to hold a key, so this isn't buildable safely in a
   public static repo no matter how it's pitched (e.g. Mistral's "hidden AI

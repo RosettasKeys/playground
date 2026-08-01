@@ -44,12 +44,12 @@ the whole portfolio unless a deeper file overrides it for its own subtree:
 
 - **No API keys** of any kind in client-side code — this repo is public and
   forkable. Hard no, AI-provider keys most of all.
-- **No CDN-hosted libraries by default** (no GSAP, Google Fonts links, CDN
-  React/Tailwind). Soft rule — flag if a library seems worth the tradeoff.
 - **No build step.** Files open directly in a browser and deploy as-is to
   GitHub Pages. No `npm install`, no bundler.
 - **No fail states** in toys/sandboxes unless a specific piece's own file says
   otherwise.
+- **No paid/proprietary external resources** (fonts, CDN libraries, APIs) —
+  free-to-use CDN resources are fine; flag paid options before adding.
 
 ## Case-sensitivity (deploy-time gotcha)
 

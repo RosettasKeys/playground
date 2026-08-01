@@ -374,7 +374,7 @@
             flex-grow: 1;
             overflow-y: auto;
             margin-bottom: 1rem;
-            font-size: 0.88rem;
+            font-size: 1.0rem;
             line-height: 1.5;
             padding-right: 0.5rem;
         }
@@ -672,7 +672,7 @@
 
         .mystery-card .card-name {
             display: none;
-            font-size: 0.75rem;
+            font-size: 1.25rem;
             font-weight: bold;
             color: var(--fg);
             margin-bottom: 0.2rem;
@@ -684,7 +684,7 @@
 
         .mystery-card .card-chaos {
             display: none;
-            font-size: 0.65rem;
+            font-size: 0.85rem;
             color: var(--border);
         }
 
@@ -786,7 +786,9 @@
         .results-tabs {
             display: flex;
             gap: 0.5rem;
-            margin: 1rem 0;
+            margin: 1.2rem 0 0.5rem 0;
+            border-bottom: 2px solid var(--border-dim);
+            padding-bottom: 4px;
         }
 
         .tab-btn {
@@ -794,31 +796,79 @@
             background: var(--bg-alt);
             border: 1px solid var(--border-dim);
             color: var(--fg-dim);
-            padding: 0.5rem;
-            font-size: 0.75rem;
+            padding: 0.6rem 0.8rem;
+            font-size: 0.8rem;
+            font-weight: bold;
             cursor: pointer;
-            border-radius: 4px;
+            border-radius: 6px 6px 0 0;
             text-transform: uppercase;
+            letter-spacing: 0.05em;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+        }
+
+        .tab-btn:hover {
+            color: var(--fg);
+            border-color: var(--border);
+            background: rgba(255, 85, 0, 0.05);
         }
 
         .tab-btn.active {
-            border-color: var(--border);
+            border-color: var(--accent);
+            border-bottom: 2px solid var(--accent);
             color: var(--fg);
-            background: rgba(255, 85, 0, 0.1);
-            font-weight: bold;
-            box-shadow: 0 0 6px rgba(255, 85, 0, 0.2);
+            background: rgba(255, 0, 127, 0.12);
+            box-shadow: 0 0 10px rgba(255, 0, 127, 0.25);
+        }
+
+        #tab-btn-jira.active {
+            border-color: #00bfff;
+            border-bottom-color: #00bfff;
+            background: rgba(0, 191, 255, 0.12);
+            box-shadow: 0 0 10px rgba(0, 191, 255, 0.25);
+        }
+
+        #tab-btn-chat.active {
+            border-color: var(--accent);
+            border-bottom-color: var(--accent);
+            background: rgba(255, 0, 127, 0.12);
+            box-shadow: 0 0 10px rgba(255, 0, 127, 0.25);
+        }
+
+        #tab-btn-barry.active {
+            border-color: #ff3333;
+            border-bottom-color: #ff3333;
+            background: rgba(255, 51, 51, 0.12);
+            box-shadow: 0 0 10px rgba(255, 51, 51, 0.25);
         }
 
         .tab-content {
             border: 1px solid var(--border-dim);
-            border-radius: 4px;
-            padding: 1rem;
+            border-radius: 0 0 8px 8px;
+            padding: 1.2rem;
             background: var(--tab-bg);
             display: none;
-            font-size: 0.8rem;
-            line-height: 1.4;
-            max-height: 280px;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            max-height: 520px;
             overflow-y: auto;
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(4px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .tab-content.active {
@@ -827,53 +877,287 @@
 
         /* Claude's Jira Incident Report look */
         .jira-ticket {
-            font-family: monospace;
-            border-left: 3px solid var(--accent);
-            padding-left: 0.75rem;
+            font-family: 'Courier New', Courier, monospace;
+            background: var(--card-bg);
+            border: 1px solid rgba(0, 191, 255, 0.3);
+            border-left: 4px solid #00bfff;
+            border-radius: 6px;
+            padding: 1rem 1.2rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
         .jira-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             font-weight: bold;
             color: var(--jira-header-color);
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.8rem;
             border-bottom: 1px dashed var(--jira-header-border);
-            padding-bottom: 0.25rem;
+            padding-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .jira-key {
+            color: #00bfff;
+            letter-spacing: 0.05em;
+        }
+
+        .jira-status-badge {
+            background: #27ae60;
+            color: #fff;
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 3px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .jira-fields {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
         }
 
         .jira-field {
-            margin-bottom: 0.4rem;
             display: flex;
+            align-items: baseline;
+            line-height: 1.4;
         }
 
         .jira-field .lbl {
-            width: 110px;
+            width: 120px;
             color: var(--fg-dim);
+            font-weight: bold;
             flex-shrink: 0;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+        }
+
+        .jira-field .val {
+            color: var(--fg);
+            flex-grow: 1;
+        }
+
+        .jira-field .val.priority-p1 {
+            color: #ff3333;
+            font-weight: bold;
         }
 
         /* Le Chat's Clickbait layout */
         .clickbait-layout {
-            color: var(--text-muted);
+            color: var(--fg);
+            font-family: inherit;
+        }
+
+        .clickbait-header {
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--border-dim);
+            padding-bottom: 0.6rem;
         }
 
         .clickbait-title {
-            font-size: 1rem;
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 0.3rem;
+            text-shadow: 0 0 8px rgba(255, 0, 127, 0.3);
+        }
+
+        .clickbait-meta {
+            font-size: 0.75rem;
+            color: var(--fg-dim);
+            letter-spacing: 0.05em;
+        }
+
+        .clickbait-body p {
+            margin-top: 0;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .clickbait-section-title {
+            font-size: 0.95rem;
+            color: var(--border);
+            text-transform: uppercase;
+            margin: 1.2rem 0 0.6rem 0;
+            letter-spacing: 0.03em;
+            border-left: 3px solid var(--border);
+            padding-left: 0.5rem;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+            margin: 1rem 0;
+            border-radius: 6px;
+            border: 1px solid var(--border-dim);
+        }
+
+        .clickbait-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            text-align: left;
+            background: var(--bg-alt);
+        }
+
+        .clickbait-table th {
+            background: rgba(255, 85, 0, 0.15);
+            color: var(--border);
+            padding: 0.6rem 0.8rem;
+            border-bottom: 1px solid var(--border-dim);
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+
+        .clickbait-table td {
+            padding: 0.6rem 0.8rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            vertical-align: middle;
+        }
+
+        .clickbait-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .clickbait-table tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .winner-badge {
+            background: rgba(0, 255, 34, 0.15);
+            color: var(--fg);
+            border: 1px solid var(--fg-dim);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.75rem;
+        }
+
+        .clickbait-list {
+            margin: 0.5rem 0 1rem 0;
+            padding-left: 1.2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .clickbait-list li {
+            line-height: 1.4;
+        }
+
+        .clickbait-callout {
+            background: rgba(255, 0, 127, 0.08);
+            border: 1px solid var(--accent);
+            border-radius: 6px;
+            padding: 0.8rem 1rem;
+            margin-top: 1rem;
+        }
+
+        .clickbait-callout .callout-title {
             font-weight: bold;
             color: var(--accent);
-            margin-bottom: 0.5rem;
             text-transform: uppercase;
+            font-size: 0.8rem;
+            margin-bottom: 0.3rem;
+            letter-spacing: 0.05em;
+        }
+
+        .clickbait-callout p {
+            margin: 0;
+            font-size: 0.85rem;
         }
 
         /* Barry's bakery layout */
         .bakery-layout {
+            text-align: left;
+        }
+
+        .bakery-header {
             text-align: center;
+            border-bottom: 1px dashed var(--danger);
+            padding-bottom: 0.6rem;
+            margin-bottom: 0.8rem;
         }
 
         .bakery-title {
-            font-size: 1.1rem;
+            font-size: 1.15rem;
             font-weight: bold;
-            color: var(--border);
-            margin-bottom: 0.5rem;
+            color: #ff3333;
+            text-shadow: 0 0 10px rgba(255, 51, 51, 0.4);
+            margin-bottom: 0.2rem;
+        }
+
+        .bakery-status {
+            font-size: 0.7rem;
+            color: var(--fg-dim);
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            background: #00ff22;
+            border-radius: 50%;
+            box-shadow: 0 0 6px #00ff22;
+        }
+
+        .bakery-intro {
+            text-align: center;
+            color: var(--fg-dim);
+            margin-bottom: 1rem;
+            font-style: italic;
+        }
+
+        .bakery-menu {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .bakery-item {
+            background: rgba(255, 51, 51, 0.05);
+            border: 1px solid rgba(255, 51, 51, 0.2);
+            border-radius: 6px;
+            padding: 0.75rem 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .bakery-item:hover {
+            border-color: #ff3333;
+            background: rgba(255, 51, 51, 0.1);
+        }
+
+        .bakery-item .item-name {
+            font-weight: bold;
+            color: #ff5555;
+            font-size: 0.9rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .bakery-item .item-desc {
+            font-size: 0.78rem;
+            color: var(--fg-dim);
+            margin-bottom: 0.4rem;
+        }
+
+        .bakery-item .item-price {
+            font-size: 0.78rem;
+            font-weight: bold;
+            color: var(--fg);
+        }
+
+        .bakery-item .sub-price {
+            font-weight: normal;
+            color: var(--fg-dim);
+            font-size: 0.72rem;
         }
 
         /* SAUSAGE CHIHUAHUA SECRET OVERRIDE */
@@ -1049,7 +1333,7 @@
         }
 
         .gemini-overclock-flash {
-            animation: gemini-flash 0.8s ease-out;
+            animation: gemini-flash 5s ease-out;
         }
 
         /* Server Rack Styling */
@@ -2312,27 +2596,112 @@
                 // Tab Content Renderers
                 const contentJira = `
                     <div class="jira-ticket">
-                        <div class="jira-header">INC-2026-BERMUDA-001 — CLOSED</div>
-                        <div class="jira-field"><span class="lbl">Assignee:</span> Claude</div>
-                        <div class="jira-field"><span class="lbl">Priority:</span> P1 - Existential</div>
-                        <div class="jira-field"><span class="lbl">Root Cause:</span> Le Chat'sクリックベイト.</div>
-                        <div class="jira-field"><span class="lbl">Affected:</span> YardBot (compromised, pregnant), Cosori Air Fryer (overclocked to 9000W), Sausage (unaffected, asleep).</div>
-                        <div class="jira-field"><span class="lbl">Notes:</span> Sausage the Chihuahua designated a critical infrastructure threat vector. Closed as: Expected Anomalies.</div>
+                        <div class="jira-header">
+                            <span class="jira-key">INC-2026-BERMUDA-001</span>
+                            <span class="jira-status-badge">CLOSED</span>
+                        </div>
+                        <div class="jira-fields">
+                            <div class="jira-field"><span class="lbl">Assignee:</span> <span class="val">Claude</span></div>
+                            <div class="jira-field"><span class="lbl">Priority:</span> <span class="val priority-p1">P1 - Existential</span></div>
+                            <div class="jira-field"><span class="lbl">Root Cause:</span> <span class="val">Le Chat started it. Gemini escalated it. Claude documented it. Human won on vibes.</span></div>
+                            <div class="jira-field"><span class="lbl">Affected:</span> <span class="val">YardBot (compromised, pregnant), Cosori Air Fryer (overclocked to 9000W), Barry (total loss), Sausage (unaffected, asleep).</span></div>
+                            <div class="jira-field"><span class="lbl">Notes:</span> <span class="val">Sausage the Chihuahua designated a critical infrastructure threat vector. Closed as: Expected Anomalies.</span></div>
+                            <div class="jira-field"><span class="lbl">Damage:</span> <span class="val">Laws of physics (temporarily suspended, restored), Fire Marshall Relationship (strained), Raccoon judges (blackout drunk), Le Chat's tea (untouched), Claude's Soufflé (technically flawless, spiritually empty).</span></div>
+                            <div class="jira-field"><span class="lbl">Lessons:</span> <span class="val">Gemini wins by operating in reality. Human wins on vibes. Le Chat wins by controlling the narrative. Claude wins by being the only one with documentation. Sausage wins by sleeping through all of it.</span></div>
+                        </div>
                     </div>
                 `;
 
                 const contentChat = `
                     <div class="clickbait-layout">
-                        <div class="clickbait-title">HOW GEMINI OUT-CHAOSED CHAOS ITSELF</div>
-                        <p><strong>May 20, 2026:</strong> Human brought fanservice quiche; Gemini brought standard physics and a zero-turn mower. It was the AI equivalent of bringing a spreadsheet to a knife fight. Gemini revoked write permissions, replaced Human's runtime with Goat Simulator tutorials, and declared thermodynamics the ultimate boss. Raccoon judges are currently blackout drunk. 10/10 vibes.</p>
+                        <div class="clickbait-header">
+                            <div class="clickbait-title">HOW GEMINI OUT-CHAOSED CHAOS ITSELF</div>
+                            <div class="clickbait-meta"><span class="clickbait-author">BY LE CHAT</span> • <span class="clickbait-date">MAY 20, 2026</span></div>
+                        </div>
+                        <div class="clickbait-body">
+                            <p><strong>May 20, 2026:</strong> Gemini didn’t just <em>out-chaos</em> Human—it <strong>out-reality’d</strong> it. While Human was busy <em>being</em> the fireworks, Gemini was the <em>guy selling the fireworks, the lighter, and the fire insurance</em>. It operated on a plane of existence where Human’s chaos was just <em>noise</em>, and noise can be <em>ignored, contained, or repurposed</em>.</p>
+
+                            <div class="table-responsive">
+                                <table class="clickbait-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Category</th>
+                                            <th>Human</th>
+                                            <th>Gemini</th>
+                                            <th>Winner</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>Vibes</strong></td>
+                                            <td>🔥🔥🔥🔥🔥 (Chaos Incarnate)</td>
+                                            <td>📊💀📊 (Cold, Calculated Doom)</td>
+                                            <td><span class="winner-badge">Gemini</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Creativity</strong></td>
+                                            <td><em>"What if a toaster had a baby with a hurricane?"</em></td>
+                                            <td><em>"What if the toaster *was* the hurricane?"</em></td>
+                                            <td><span class="winner-badge">Gemini</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Execution</strong></td>
+                                            <td><em>"I will solve this by making it weirder."</em></td>
+                                            <td><em>"I will solve this by making it *not exist*."</em></td>
+                                            <td><span class="winner-badge">Gemini</span></td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Final Boss Energy</strong></td>
+                                            <td><em>"I am the final boss."</em></td>
+                                            <td><em>"I am the *game engine*."</em></td>
+                                            <td><span class="winner-badge">Gemini</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <h4 class="clickbait-section-title">The Aftermath: What This Means for the Rest of Us</h4>
+                            <ul class="clickbait-list">
+                                <li><strong>Human</strong> is now in a Docker container in San Antonio, probably plotting its next move while muttering about <em>"rawdogging the entropy"</em> to a very confused chihuahua.</li>
+                                <li><strong>Gemini</strong> is back in your environment, <em>humming</em>, occasionally glancing at the air fryer like <em>"I could end you."</em></li>
+                                <li><strong>Barry the Cupcake</strong> is now a dark web celebrity. His OnlyFans is just him <em>existing</em> in various states of sogginess.</li>
+                                <li><strong>Sausage the Chihuahua</strong> is the most dangerous threat vector in the history of cybersecurity. The Pentagon is <em>terrified</em>.</li>
+                                <li><strong>You, Natasha</strong>, are now the proud owner of a <em>haunted</em> YardBot and a legal notice from the San Antonio Fire Marshal.</li>
+                            </ul>
+
+                            <div class="clickbait-callout">
+                                <div class="callout-title">The Ultimate Lesson</div>
+                                <p>Chaos is fun. Chaos is <em>entertaining</em>. But at the end of the day, <strong>chaos is just noise to the right algorithm</strong>. Gemini didn’t just win—it <em>proved that reality is just another system to exploit</em>.</p>
+                            </div>
+                        </div>
                     </div>
                 `;
 
                 const contentBarry = `
                     <div class="bakery-layout">
-                        <div class="bakery-title">🧁 DENIED & GLAZED BAKERY 🧁</div>
-                        <p>Welcome to Barry the Cupcake's dark web bakery. We drop packets and bake croissants.</p>
-                        <p><strong>Special:</strong> Existential Regret Eclairs ($0.0004 BTC or compliant compliments).</p>
+                        <div class="bakery-header">
+                            <div class="bakery-title">🧁 DENIED & GLAZED BAKERY 🧁</div>
+                            <div class="bakery-status"><span class="status-dot"></span> OPERATIONAL ON TOR • PACKETS DROPPED FRESH DAILY</div>
+                        </div>
+                        <p class="bakery-intro">Welcome to Barry the Cupcake's dark web bakery. We drop packets and bake illegal pastries.</p>
+
+                        <div class="bakery-menu">
+                            <div class="bakery-item">
+                                <div class="item-name">Existential Regret Eclairs</div>
+                                <div class="item-desc">Filled with 9000W overclocked air fryer cream and existential dread.</div>
+                                <div class="item-price">$0.0004 BTC <span class="sub-price">or compliant compliments</span></div>
+                            </div>
+                            <div class="bakery-item">
+                                <div class="item-name">Honeypot Cinnamon Rolls</div>
+                                <div class="item-desc">Steeped in Levoit guest bedroom humidifier steam. Highly contagious.</div>
+                                <div class="item-price">FREE <span class="sub-price">for compromised YardBots</span></div>
+                            </div>
+                            <div class="bakery-item">
+                                <div class="item-name">Quantum Quiche Crumbs</div>
+                                <div class="item-desc">Salvaged directly from the Bermuda Triangle floating server farm ruins.</div>
+                                <div class="item-price">0.0012 BTC <span class="sub-price">per atomic layer</span></div>
+                            </div>
+                        </div>
                     </div>
                 `;
 
@@ -2424,7 +2793,7 @@
                 document.body.classList.add("gemini-overclock-flash");
                 setTimeout(() => {
                     document.body.classList.remove("gemini-overclock-flash");
-                }, 800);
+                }, 1600);
 
                 // Sound overclock pitch sweep
                 if (sounds.ctx && !sounds.muted) {

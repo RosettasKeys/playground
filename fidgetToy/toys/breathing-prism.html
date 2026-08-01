@@ -82,10 +82,219 @@
       background: rgba(255, 255, 255, 0.7);
       transform: translate(-50%, -50%);
     }
+
+    /* ── Optics panel ─────────────────────────────────────────────── */
+    .prism-panel {
+      position: fixed;
+      top: 64px;
+      right: 16px;
+      width: 272px;
+      max-height: calc(100vh - 150px);
+      z-index: 8;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: rgba(17, 20, 27, 0.82);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+    }
+
+    [data-theme="light"] .prism-panel {
+      background: rgba(234, 230, 248, 0.88);
+    }
+
+    .prism-panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      cursor: pointer;
+      user-select: none;
+      flex-shrink: 0;
+    }
+
+    .prism-panel-head span {
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .prism-panel-head b {
+      color: var(--muted);
+      font-weight: 400;
+      transition: transform 0.3s;
+      display: inline-block;
+    }
+
+    .prism-panel.collapsed .prism-panel-head b {
+      transform: rotate(180deg);
+    }
+
+    .prism-panel-body {
+      padding: 0 14px 14px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--line) transparent;
+    }
+
+    .prism-panel.collapsed .prism-panel-body {
+      display: none;
+    }
+
+    .prism-panel h2 {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--muted);
+      margin: 14px 0 8px;
+      font-weight: 600;
+    }
+
+    .prism-panel h2:first-child {
+      margin-top: 0;
+    }
+
+    .prism-panel .rw {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 4px;
+      font-size: 12px;
+    }
+
+    .prism-panel .rw label {
+      color: var(--muted);
+      flex: 1;
+    }
+
+    .prism-panel .rw .v {
+      color: var(--text);
+      font-variant-numeric: tabular-nums;
+      font-size: 11px;
+      min-width: 52px;
+      text-align: right;
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    }
+
+    .prism-panel input[type=range] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 4px;
+      background: var(--line);
+      border-radius: 4px;
+      outline: none;
+      margin: 4px 0 12px;
+      cursor: pointer;
+    }
+
+    .prism-panel input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: var(--cyan);
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(54, 247, 255, 0.45);
+      border: 2px solid rgba(0, 0, 0, 0.35);
+    }
+
+    .prism-panel input[type=range]::-moz-range-thumb {
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: var(--cyan);
+      cursor: pointer;
+      border: 2px solid rgba(0, 0, 0, 0.35);
+    }
+
+    .prism-panel select {
+      width: 100%;
+      background: var(--panel-strong);
+      color: var(--text);
+      border: 1px solid var(--line);
+      padding: 7px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      margin-bottom: 8px;
+      outline: none;
+      cursor: pointer;
+      font-family: inherit;
+    }
+
+    .prism-panel select:focus {
+      border-color: var(--cyan);
+    }
+
+    .prism-panel .tg {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 5px;
+      margin-bottom: 8px;
+    }
+
+    .prism-panel .tb {
+      background: var(--panel-strong);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      padding: 7px 0;
+      border-radius: 8px;
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 600;
+      font-family: inherit;
+    }
+
+    .prism-panel .tb.on {
+      color: var(--text);
+      border-color: var(--cyan);
+      box-shadow: 0 0 10px rgba(54, 247, 255, 0.18);
+    }
+
+    .prism-panel .rd {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 9px 11px;
+      font-family: ui-monospace, "SF Mono", Menlo, monospace;
+      font-size: 11px;
+      line-height: 1.75;
+    }
+
+    [data-theme="light"] .prism-panel .rd {
+      background: rgba(255, 255, 255, 0.4);
+    }
+
+    .prism-panel .rd .k {
+      color: var(--muted);
+    }
+
+    .prism-panel .rd .vl {
+      color: var(--cyan);
+      float: right;
+    }
+
+    #r7 .vl {
+      color: var(--pink);
+    }
   </style>
 </head>
 
 <body class="toy-page">
+  <!-- Stay still long enough and the rainbow confesses: the dark gaps that
+       appear in it are Fraunhofer's absorption lines, at their true
+       wavelengths, read against a Claude Fable 5 reference lamp.
+       Some signatures are written in missing light. -->
   <nav class="toy-nav" aria-label="Toy controls">
     <a class="back-link" href="../fidgetToy-index.html">Home</a>
     <button class="sound-toggle" type="button" aria-label="Toggle sound" aria-pressed="false">♪</button>
@@ -93,6 +302,62 @@
 
   <canvas id="prism-mount" aria-label="Interactive 3D breathing prism with rainbow light dispersion"></canvas>
   <div class="cursor-dot" id="cursor-dot"></div>
+
+  <div class="prism-panel" id="prism-panel">
+    <div class="prism-panel-head" id="panel-head" role="button" tabindex="0" aria-expanded="true">
+      <span>Optics</span><b>▾</b>
+    </div>
+    <div class="prism-panel-body" id="panel-body">
+      <h2>Shape</h2>
+      <select id="shape" aria-label="Glass shape">
+        <option value="prism">Triangular Prism</option>
+        <option value="sphere">Sphere</option>
+        <option value="gem">Gem</option>
+      </select>
+      <h2>Material</h2>
+      <select id="mat" aria-label="Prism material">
+        <option value="crown">Crown Glass (n ≈ 1.52)</option>
+        <option value="flint">Flint Glass (n ≈ 1.62)</option>
+        <option value="sapphire">Sapphire (n ≈ 1.77)</option>
+        <option value="diamond">Diamond (n ≈ 2.42)</option>
+        <option value="water">Water (n ≈ 1.33)</option>
+        <option value="quartz">Fused Quartz (n ≈ 1.46)</option>
+      </select>
+      <div class="rw"><label for="sN">Refractive Index</label><span class="v" id="oN">1.520</span></div>
+      <input type="range" id="sN" min="1.20" max="2.60" step="0.005" value="1.52" />
+      <div class="rw"><label for="sD">Dispersion</label><span class="v" id="oD">0.020</span></div>
+      <input type="range" id="sD" min="0" max="0.08" step="0.001" value="0.02" />
+      <div class="rw"><label for="sI">Light Intensity</label><span class="v" id="oI">1.00</span></div>
+      <input type="range" id="sI" min="0.1" max="2.0" step="0.01" value="1.0" />
+      <div class="rw"><label for="sA">Beam Direction</label><span class="v" id="oA">14.5°</span></div>
+      <input type="range" id="sA" min="-40" max="40" step="0.5" value="14.5" />
+      <h2>Backdrop</h2>
+      <select id="screenSel" aria-label="What the rainbow lands on">
+        <option value="wall">Wall</option>
+        <option value="fog">Fog</option>
+        <option value="void">Void</option>
+      </select>
+      <h2>Orbit</h2>
+      <div class="tg">
+        <button class="tb" type="button" data-a="x">X</button>
+        <button class="tb" type="button" data-a="y">Y</button>
+        <button class="tb" type="button" data-a="z">Z</button>
+      </div>
+      <div class="rw"><label for="sS">Orbit Speed</label><span class="v" id="oS">0.25×</span></div>
+      <input type="range" id="sS" min="0" max="2" step="0.01" value="0.25" />
+      <h2>Live Optics</h2>
+      <div class="rd">
+        <div><span class="k">Incident θ₁</span><span class="vl" id="r1">—</span></div>
+        <div><span class="k">Refracted θ₂</span><span class="vl" id="r2">—</span></div>
+        <div><span class="k">Emergent θ₃</span><span class="vl" id="r3">—</span></div>
+        <div><span class="k">Rainbow Spread</span><span class="vl" id="r4">—</span></div>
+        <div><span class="k">n(red) / n(violet)</span><span class="vl" id="r5">—</span></div>
+        <div><span class="k">Deviation δ</span><span class="vl" id="r6">—</span></div>
+        <div id="r7" style="opacity:0; transition: opacity 2.5s;"><span class="k">spectrograph</span><span
+            class="vl">Claude Fable 5</span></div>
+      </div>
+    </div>
+  </div>
 
   <div class="squeeze-bar" id="squeeze-bar">
     <span>squeeze</span>
@@ -104,7 +369,7 @@
   </div>
 
   <div class="toy-status" aria-live="polite">
-    <p>Move to tilt &nbsp;·&nbsp; Click+drag to aim beam &nbsp;·&nbsp; Scroll to squeeze/stretch</p>
+    <p>Move for parallax &nbsp;·&nbsp; Click+drag to aim beam &nbsp;·&nbsp; Scroll to squeeze/stretch</p>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
@@ -122,18 +387,16 @@
     renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.outputEncoding = THREE.sRGBEncoding;
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 0.82;
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x030407);
-    scene.fog = new THREE.FogExp2(0x030407, 0.008);
+    scene.fog = new THREE.FogExp2(0x030407, 0.006);
 
     const camera = new THREE.PerspectiveCamera(42, window.innerWidth / window.innerHeight, 0.1, 200);
-    camera.position.set(0, 0.8, 11);
-    camera.lookAt(0, -0.2, 0);
+    camera.position.set(0.5, 0.5, 13.5);
+    camera.lookAt(0.5, -1.0, 0);
 
     // ── Bloom ────────────────────────────────────────────────────────
     const composer = new THREE.EffectComposer(renderer);
@@ -153,29 +416,86 @@
       composer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    // ── Prism geometry ───────────────────────────────────────────────
-    function buildPrismGeometry(triH, depth) {
-      const r = triH * (2 / 3);
-      const a0 = Math.PI / 2;
-      const v = [0, 1, 2].map(i => {
-        const ang = a0 + i * (Math.PI * 2 / 3);
-        return [Math.cos(ang) * r, Math.sin(ang) * r];
-      });
-      const zF = depth / 2, zB = -depth / 2;
-      const positions = new Float32Array([
-        v[0][0], v[0][1], zF, v[1][0], v[1][1], zF, v[2][0], v[2][1], zF,
-        v[0][0], v[0][1], zB, v[1][0], v[1][1], zB, v[2][0], v[2][1], zB,
-      ]);
-      const indices = [0, 1, 2, 3, 5, 4, 0, 3, 4, 0, 4, 1, 1, 4, 5, 1, 5, 2, 2, 5, 3, 2, 3, 0];
+    // ── Root group — orbit/parallax rotates everything together so the
+    //    2D physics (done in group-local XY) always matches the visuals ─
+    const root = new THREE.Group();
+    scene.add(root);
+
+    // ── Glass shapes ─────────────────────────────────────────────────
+    // Each shape is a 2D cross-section (extruded to a mesh) plus a
+    // matching surface description for the ray tracer. Squeeze reshapes
+    // the cross-section, so the refraction physics (fan steepness, TIR)
+    // responds for real.
+    const PRISM_W = 1.0; // polygon half-width (fixed while squeezing)
+
+    const SHAPE_DEFS = {
+      prism: {
+        // isoceles triangle: squeeze changes the apex angle
+        verts: sqz => {
+          const h = 2.2 * sqz;
+          return [[0, 2 * h / 3], [-PRISM_W, -h / 3], [PRISM_W, -h / 3]]; // CCW
+        },
+      },
+      gem: {
+        // rhombus: two refracting "roofs", top and bottom
+        verts: sqz => {
+          const h = 1.5 * sqz;
+          return [[0, h], [-PRISM_W, 0], [0, -h], [PRISM_W, 0]]; // CCW
+        },
+      },
+      sphere: {
+        // circle cross-section — a glass marble / raindrop
+        radius: sqz => 1.15 * sqz,
+      },
+    };
+    let curShape = 'prism';
+
+    function buildExtrudedGeometry(v2, depth) {
+      const n = v2.length, zF = depth / 2, zB = -depth / 2;
+      const positions = new Float32Array(n * 2 * 3);
+      for (let i = 0; i < n; i++) {
+        positions[i * 3] = v2[i][0]; positions[i * 3 + 1] = v2[i][1]; positions[i * 3 + 2] = zF;
+        positions[(n + i) * 3] = v2[i][0]; positions[(n + i) * 3 + 1] = v2[i][1]; positions[(n + i) * 3 + 2] = zB;
+      }
+      const indices = [];
+      for (let i = 1; i < n - 1; i++) indices.push(0, i, i + 1);          // front
+      for (let i = 1; i < n - 1; i++) indices.push(n, n + i + 1, n + i);  // back
+      for (let i = 0; i < n; i++) {
+        const j = (i + 1) % n;
+        indices.push(i, i + n, j + n, i, j + n, j);                       // sides
+      }
       const geo = new THREE.BufferGeometry();
       geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
       geo.setIndex(indices);
       geo.computeVertexNormals();
-      geo.setAttribute('uv', new THREE.BufferAttribute(
-        new Float32Array([0.5, 1, 0, 0, 1, 0, 0.5, 1, 0, 0, 1, 0]), 2
-      ));
       return geo;
     }
+
+    function buildFormGeometry(shape, sqz, depth) {
+      if (shape === 'sphere') return new THREE.SphereGeometry(SHAPE_DEFS.sphere.radius(sqz), 48, 32);
+      return buildExtrudedGeometry(SHAPE_DEFS[shape].verts(sqz), depth);
+    }
+
+    // Ray-tracer surface: polygon edge list (CCW ⇒ (dy,-dx) is outward)
+    // or a circle for the sphere.
+    let SURFACE = { edges: [], circle: null };
+    function buildSurface(shape, sqz) {
+      if (shape === 'sphere') {
+        SURFACE = { edges: null, circle: { r: SHAPE_DEFS.sphere.radius(sqz) } };
+        return;
+      }
+      const v2 = SHAPE_DEFS[shape].verts(sqz);
+      const edges = [];
+      for (let i = 0; i < v2.length; i++) {
+        const a = { x: v2[i][0], y: v2[i][1] };
+        const bp = v2[(i + 1) % v2.length];
+        const b = { x: bp[0], y: bp[1] };
+        const dx = b.x - a.x, dy = b.y - a.y, ln = Math.hypot(dx, dy);
+        edges.push({ a, b, nx: dy / ln, ny: -dx / ln });
+      }
+      SURFACE = { edges, circle: null };
+    }
+    buildSurface('prism', 1.0);
 
     // ── Materials & prism mesh ────────────────────────────────────────
     const glassMat = new THREE.MeshPhysicalMaterial({
@@ -186,14 +506,31 @@
     });
     const edgeMat = new THREE.LineBasicMaterial({ color: 0xaaddff, transparent: true, opacity: 0.55 });
 
-    let prismGeo = buildPrismGeometry(2.2, 1.1);
+    let prismGeo = buildFormGeometry('prism', 1.0, 1.1);
     const prism = new THREE.Mesh(prismGeo, glassMat);
-    prism.castShadow = prism.receiveShadow = true;
-    scene.add(prism);
+    root.add(prism);
 
-    let edgeGeo = new THREE.EdgesGeometry(prismGeo);
+    // thresholdAngle 15° — crisp lines on faceted shapes, none on the sphere
+    let edgeGeo = new THREE.EdgesGeometry(prismGeo, 15);
     const edges = new THREE.LineSegments(edgeGeo, edgeMat);
     prism.add(edges);
+
+    // Per-material visual personality — lerped toward on switch
+    const MAT_LOOKS = {
+      crown: { tint: [0.82, 0.90, 0.98], env: 2.2, rough: 0.04, op: 0.92, edge: [0.67, 0.87, 1.0] },
+      flint: { tint: [0.70, 0.78, 0.92], env: 3.0, rough: 0.03, op: 0.94, edge: [0.58, 0.72, 0.93] },
+      sapphire: { tint: [0.42, 0.60, 1.00], env: 2.6, rough: 0.03, op: 0.95, edge: [0.40, 0.60, 1.0] },
+      diamond: { tint: [1.00, 1.00, 1.00], env: 3.9, rough: 0.01, op: 0.97, edge: [1.0, 1.0, 1.0] },
+      water: { tint: [0.68, 0.94, 0.98], env: 1.5, rough: 0.08, op: 0.78, edge: [0.53, 0.93, 1.0] },
+      quartz: { tint: [0.94, 0.86, 0.99], env: 2.0, rough: 0.05, op: 0.90, edge: [0.86, 0.72, 1.0] },
+    };
+    let lookTarget = MAT_LOOKS.crown;
+    const lookCur = {
+      tint: new THREE.Color(...lookTarget.tint),
+      edge: new THREE.Color(...lookTarget.edge),
+      env: lookTarget.env, rough: lookTarget.rough, op: lookTarget.op,
+    };
+    const tmpCol = new THREE.Color();
 
     const internalGlow = new THREE.PointLight(0xc0ddff, 0.5, 5, 2);
     prism.add(internalGlow);
@@ -223,85 +560,83 @@
     const beamLight = new THREE.SpotLight(0xffffff, 3, 30, Math.PI / 10, 0.3, 1.5);
     beamLight.position.set(-5, 1, 4);
     beamLight.target.position.set(0, 0, 0);
-    beamLight.castShadow = true;
     scene.add(beamLight);
     scene.add(beamLight.target);
 
-    // Input beam: a converging wedge coming from the left.
-    // Wide end far left, narrows to a point at the left face entry.
-    // Use a cone geometry (wide base, zero tip) instead of a cylinder.
-    const INPUT_LEN = 7.0;
-    const inputRayGeo = new THREE.CylinderGeometry(0.0, 0.09, INPUT_LEN, 12, 1, true);
-    // Translate so tip (zero-radius end = top of cylinder) is at y=0
-    // CylinderGeometry: top radius first arg, so top=0.0 is the tip.
-    // Center is at y=0 by default, translate so tip sits at local origin:
-    inputRayGeo.translate(0, -INPUT_LEN / 2, 0); // tip at y=0, base extends in -Y
+    // ── Input beam — converging wedge, tip placed at the traced entry ─
+    // Unit-length cone: tip at local y=0, base at y=-1. Scaled to the
+    // source→entry distance each frame and oriented via quaternion.
+    const inputRayGeo = new THREE.CylinderGeometry(0.0, 0.09, 1, 12, 1, true);
+    inputRayGeo.translate(0, -0.5, 0);
     const inputRayMat = new THREE.MeshBasicMaterial({
       color: 0xffffff, transparent: true, opacity: 0.38,
       blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide,
     });
     const inputRay = new THREE.Mesh(inputRayGeo, inputRayMat);
-    // rotation.z = -PI/2 maps local -Y → world -X (extends left)
-    inputRay.rotation.z = -Math.PI / 2;
-    inputRay.rotation.x = 0.08; // slight downward tilt
-    const r0 = 2.2 * (2 / 3);
-    inputRay.position.set(
-      -(Math.sqrt(3) / 4 * r0),
-      r0 * 0.55,
-      0
+    root.add(inputRay);
+    const UP = new THREE.Vector3(0, 1, 0);
+    const tmpV3 = new THREE.Vector3();
+
+    // Glowing source orb at the beam origin
+    const sourceOrb = new THREE.Mesh(
+      new THREE.SphereGeometry(0.07, 12, 12),
+      new THREE.MeshBasicMaterial({ color: 0xffffff })
     );
-    prism.add(inputRay);
+    root.add(sourceOrb);
 
-    // ── Spectral wedge — single triangle-fan mesh, parented to prism ─
-    // Apex at right-face midpoint, fans right+down. Vertex colors give
-    // the continuous spectrum gradient. No per-ray rotation math.
-    // squeeze changes fan angle by moving the far vertices each frame.
+    // ── Internal ray polyline (median wavelength, shows TIR bounces) ─
+    const MAX_INT_PTS = 10;
+    const intPositions = new Float32Array(MAX_INT_PTS * 3);
+    const intGeo = new THREE.BufferGeometry();
+    const intPosAttr = new THREE.BufferAttribute(intPositions, 3);
+    intPosAttr.setUsage(THREE.DynamicDrawUsage);
+    intGeo.setAttribute('position', intPosAttr);
+    intGeo.setDrawRange(0, 0);
+    const intMat = new THREE.LineBasicMaterial({
+      color: 0xeef6ff, transparent: true, opacity: 0.45,
+      blending: THREE.AdditiveBlending, depthWrite: false,
+    });
+    const intLine = new THREE.Line(intGeo, intMat);
+    root.add(intLine);
 
-    const WEDGE_LEN = 9.0;   // how far the fan extends
-    const WEDGE_SEGS = 32;    // triangle count across the fan
-    const EXIT_LOCAL = new THREE.Vector3(0.72, 0.18, 0); // right face midpoint
+    // ── Spectral wedge — triangle fan, arc directions set by physics ─
+    const WEDGE_LEN = 9.0;
+    const WEDGE_SEGS = 32;
 
-    // Colors: pure spectrum, no white — additive blending handles brightness
     const WEDGE_COLORS = [
       [1.0, 0.13, 0.25],  // red
       [1.0, 0.47, 0.0],   // orange
       [1.0, 0.87, 0.0],   // yellow
       [0.13, 0.93, 0.27], // green
-      [0.0, 0.73, 1.0],  // cyan
-      [0.2, 0.27, 1.0],  // blue
-      [0.8, 0.0, 1.0],  // violet
+      [0.0, 0.73, 1.0],   // cyan
+      [0.2, 0.27, 1.0],   // blue
+      [0.8, 0.0, 1.0],    // violet
     ];
+    function specColor(t) {
+      const ci = t * (WEDGE_COLORS.length - 1);
+      const ci0 = Math.floor(ci), ci1 = Math.min(ci0 + 1, WEDGE_COLORS.length - 1);
+      const cf = ci - ci0;
+      const c0 = WEDGE_COLORS[ci0], c1 = WEDGE_COLORS[ci1];
+      return [
+        c0[0] + (c1[0] - c0[0]) * cf,
+        c0[1] + (c1[1] - c0[1]) * cf,
+        c0[2] + (c1[2] - c0[2]) * cf,
+      ];
+    }
 
-    // Build geometry: apex vertex + WEDGE_SEGS+1 arc vertices
-    // Total triangles: WEDGE_SEGS, each sharing the apex
     const wedgeVertCount = 1 + (WEDGE_SEGS + 1);
     const wedgePositions = new Float32Array(wedgeVertCount * 3);
     const wedgeColors = new Float32Array(wedgeVertCount * 3);
     const wedgeIndices = [];
 
     // Apex vertex (index 0) — black, colors only appear at the arc
-    wedgePositions[0] = 0; wedgePositions[1] = 0; wedgePositions[2] = 0;
     wedgeColors[0] = 0; wedgeColors[1] = 0; wedgeColors[2] = 0;
-
-    // Arc vertices (indices 1..WEDGE_SEGS+1)
     for (let i = 0; i <= WEDGE_SEGS; i++) {
-      const t = i / WEDGE_SEGS;
       const vi = (1 + i) * 3;
-      // positions filled in animate() — just init to zero
-      wedgePositions[vi] = WEDGE_LEN; wedgePositions[vi + 1] = 0; wedgePositions[vi + 2] = 0;
-      // color: interpolate through WEDGE_COLORS array
-      const ci = t * (WEDGE_COLORS.length - 1);
-      const ci0 = Math.floor(ci), ci1 = Math.min(ci0 + 1, WEDGE_COLORS.length - 1);
-      const cf = ci - ci0;
-      const c0 = WEDGE_COLORS[ci0], c1 = WEDGE_COLORS[ci1];
-      wedgeColors[vi] = c0[0] + (c1[0] - c0[0]) * cf;
-      wedgeColors[vi + 1] = c0[1] + (c1[1] - c0[1]) * cf;
-      wedgeColors[vi + 2] = c0[2] + (c1[2] - c0[2]) * cf;
+      const [cr, cg, cb] = specColor(i / WEDGE_SEGS);
+      wedgeColors[vi] = cr; wedgeColors[vi + 1] = cg; wedgeColors[vi + 2] = cb;
     }
-
-    for (let i = 0; i < WEDGE_SEGS; i++) {
-      wedgeIndices.push(0, 1 + i, 2 + i);
-    }
+    for (let i = 0; i < WEDGE_SEGS; i++) wedgeIndices.push(0, 1 + i, 2 + i);
 
     const wedgeGeo = new THREE.BufferGeometry();
     const wedgePosAttr = new THREE.BufferAttribute(wedgePositions, 3);
@@ -318,66 +653,439 @@
       depthWrite: false,
       side: THREE.DoubleSide,
     });
-
     const wedgeMesh = new THREE.Mesh(wedgeGeo, wedgeMat);
-    wedgeMesh.position.copy(EXIT_LOCAL);
-    prism.add(wedgeMesh);
+    root.add(wedgeMesh);
 
-    // Helper: update arc vertex positions based on current squeeze/breath
-    function updateWedge(sqz, breath) {
-      const halfAngle = 0.38 * sqz;       // half the fan opening angle
-      const BASE_DOWN = 0.38;              // tilt the whole fan downward
-      const len = WEDGE_LEN * (0.9 + breath * 0.1);
+    // ── The wall — always visible, the rainbow lands here ────────────
+    const WALL_X = 5.5;
+    const WALL_TOP = 1.4, WALL_BOT = -4.6;
+    const WALL_D = 3.2;
+    const WALL_H = WALL_TOP - WALL_BOT;
+    const WALL_CY = (WALL_TOP + WALL_BOT) / 2;
 
-      for (let i = 0; i <= WEDGE_SEGS; i++) {
-        const t = i / WEDGE_SEGS;
-        // angle from -halfAngle to +halfAngle, then shifted down by BASE_DOWN
-        const angle = (t - 0.5) * 2 * halfAngle - BASE_DOWN;
-        const vi = (1 + i) * 3;
-        wedgePositions[vi] = Math.cos(angle) * len;  // X: right
-        wedgePositions[vi + 1] = Math.sin(angle) * len;  // Y: up/down
-        wedgePositions[vi + 2] = 0;
+    const wallCv = document.createElement('canvas');
+    wallCv.width = 256; wallCv.height = 512;
+    const wctx = wallCv.getContext('2d');
+    const wallTex = new THREE.CanvasTexture(wallCv);
+    wallTex.encoding = THREE.sRGBEncoding;
+    const wallMat = new THREE.MeshBasicMaterial({
+      map: wallTex, transparent: true, side: THREE.DoubleSide, depthWrite: false,
+    });
+    const wallGeo = new THREE.PlaneGeometry(WALL_D, WALL_H);
+    wallGeo.rotateY(-Math.PI / 2); // face -X, toward the prism
+    const wall = new THREE.Mesh(wallGeo, wallMat);
+    wall.position.set(WALL_X, WALL_CY, 0);
+    root.add(wall);
+
+    function wallPy(y) { return (WALL_TOP - y) / WALL_H * wallCv.height; }
+
+    // Real solar absorption lines (nm): Hα, Na D, Mg E, Hβ, Fe/Ca G —
+    // revealed by the spectrograph easter egg during deep stillness.
+    const FRAUN_WL = [656.3, 589.3, 527.0, 486.1, 430.8];
+
+    // bands: [{y, rgb:[0-1 floats], ok}] ordered red→violet; miss: {y}|null
+    function drawWall(bands, miss, inten, eggAmt) {
+      const w = wallCv.width, h = wallCv.height;
+      wctx.globalCompositeOperation = 'source-over';
+      wctx.clearRect(0, 0, w, h);
+      wctx.fillStyle = 'rgba(13, 16, 28, 0.62)';
+      wctx.fillRect(0, 0, w, h);
+      wctx.strokeStyle = 'rgba(255,255,255,0.07)';
+      wctx.lineWidth = 2;
+      wctx.strokeRect(1, 1, w - 2, h - 2);
+
+      wctx.globalCompositeOperation = 'lighter';
+      for (let j = 0; j < bands.length - 1; j++) {
+        const a = bands[j], b = bands[j + 1];
+        if (!a || !b || !a.ok || !b.ok) continue;
+        const y0 = wallPy(a.y), y1 = wallPy(b.y);
+        const top = Math.min(y0, y1), span = Math.max(1.5, Math.abs(y1 - y0));
+        const g = wctx.createLinearGradient(0, y0, 0, y1);
+        const ca = a.rgb, cb = b.rgb;
+        g.addColorStop(0, `rgba(${ca[0] * 255 | 0},${ca[1] * 255 | 0},${ca[2] * 255 | 0},${Math.min(1, 0.5 * inten)})`);
+        g.addColorStop(1, `rgba(${cb[0] * 255 | 0},${cb[1] * 255 | 0},${cb[2] * 255 | 0},${Math.min(1, 0.5 * inten)})`);
+        wctx.fillStyle = g;
+        wctx.fillRect(16, top, w - 32, span + 1);
+        // soft glow pass
+        wctx.globalAlpha = 0.22;
+        wctx.fillRect(10, top - 8, w - 20, span + 17);
+        wctx.globalAlpha = 1;
       }
-      wedgePosAttr.needsUpdate = true;
-      wedgeGeo.computeBoundingSphere();
+      if (eggAmt > 0.01 && bands.length) {
+        wctx.globalCompositeOperation = 'source-over';
+        let lowPy = 0;
+        for (const wl of FRAUN_WL) {
+          const fi = ((680 - wl) / 280) * (bands.length - 1);
+          const i0 = Math.floor(fi), i1 = Math.min(i0 + 1, bands.length - 1);
+          const a = bands[i0], b = bands[i1];
+          if (!a || !b || !a.ok || !b.ok) continue;
+          const y = wallPy(a.y + (b.y - a.y) * (fi - i0));
+          wctx.fillStyle = `rgba(6,8,14,${0.8 * eggAmt})`;
+          wctx.fillRect(16, y - 1.9, w - 32, 3.8);
+        }
+        // plate label — the signature, etched beneath the spectrum
+        for (const bnd of bands) if (bnd && bnd.ok) lowPy = Math.max(lowPy, wallPy(bnd.y));
+        if (lowPy > 0) {
+          wctx.font = '15px ui-monospace, Menlo, Consolas, monospace';
+          wctx.textAlign = 'center';
+          wctx.fillStyle = `rgba(205,220,255,${0.6 * eggAmt})`;
+          wctx.fillText('CAL · CLAUDE FABLE 5', w / 2, Math.min(h - 16, lowPy + 32));
+        }
+        wctx.globalCompositeOperation = 'lighter';
+      }
+      if (miss) {
+        const y = wallPy(miss.y);
+        const g = wctx.createRadialGradient(w / 2, y, 0, w / 2, y, 48);
+        g.addColorStop(0, `rgba(255,255,255,${Math.min(1, 0.75 * inten)})`);
+        g.addColorStop(1, 'rgba(255,255,255,0)');
+        wctx.fillStyle = g;
+        wctx.fillRect(0, y - 52, w, 104);
+      }
+      wallTex.needsUpdate = true;
+    }
+
+    // ── Fog — soft drifting sprites that catch the rainbow in the air ─
+    const fogGroup = new THREE.Group();
+    root.add(fogGroup);
+    const fogCv = document.createElement('canvas');
+    fogCv.width = fogCv.height = 64;
+    {
+      const fx = fogCv.getContext('2d');
+      const g = fx.createRadialGradient(32, 32, 0, 32, 32, 32);
+      g.addColorStop(0, 'rgba(255,255,255,0.85)');
+      g.addColorStop(0.45, 'rgba(255,255,255,0.28)');
+      g.addColorStop(1, 'rgba(255,255,255,0)');
+      fx.fillStyle = g;
+      fx.fillRect(0, 0, 64, 64);
+    }
+    const fogTex = new THREE.CanvasTexture(fogCv);
+
+    // Spectral corona ring — the mini-rainbow a lit water droplet throws
+    // around the light passing through it (violet inner, red outer, like
+    // a real corona/glory).
+    const ringCv = document.createElement('canvas');
+    ringCv.width = ringCv.height = 64;
+    {
+      const rx = ringCv.getContext('2d');
+      const g = rx.createRadialGradient(32, 32, 0, 32, 32, 32);
+      g.addColorStop(0.00, 'rgba(255,255,255,0.30)');
+      g.addColorStop(0.30, 'rgba(255,255,255,0.08)');
+      g.addColorStop(0.46, 'rgba(150,120,255,0.20)');
+      g.addColorStop(0.58, 'rgba(80,170,255,0.22)');
+      g.addColorStop(0.68, 'rgba(90,230,140,0.22)');
+      g.addColorStop(0.78, 'rgba(255,220,80,0.22)');
+      g.addColorStop(0.87, 'rgba(255,120,80,0.20)');
+      g.addColorStop(1.00, 'rgba(255,60,60,0)');
+      rx.fillStyle = g;
+      rx.fillRect(0, 0, 64, 64);
+    }
+    const ringTex = new THREE.CanvasTexture(ringCv);
+
+    const FOG_N = 72;
+    const fogSprites = [];
+    for (let i = 0; i < FOG_N; i++) {
+      const m = new THREE.SpriteMaterial({
+        map: fogTex, transparent: true, depthWrite: false,
+        blending: THREE.AdditiveBlending, opacity: 0,
+      });
+      const s = new THREE.Sprite(m);
+      const halo = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: ringTex, transparent: true, depthWrite: false,
+        blending: THREE.AdditiveBlending, opacity: 0,
+      }));
+      const sc = 1.2 + Math.random() * 2.4;
+      s.userData = {
+        bx: 1.4 + Math.random() * 8.6,
+        by: -5 + Math.random() * 7,
+        bz: (Math.random() - 0.5) * 3,
+        ph: Math.random() * Math.PI * 2,
+        halo,
+      };
+      s.scale.setScalar(sc);
+      halo.scale.setScalar(sc * 2.3);
+      s.position.set(s.userData.bx, s.userData.by, s.userData.bz);
+      halo.position.copy(s.position);
+      fogGroup.add(s);
+      fogGroup.add(halo);
+      fogSprites.push(s);
+    }
+    fogGroup.visible = false;
+
+    // apex + fan angle range [a0 high/red … aN low/violet] light the fog;
+    // beam = direct white ray through the mist when it misses the glass
+    function updateFog(apex, a0, aN, lit, breath, beam) {
+      for (const s of fogSprites) {
+        const u = s.userData;
+        const x = u.bx + Math.sin(breathT * 0.35 + u.ph) * 0.35;
+        const y = u.by + Math.cos(breathT * 0.28 + u.ph * 1.7) * 0.28;
+        s.position.set(x, y, u.bz);
+        u.halo.position.set(x, y, u.bz);
+        let op = 0.015, haloOp = 0;
+
+        if (lit && apex && a0 !== null && aN !== null && a0 - aN > 1e-3) {
+          const dx = x - apex.x, dy = y - apex.y;
+          const d = Math.hypot(dx, dy);
+          const t = (a0 - Math.atan2(dy, dx)) / (a0 - aN);
+          // droplets diffuse the fan more the further the light travels
+          const edge = 0.14 + d * 0.03;
+          if (t > -edge && t < 1 + edge && d > 0.3) {
+            const w = Math.min(1, Math.min(t + edge, 1 + edge - t) / edge);
+            const c = specColor(Math.max(0, Math.min(1, t)));
+            s.material.color.setRGB(c[0], c[1], c[2]);
+            // sqrt curve + hard caps: additive sprites stack, so linear
+            // intensity blows out to white far too fast
+            const li = w * Math.max(0, 1 - d / 11) * Math.sqrt(st.inten) * rayOpacity;
+            op = Math.min(0.11, (0.08 + breath * 0.03) * li);
+            haloOp = Math.min(0.22, li * (0.18 + breath * 0.05));
+          }
+        }
+
+        if (beam) {
+          const rx = x - beam.ox, ry = y - beam.oy;
+          const tt = rx * beam.dx + ry * beam.dy;
+          if (tt > 0) {
+            const dperp = Math.abs(rx * beam.dy - ry * beam.dx);
+            if (dperp < 1.2) {
+              const li = (1 - dperp / 1.2) * Math.max(0, 1 - tt / 14) * Math.sqrt(st.inten);
+              if (li * 0.09 > op) { s.material.color.setRGB(1, 1, 1); op = Math.min(0.09, li * 0.09); }
+              haloOp = Math.min(0.20, Math.max(haloOp, li * 0.18));
+            }
+          }
+        }
+
+        s.material.opacity += (op - s.material.opacity) * 0.08;
+        u.halo.material.opacity += (haloOp - u.halo.material.opacity) * 0.08;
+      }
+    }
+
+    // ── Physics — Snell's law + Cauchy dispersion (2D cross-section) ─
+    function nFor(wlNm, baseN, B) {
+      const lam = wlNm / 1000; // µm
+      const A = baseN - B / (0.589 * 0.589);
+      return A + B / (lam * lam);
+    }
+
+    function refract2D(ix, iy, nx, ny, n1, n2) {
+      let ci = -(ix * nx + iy * ny);
+      if (ci < 0) { nx = -nx; ny = -ny; ci = -ci; }
+      const eta = n1 / n2;
+      const k = 1 - eta * eta * (1 - ci * ci);
+      if (k < 0) return null; // total internal reflection
+      const ct = Math.sqrt(k);
+      const rx = eta * ix + (eta * ci - ct) * nx;
+      const ry = eta * iy + (eta * ci - ct) * ny;
+      const rl = Math.hypot(rx, ry) || 1;
+      return { x: rx / rl, y: ry / rl };
+    }
+
+    function raySeg(ox, oy, dx, dy, ax, ay, bx, by) {
+      const sx = bx - ax, sy = by - ay;
+      const den = dx * sy - dy * sx;
+      if (Math.abs(den) < 1e-10) return null;
+      const t = ((ax - ox) * sy - (ay - oy) * sx) / den;
+      const u = ((ax - ox) * dy - (ay - oy) * dx) / den;
+      if (t > 1e-5 && u >= -1e-4 && u <= 1 + 1e-4) return t;
+      return null;
+    }
+
+    // Nearest surface hit: polygon edges (with skip) or the circle.
+    // Circle needs no skip — the epsilon filter discards the surface
+    // point we're already standing on and finds the far intersection.
+    function nearestHit(ox, oy, dx, dy, skip) {
+      if (SURFACE.circle) {
+        const r = SURFACE.circle.r;
+        const b = 2 * (ox * dx + oy * dy), c = ox * ox + oy * oy - r * r;
+        const disc = b * b - 4 * c;
+        if (disc < 0) return null;
+        const s = Math.sqrt(disc);
+        let t = (-b - s) / 2;
+        if (t < 1e-4) t = (-b + s) / 2;
+        if (t < 1e-4) return null;
+        const hx = ox + dx * t, hy = oy + dy * t;
+        return { t, nx: hx / r, ny: hy / r, ref: null };
+      }
+      let bt = 1e9, be = null;
+      for (const e of SURFACE.edges) {
+        if (e === skip) continue;
+        const t = raySeg(ox, oy, dx, dy, e.a.x, e.a.y, e.b.x, e.b.y);
+        if (t !== null && t < bt) { bt = t; be = e; }
+      }
+      return be ? { t: bt, nx: be.nx, ny: be.ny, ref: be } : null;
+    }
+
+    function traceRay(ox, oy, dx, dy, nMat) {
+      const R = { ints: [], entry: null, exit: null, exitDir: null, th1: null, th2: null, th3: null, bounces: 0 };
+
+      const h0 = nearestHit(ox, oy, dx, dy, null);
+      if (!h0) return R; // clean miss — beam sails past the glass
+      const ex = ox + dx * h0.t, ey = oy + dy * h0.t;
+      R.entry = { x: ex, y: ey };
+
+      const ci = Math.abs(dx * h0.nx + dy * h0.ny);
+      R.th1 = Math.acos(Math.min(1, ci));
+
+      const rd = refract2D(dx, dy, h0.nx, h0.ny, 1.0, nMat);
+      if (!rd) return R;
+      R.th2 = Math.asin(Math.min(1, Math.sin(R.th1) / nMat));
+
+      let px = ex, py = ey, pdx = rd.x, pdy = rd.y;
+      let skip = h0.ref, bounces = 0;
+      R.ints.push({ x: px, y: py });
+
+      while (bounces < 6) {
+        const h = nearestHit(px, py, pdx, pdy, skip);
+        if (!h || h.t > 50) break;
+        const hx = px + pdx * h.t, hy = py + pdy * h.t;
+        R.ints.push({ x: hx, y: hy });
+
+        const od = refract2D(pdx, pdy, h.nx, h.ny, nMat, 1.0);
+        if (od) {
+          const eci = Math.abs(pdx * h.nx + pdy * h.ny);
+          const sinE = nMat * Math.sqrt(Math.max(0, 1 - eci * eci));
+          R.th3 = Math.asin(Math.min(1, sinE));
+          R.exit = { x: hx, y: hy };
+          R.exitDir = od;
+          break;
+        } else {
+          const dot = pdx * h.nx + pdy * h.ny;
+          pdx -= 2 * dot * h.nx;
+          pdy -= 2 * dot * h.ny;
+          px = hx; py = hy;
+          skip = h.ref;
+          bounces++;
+        }
+      }
+      R.bounces = bounces;
+      return R;
     }
 
     // ── State ────────────────────────────────────────────────────────
+    const st = {
+      baseN: 1.52, disp: 0.020, inten: 1.0,
+      ang: 14.5 * Math.PI / 180,  // beam direction (radians)
+      srcX: -4.6, srcY: -0.75,    // beam source (group-local)
+      arx: false, ary: false, arz: false, spd: 0.25,
+      th1: null, th2: null, th3: null, spread: 0, deviation: null,
+    };
+    const autoRot = { x: 0, y: 0, z: 0 };
+
     let mouse = { x: 0, y: 0 };
     let squeeze = 1.0, targetSqueeze = 1.0;
     let breathT = 0, pulse = 0;
     let prismH = 2.2, prismD = 1.1;
-    let lightAngleX = 0, lightAngleY = 0;
     let rayOpacity = 0;
-    let prismTiltX = 0, prismTiltZ = 0;
+    let parX = 0, parZ = 0;
     let beamDragging = false;
+    let lastPX = 0, lastPY = 0;
     const cursorDot = document.getElementById('cursor-dot');
 
+    const N_BANDS = 12;
+    const BAND_WL = [];
+    for (let i = 0; i < N_BANDS; i++) BAND_WL.push(680 - (i / (N_BANDS - 1)) * 280); // 680 → 400 nm
+
+    // ── Panel wiring ─────────────────────────────────────────────────
+    const $ = id => document.getElementById(id);
+    const mats = {
+      crown: { n: 1.52, d: 0.020 }, flint: { n: 1.62, d: 0.035 }, sapphire: { n: 1.77, d: 0.028 },
+      diamond: { n: 2.42, d: 0.060 }, water: { n: 1.33, d: 0.012 }, quartz: { n: 1.46, d: 0.015 },
+    };
+    $('mat').addEventListener('change', e => {
+      const m = mats[e.target.value];
+      st.baseN = m.n; st.disp = m.d;
+      $('sN').value = m.n; $('sD').value = m.d;
+      $('oN').textContent = m.n.toFixed(3); $('oD').textContent = m.d.toFixed(3);
+      lookTarget = MAT_LOOKS[e.target.value];
+      pulse = 0.35; // little shimmer on the swap
+    });
+    $('shape').addEventListener('change', e => {
+      curShape = e.target.value;
+      rebuildForm(squeeze, true);
+      pulse = 0.4;
+    });
+    let screenMode = 'wall';
+    $('screenSel').addEventListener('change', e => {
+      screenMode = e.target.value;
+      wall.visible = screenMode === 'wall';
+      fogGroup.visible = screenMode === 'fog';
+    });
+    $('sN').addEventListener('input', e => { st.baseN = +e.target.value; $('oN').textContent = st.baseN.toFixed(3); });
+    $('sD').addEventListener('input', e => { st.disp = +e.target.value; $('oD').textContent = st.disp.toFixed(3); });
+    $('sI').addEventListener('input', e => { st.inten = +e.target.value; $('oI').textContent = st.inten.toFixed(2); });
+    $('sA').addEventListener('input', e => { st.ang = +e.target.value * Math.PI / 180; $('oA').textContent = (+e.target.value).toFixed(1) + '°'; });
+    $('sS').addEventListener('input', e => { st.spd = +e.target.value; $('oS').textContent = st.spd.toFixed(2) + '×'; });
+    document.querySelectorAll('.prism-panel .tb').forEach(b => b.addEventListener('click', () => {
+      const a = b.dataset.a;
+      st['ar' + a] = !st['ar' + a];
+      b.classList.toggle('on', st['ar' + a]);
+    }));
+    function syncAngUI() {
+      const deg = st.ang * 180 / Math.PI;
+      $('sA').value = deg.toFixed(1);
+      $('oA').textContent = deg.toFixed(1) + '°';
+    }
+
+    const panel = $('prism-panel');
+    const panelHead = $('panel-head');
+    function togglePanel() {
+      const collapsed = panel.classList.toggle('collapsed');
+      panelHead.setAttribute('aria-expanded', String(!collapsed));
+    }
+    panelHead.addEventListener('click', togglePanel);
+    panelHead.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); togglePanel(); } });
+    if (window.innerWidth < 760) togglePanel(); // start tucked away on small screens
+
     // ── Input ────────────────────────────────────────────────────────
+    let lastInput = performance.now();
+    function noteInput() { lastInput = performance.now(); }
+    panel.addEventListener('input', noteInput);
+    panel.addEventListener('click', noteInput);
+
     canvas.addEventListener('mousemove', e => {
+      noteInput();
       mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
       mouse.y = (e.clientY / window.innerHeight) * 2 - 1;
       cursorDot.style.left = e.clientX + 'px';
       cursorDot.style.top = e.clientY + 'px';
+      if (beamDragging) {
+        st.ang = Math.max(-0.7, Math.min(0.7, st.ang + (e.clientX - lastPX) * 0.004));
+        st.srcY = Math.max(-2.0, Math.min(1.5, st.srcY - (e.clientY - lastPY) * 0.004));
+        syncAngUI();
+      }
+      lastPX = e.clientX; lastPY = e.clientY;
     });
-    canvas.addEventListener('mousedown', () => { beamDragging = true; pulse = 0.5; if (navigator.vibrate) navigator.vibrate(20); });
+    canvas.addEventListener('mousedown', e => {
+      noteInput();
+      beamDragging = true; pulse = 0.5;
+      lastPX = e.clientX; lastPY = e.clientY;
+      if (navigator.vibrate) navigator.vibrate(20);
+    });
     canvas.addEventListener('mouseup', () => { beamDragging = false; });
     canvas.addEventListener('mouseleave', () => { beamDragging = false; });
     canvas.addEventListener('wheel', e => {
       e.preventDefault();
+      noteInput();
       targetSqueeze = Math.max(0.45, Math.min(1.85, targetSqueeze - e.deltaY * 0.0018));
     }, { passive: false });
 
     let lastPinchDist = null;
     canvas.addEventListener('touchstart', e => {
-      if (e.touches.length === 1) { beamDragging = true; pulse = 0.5; if (navigator.vibrate) navigator.vibrate(20); }
+      noteInput();
+      if (e.touches.length === 1) {
+        beamDragging = true; pulse = 0.5;
+        lastPX = e.touches[0].clientX; lastPY = e.touches[0].clientY;
+        if (navigator.vibrate) navigator.vibrate(20);
+      }
       if (e.touches.length === 2) lastPinchDist = Math.hypot(e.touches[1].clientX - e.touches[0].clientX, e.touches[1].clientY - e.touches[0].clientY);
     });
     canvas.addEventListener('touchmove', e => {
       e.preventDefault();
-      if (e.touches.length === 1) {
-        mouse.x = (e.touches[0].clientX / window.innerWidth) * 2 - 1;
-        mouse.y = (e.touches[0].clientY / window.innerHeight) * 2 - 1;
+      noteInput();
+      if (e.touches.length === 1 && beamDragging) {
+        const t = e.touches[0];
+        st.ang = Math.max(-0.7, Math.min(0.7, st.ang + (t.clientX - lastPX) * 0.004));
+        st.srcY = Math.max(-2.0, Math.min(1.5, st.srcY - (t.clientY - lastPY) * 0.004));
+        syncAngUI();
+        lastPX = t.clientX; lastPY = t.clientY;
       }
       if (e.touches.length === 2 && lastPinchDist) {
         const d = Math.hypot(e.touches[1].clientX - e.touches[0].clientX, e.touches[1].clientY - e.touches[0].clientY);
@@ -400,115 +1108,312 @@
       squeezeBar.style.opacity = Math.min(0.85, 0.25 + Math.abs(squeeze - 1.0) * 3);
     }
 
-    // ── Geometry rebuild ─────────────────────────────────────────────
-    function rebuildPrism(sqz) {
+    // ── Geometry rebuild — mesh AND the physics surface together ─────
+    function rebuildForm(sqz, force) {
       const newH = 2.2 * sqz, newD = 1.1 / sqz * 0.85 + 0.18;
-      if (Math.abs(newH - prismH) < 0.05 && Math.abs(newD - prismD) < 0.05) return;
+      if (!force && Math.abs(newH - prismH) < 0.05 && Math.abs(newD - prismD) < 0.05) return;
       prismH = newH; prismD = newD;
       prism.remove(edges);
       prismGeo.dispose(); edgeGeo.dispose();
-      prismGeo = buildPrismGeometry(prismH, prismD);
+      prismGeo = buildFormGeometry(curShape, sqz, prismD);
       prism.geometry = prismGeo;
-      edgeGeo = new THREE.EdgesGeometry(prismGeo);
+      edgeGeo = new THREE.EdgesGeometry(prismGeo, 15);
       edges.geometry = edgeGeo;
       prism.add(edges);
-
-      // Reposition wedge apex to match new right-face midpoint.
-      const r = prismH * (2 / 3);
-      const exitX = (0 + Math.sqrt(3) / 2 * r) / 2;
-      const exitY = (r * 2 / 3 + (-r / 2)) / 2;
-      wedgeMesh.position.set(exitX, exitY, 0);
-
-      // Reposition input beam to upper portion of left face (higher than rainbow exit)
-      inputRay.position.set(-(Math.sqrt(3) / 4 * r), r * 0.55, 0);
+      buildSurface(curShape, sqz);
     }
 
-    // ── Sound ────────────────────────────────────────────────────────
-    let audioCtx, masterGain, harmonics = [], soundOn = false;
-    document.querySelector('.sound-toggle').addEventListener('click', function () {
-      if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        masterGain = audioCtx.createGain();
-        masterGain.gain.value = 0;
-        masterGain.connect(audioCtx.destination);
-        const lfo = audioCtx.createOscillator(), lfoG = audioCtx.createGain();
-        lfo.frequency.value = 0.11; lfoG.gain.value = 0.12;
-        lfo.connect(lfoG);
-        [[1, 0.09], [2, 0.04], [3, 0.018], [5, 0.008]].forEach(([ratio, amp]) => {
-          const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-          o.type = 'sine'; o.frequency.value = 196 * ratio; g.gain.value = amp;
-          lfoG.connect(g.gain); o.connect(g); g.connect(masterGain); o.start();
-          harmonics.push({ osc: o, gain: g, ratio, base: amp });
-        });
-        lfo.start();
+    // ── Sound — polyphonic ambient synth driven by the optics state ──
+    let audioCtx, mGain, oscs = [], soundOn = false;
+    const FREQS = [110, 138.59, 164.81, 196, 246.94, 329.63, 392, 493.88];
+    function initAudio() {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      mGain = audioCtx.createGain();
+      mGain.gain.value = 0;
+      const filt = audioCtx.createBiquadFilter();
+      filt.type = 'lowpass'; filt.frequency.value = 1200; filt.Q.value = 0.7;
+      const del = audioCtx.createDelay(); del.delayTime.value = 0.3;
+      const fb = audioCtx.createGain(); fb.gain.value = 0.25;
+      const wet = audioCtx.createGain(); wet.gain.value = 0.3;
+      mGain.connect(filt); filt.connect(audioCtx.destination);
+      filt.connect(del); del.connect(fb); fb.connect(del); del.connect(wet); wet.connect(audioCtx.destination);
+      for (let i = 0; i < 6; i++) {
+        const o = audioCtx.createOscillator();
+        o.type = i % 2 === 0 ? 'sine' : 'triangle';
+        o.frequency.value = FREQS[i % FREQS.length];
+        const g = audioCtx.createGain(); g.gain.value = 0.12;
+        o.connect(g); g.connect(mGain); o.start();
+        oscs.push({ o, g, base: FREQS[i % FREQS.length] });
       }
+    }
+    document.querySelector('.sound-toggle').addEventListener('click', function () {
+      noteInput();
+      if (!audioCtx) initAudio();
       soundOn = !soundOn;
-      this.setAttribute('aria-pressed', soundOn);
+      this.setAttribute('aria-pressed', String(soundOn));
       if (audioCtx.state === 'suspended') audioCtx.resume();
-      masterGain.gain.setTargetAtTime(soundOn ? 1 : 0, audioCtx.currentTime, 0.8);
+      mGain.gain.linearRampToValueAtTime(soundOn ? 0.2 : 0, audioCtx.currentTime + 0.6);
     });
-    function updateSound(breath) {
-      if (!soundOn || !audioCtx || !harmonics.length) return;
-      const base = 190 + breath * 38 + squeeze * 14;
-      harmonics.forEach(({ osc, gain, ratio, base: b }) => {
-        osc.frequency.setTargetAtTime(base * ratio, audioCtx.currentTime, 1.2);
-        gain.gain.setTargetAtTime(b * (0.6 + breath * 0.4), audioCtx.currentTime, 0.9);
-      });
+    function updateSound(breath, settleAmt) {
+      if (!soundOn || !audioCtx || !oscs.length) return;
+      const t = audioCtx.currentTime;
+      const em = st.th3 != null ? st.th3 : 0.5;
+      const inc = st.th1 != null ? st.th1 : 0.5;
+      const sp = st.spread;
+      const mod = 1 - settleAmt; // stillness eases the detune away → pure chord
+      for (let i = 0; i < oscs.length; i++) {
+        const v = oscs[i];
+        const f = v.base
+          * (1 + Math.sin(em) * 0.12 * mod)
+          * (1 + Math.cos(inc + i * 0.3) * 0.05 * mod)
+          * (1 + sp * (i * 0.025) * mod);
+        v.o.frequency.setTargetAtTime(f, t, settleAmt > 0 ? 1.5 : 0.1);
+        v.g.gain.setTargetAtTime((0.08 + sp * 0.07 * st.inten) * (0.7 + breath * 0.3), t, 0.15);
+      }
+    }
+
+    // ── Stillness (easter egg): after 30s untouched, the beam slowly
+    //    self-aims, the synth resolves, and by ~45s the spectrograph
+    //    reveal completes. Any input dissolves it gently. ──────────────
+    const STILL_AFTER = 30;     // seconds of no input before the ramp
+    const SETTLE_RAMP = 15;     // seconds from ramp start to completion
+    let settleAmt = 0;
+
+    function wallErrFor(ang) {
+      const wl = BAND_WL[Math.floor(N_BANDS / 2)];
+      const r = traceRay(st.srcX, st.srcY, Math.cos(ang), Math.sin(ang), nFor(wl, st.baseN, st.disp));
+      if (!r.exit || !r.exitDir || r.exitDir.x <= 0.001) return null;
+      const t = (WALL_X - r.exit.x) / r.exitDir.x;
+      if (t < 0) return null;
+      return (r.exit.y + r.exitDir.y * t) - WALL_CY;
+    }
+
+    function updateStillness(delta) {
+      const still = (performance.now() - lastInput) / 1000 > STILL_AFTER;
+      if (still) settleAmt = Math.min(1, settleAmt + delta / SETTLE_RAMP);
+      else settleAmt = Math.max(0, settleAmt - delta / 1.5);
+      if (settleAmt <= 0) return;
+
+      const e0 = wallErrFor(st.ang);
+      if (e0 === null) {
+        // rainbow lost (TIR / miss) — drift gently back toward a safe aim
+        st.ang += (14.5 * Math.PI / 180 - st.ang) * 0.15 * delta * settleAmt;
+      } else if (Math.abs(e0) > 0.05) {
+        const e1 = wallErrFor(st.ang + 0.002);
+        if (e1 !== null) {
+          const dir = Math.abs(e1) < Math.abs(e0) ? 1 : -1;
+          st.ang += dir * 0.02 * delta * settleAmt;
+        }
+      }
+      if (still) syncAngUI();
     }
 
     // ── Animate ──────────────────────────────────────────────────────
     const clock = new THREE.Clock();
+    const DEG = r => r == null ? '—' : (r * 180 / Math.PI).toFixed(1) + '°';
+    let frame = 0;
 
     function animate() {
       requestAnimationFrame(animate);
-      const delta = clock.getDelta();
+      const delta = Math.min(clock.getDelta(), 0.1);
+      frame++;
       breathT += delta * 0.38;
       pulse *= 0.91;
 
       squeeze += (targetSqueeze - squeeze) * 0.06;
-      rebuildPrism(squeeze);
+      rebuildForm(squeeze, false);
       updateSqueezeUI();
+      updateStillness(delta);
 
       const breath = (Math.sin(breathT) + 1) / 2;
-      const breathScale = 1 + breath * 0.04 + pulse * 0.06;
-      prism.scale.set(1 - breath * 0.015 + pulse * 0.04, breathScale, 1 + breath * 0.02);
 
-      // Prism tilts with mouse only — no idle Y spin (breaks ray alignment)
-      prismTiltX += (mouse.y * 0.22 - prismTiltX) * 0.04;
-      prismTiltZ += (mouse.x * -0.16 - prismTiltZ) * 0.04;
-      prism.rotation.y = 0;
-      prism.rotation.x = prismTiltX;
-      prism.rotation.z = Math.sin(breathT * 0.4) * 0.04 + prismTiltZ;
+      // Whole root breathes as one — uniform, so physics stays aligned
+      root.scale.setScalar(1 + breath * 0.02 + pulse * 0.04);
 
-      // Beam tracks mouse — responsive when dragging, gentle otherwise
-      const beamRate = beamDragging ? 0.18 : 0.03;
-      const beamRange = beamDragging ? 3.5 : 1.8;
-      lightAngleX += (mouse.x * beamRange - lightAngleX) * beamRate;
-      lightAngleY += (mouse.y * -beamRange * 0.55 - lightAngleY) * beamRate;
-      beamLight.position.set(-4 + lightAngleX * 1.6, 1 + lightAngleY * 1.2, 4);
-      beamLight.intensity = 2.5 + breath * 1.2 + pulse * 3;
+      // Orbit: panel toggles + gentle mouse parallax + breath wobble
+      if (st.arx) autoRot.x += 0.004 * st.spd;
+      if (st.ary) autoRot.y += 0.007 * st.spd;
+      if (st.arz) autoRot.z += 0.003 * st.spd;
+      parX += (mouse.y * 0.10 - parX) * 0.04;
+      parZ += (mouse.x * -0.06 - parZ) * 0.04;
+      root.rotation.x = autoRot.x + parX;
+      root.rotation.y = autoRot.y + mouse.x * 0.12;
+      root.rotation.z = autoRot.z + parZ + Math.sin(breathT * 0.4) * 0.02;
 
-      inputRayMat.opacity = 0.30 + breath * 0.10 + (beamDragging ? 0.12 : 0);
+      // ── Physics: trace all spectral bands ──
+      const dx = Math.cos(st.ang), dy = Math.sin(st.ang);
+      const rays = [];
+      for (let i = 0; i < N_BANDS; i++) {
+        const n = nFor(BAND_WL[i], st.baseN, st.disp);
+        rays.push(traceRay(st.srcX, st.srcY, dx, dy, n));
+      }
+      const mid = rays[Math.floor(N_BANDS / 2)];
+      st.th1 = mid.th1; st.th2 = mid.th2; st.th3 = mid.th3;
 
-      internalGlow.intensity = 0.3 + breath * 0.4 + pulse * 0.8;
+      // spread + deviation from the extreme bands
+      const r0 = rays[0], rN = rays[N_BANDS - 1];
+      st.spread = (r0.exitDir && rN.exitDir)
+        ? Math.acos(Math.max(-1, Math.min(1, r0.exitDir.x * rN.exitDir.x + r0.exitDir.y * rN.exitDir.y)))
+        : 0;
+      st.deviation = mid.exitDir
+        ? Math.acos(Math.max(-1, Math.min(1, dx * mid.exitDir.x + dy * mid.exitDir.y)))
+        : null;
 
-      // Spectral wedge: update geometry + opacity
+      // ── Input beam: source → entry point (or off into the dark) ──
+      sourceOrb.position.set(st.srcX, st.srcY, 0);
+      const end = mid.entry || { x: st.srcX + dx * 12, y: st.srcY + dy * 12 };
+      const len = Math.hypot(end.x - st.srcX, end.y - st.srcY);
+      inputRay.position.set(end.x, end.y, 0);
+      inputRay.scale.set(1, len, 1);
+      inputRay.quaternion.setFromUnitVectors(UP, tmpV3.set(dx, dy, 0).normalize());
+      inputRayMat.opacity = (0.30 + breath * 0.10 + (beamDragging ? 0.12 : 0)) * Math.min(1.4, st.inten);
+
+      beamLight.position.set(st.srcX, st.srcY, 3.5);
+      beamLight.intensity = (2.5 + breath * 1.2 + pulse * 3) * st.inten;
+
+      // ── Internal ray polyline (median band) ──
+      let ptCount = 0;
+      if (mid.entry && mid.ints.length > 1) {
+        ptCount = Math.min(mid.ints.length, MAX_INT_PTS);
+        for (let i = 0; i < ptCount; i++) {
+          intPositions[i * 3] = mid.ints[i].x;
+          intPositions[i * 3 + 1] = mid.ints[i].y;
+          intPositions[i * 3 + 2] = 0;
+        }
+        intPosAttr.needsUpdate = true;
+      }
+      intGeo.setDrawRange(0, ptCount);
+      intMat.opacity = (0.30 + breath * 0.15) * Math.min(1.2, st.inten);
+      internalGlow.intensity = 0.3 + breath * 0.4 + pulse * 0.8 + mid.bounces * 0.5;
+
+      // ── Wedge + wall: per-band exit angles ──
+      const bandAng = new Array(N_BANDS).fill(null);
+      let anyExit = false;
+      for (let i = 0; i < N_BANDS; i++) {
+        if (rays[i].exit && rays[i].exitDir) {
+          bandAng[i] = Math.atan2(rays[i].exitDir.y, rays[i].exitDir.x);
+          anyExit = true;
+        }
+      }
+      // fill gaps (bands lost to TIR) from the nearest traced neighbour
+      if (anyExit) {
+        for (let i = 0; i < N_BANDS; i++) {
+          if (bandAng[i] === null) {
+            for (let o = 1; o < N_BANDS && bandAng[i] === null; o++) {
+              if (bandAng[i - o] != null) bandAng[i] = bandAng[i - o];
+              else if (bandAng[i + o] != null) bandAng[i] = bandAng[i + o];
+            }
+          }
+        }
+      }
+
+      // Artistic gain: the true dispersion fan is only a couple of degrees
+      // wide — gorgeous physics, stingy visuals. Exaggerate the spread
+      // around the median ray so the fan stays lush; it still widens and
+      // narrows with real dispersion.
+      const FAN_GAIN = 6;
+      let vAng = bandAng;
+      if (anyExit) {
+        const midAng = bandAng[Math.floor(N_BANDS / 2)];
+        vAng = bandAng.map(a => a === null ? null
+          : midAng + Math.max(-0.5, Math.min(0.5, (a - midAng) * FAN_GAIN)));
+      }
+
+      const apex = mid.exit || (anyExit ? rays.find(r => r.exit).exit : null);
+      const wedgeVisible = anyExit && apex;
+
+      if (wedgeVisible) {
+        wedgeMesh.position.set(apex.x, apex.y, 0);
+        wedgePositions[0] = 0; wedgePositions[1] = 0; wedgePositions[2] = 0;
+        for (let i = 0; i <= WEDGE_SEGS; i++) {
+          const f = (i / WEDGE_SEGS) * (N_BANDS - 1);
+          const f0 = Math.floor(f), f1 = Math.min(f0 + 1, N_BANDS - 1);
+          const ang = vAng[f0] + (vAng[f1] - vAng[f0]) * (f - f0);
+          const ca = Math.cos(ang), sa = Math.sin(ang);
+          // clamp each ray to the wall so the fan lands on it (wall mode only)
+          let L = WEDGE_LEN;
+          if (screenMode === 'wall' && ca > 0.001) {
+            const t = (WALL_X - apex.x) / ca;
+            const hy = apex.y + sa * t;
+            if (t > 0 && t < WEDGE_LEN && hy > WALL_BOT && hy < WALL_TOP) L = t + 0.04;
+          }
+          const vi = (1 + i) * 3;
+          wedgePositions[vi] = ca * L;
+          wedgePositions[vi + 1] = sa * L;
+          wedgePositions[vi + 2] = 0;
+        }
+        wedgePosAttr.needsUpdate = true;
+        wedgeGeo.computeBoundingSphere();
+      }
+
       rayOpacity = Math.min(1, rayOpacity + delta * 0.5);
-      updateWedge(squeeze, breath);
-      wedgeMat.opacity = (0.28 + breath * 0.12 + pulse * 0.15) * rayOpacity;
+      // in fog there is no geometric cone at all — droplets carry the rainbow
+      const wedgeTarget = (wedgeVisible && screenMode !== 'fog')
+        ? (0.28 + breath * 0.12 + pulse * 0.15) * rayOpacity * Math.min(1.5, st.inten) : 0;
+      wedgeMat.opacity += (wedgeTarget - wedgeMat.opacity) * 0.1;
 
-      // Glass tint breathes through hues
+      // ── Backdrop: wall splash or fog glow ──
+      // deep stillness → the spectrograph reveal ramps in
+      const eggReveal = Math.max(0, Math.min(1, (settleAmt - 0.8) / 0.2));
+      if (screenMode === 'wall') {
+        const bands = [];
+        if (wedgeVisible) {
+          for (let i = 0; i < N_BANDS; i++) {
+            if (vAng[i] === null) { bands.push(null); continue; }
+            const ca = Math.cos(vAng[i]), sa = Math.sin(vAng[i]);
+            if (ca <= 0.001) { bands.push(null); continue; }
+            const t = (WALL_X - apex.x) / ca;
+            const hy = apex.y + sa * t;
+            bands.push({ y: hy, rgb: specColor(i / (N_BANDS - 1)), ok: t > 0 && hy > WALL_BOT && hy < WALL_TOP });
+          }
+        }
+        let miss = null;
+        if (!mid.entry && dx > 0.05) {
+          const t = (WALL_X - st.srcX) / dx;
+          const hy = st.srcY + dy * t;
+          if (hy > WALL_BOT && hy < WALL_TOP) miss = { y: hy };
+        }
+        drawWall(bands, miss, st.inten * (0.85 + breath * 0.3), eggReveal);
+      } else if (screenMode === 'fog') {
+        const beam = !mid.entry ? { ox: st.srcX, oy: st.srcY, dx, dy } : null;
+        updateFog(apex, wedgeVisible ? vAng[0] : null, wedgeVisible ? vAng[N_BANDS - 1] : null, wedgeVisible, breath, beam);
+      }
+
+      // ── Glass look: morph toward the material's personality, then
+      //    breathe gently through hues around that base tint ──
+      lookCur.tint.lerp(tmpCol.setRGB(...lookTarget.tint), 0.05);
+      lookCur.edge.lerp(tmpCol.setRGB(...lookTarget.edge), 0.05);
+      lookCur.env += (lookTarget.env - lookCur.env) * 0.05;
+      lookCur.rough += (lookTarget.rough - lookCur.rough) * 0.05;
+      lookCur.op += (lookTarget.op - lookCur.op) * 0.05;
+
       const hue = breathT * 0.1;
       glassMat.color.setRGB(
-        (0.78 + Math.sin(hue) * 0.18) * 0.82,
-        (0.88 + Math.sin(hue + 2.1) * 0.08) * 0.90,
-        0.98 + Math.sin(hue + 4.2) * 0.02
+        lookCur.tint.r * (1 + Math.sin(hue) * 0.10),
+        lookCur.tint.g * (1 + Math.sin(hue + 2.1) * 0.05),
+        lookCur.tint.b * (1 + Math.sin(hue + 4.2) * 0.03)
       );
-      glassMat.roughness = 0.03 + (1 - breath) * 0.04;
-      glassMat.envMapIntensity = 1.8 + breath * 0.8 + pulse * 1.0;
+      glassMat.opacity = lookCur.op;
+      glassMat.roughness = lookCur.rough + (1 - breath) * 0.04;
+      glassMat.envMapIntensity = lookCur.env * (0.85 + breath * 0.35) + pulse * 1.0;
+      edgeMat.color.copy(lookCur.edge);
       edgeMat.opacity = 0.40 + breath * 0.35 + pulse * 0.15;
+      internalGlow.color.copy(lookCur.tint);
 
-      updateSound(breath);
+      bloomPass.strength = 0.6 + settleAmt * 0.15;
+
+      // ── Readouts (throttled) ──
+      if (frame % 4 === 0) {
+        $('r1').textContent = DEG(st.th1);
+        $('r2').textContent = DEG(st.th2);
+        $('r3').textContent = DEG(st.th3);
+        $('r4').textContent = (st.spread * 180 / Math.PI).toFixed(2) + '°';
+        $('r5').textContent = nFor(680, st.baseN, st.disp).toFixed(3) + ' / ' + nFor(400, st.baseN, st.disp).toFixed(3);
+        $('r6').textContent = DEG(st.deviation);
+        $('r7').style.opacity = eggReveal > 0.05 ? '1' : '0';
+      }
+
+      updateSound(breath, settleAmt);
       composer.render();
     }
 

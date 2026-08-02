@@ -201,6 +201,102 @@
     .toy-status p {
       max-width: 580px;
     }
+
+    /* Gravitational wave ripple */
+    @keyframes ripple-out {
+      0% {
+        r: 10px;
+        opacity: 0.8;
+        stroke-width: 4px;
+      }
+      100% {
+        r: 250px;
+        opacity: 0;
+        stroke-width: 0.5px;
+      }
+    }
+    .gravity-ripple {
+      fill: none;
+      stroke: #ffbd45; /* soft amber/gold gravitational wave */
+      stroke-linecap: round;
+      animation: ripple-out 0.8s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+      pointer-events: none;
+    }
+
+    /* Quantum Salamander Mascot styles */
+    #salamander-mascot {
+      filter: drop-shadow(0 0 6px rgba(168, 79, 255, 0.4));
+    }
+    .salamander-body {
+      fill: rgba(18, 10, 36, 0.85);
+      stroke: #a84fff;
+      stroke-width: 0.6px;
+      transition: stroke 0.3s, fill 0.3s;
+    }
+    .salamander-spot {
+      fill: #ff4fd8;
+      transition: fill 0.3s;
+    }
+    .salamander-eye {
+      fill: none;
+      stroke: #36f7ff;
+      stroke-width: 0.265px;
+    }
+
+    /* Flicker / Panic State */
+    #salamander-mascot.flickering .salamander-body {
+      stroke: #36f7ff;
+      fill: rgba(8, 25, 45, 0.9);
+      filter: drop-shadow(0 0 10px #36f7ff);
+    }
+    #salamander-mascot.flickering .salamander-spot {
+      animation: spot-flicker 0.1s infinite alternate;
+    }
+    @keyframes spot-flicker {
+      0% { opacity: 0.2; fill: #ff4fd8; }
+      100% { opacity: 1.0; fill: #ffd166; }
+    }
+
+    /* Organic swim wiggle (isolates rotation from wiggling) */
+    @keyframes swim-wiggle {
+      0% { transform: skewY(-5deg) scale(0.65); }
+      100% { transform: skewY(5deg) scale(0.65); }
+    }
+    .salamander-swim-anim {
+      animation: swim-wiggle 0.7s infinite alternate ease-in-out; /* slower, gentler swim wiggle */
+      transform-origin: center;
+    }
+
+    /* Visual signature label in corner */
+    .toy-signature {
+      position: fixed;
+      bottom: 12px;
+      right: 16px;
+      font-size: 0.62rem;
+      font-weight: 600;
+      color: rgba(255, 255, 255, 0.18);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      pointer-events: none;
+      z-index: 5;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      transition: color 0.3s ease, text-shadow 0.3s ease;
+    }
+    
+    .toy-signature.glitching {
+      animation: sig-glitch 0.5s steps(3) infinite;
+      color: var(--cyan);
+      text-shadow: 0 0 8px var(--cyan), 0 0 15px var(--pink);
+    }
+
+    @keyframes sig-glitch {
+      0% { transform: translate(1px, -1px); opacity: 0.9; }
+      20% { transform: translate(-1px, 1px); opacity: 0.7; }
+      40% { transform: translate(0, 0); opacity: 1; }
+      60% { transform: translate(-2px, -1px); opacity: 0.8; }
+      80% { transform: translate(1px, 2px); opacity: 0.9; }
+      100% { transform: translate(-1px, 0); opacity: 1; }
+    }
   </style>
 </head>
 
@@ -242,6 +338,39 @@
 
       <!-- Gravity wells overlay -->
       <g id="wells-layer"></g>
+
+      <!-- Quantum Salamander Mascot (centered around 0,0 via offset translate) -->
+      <g id="salamander-mascot" style="display: none; pointer-events: none;">
+        <g class="salamander-swim-anim">
+          <g transform="translate(-87.7, -61.9)">
+            <rect class="salamander-body" width="47.7" height="13.5" x="66" y="63.1" />
+            <rect class="salamander-body" width="6.1" height="7.8" x="74" y="75" />
+            <rect class="salamander-body" width="6.3" height="8.3" x="98" y="75.4" />
+            <rect class="salamander-spot" width="3.2" height="4.6" x="75.1" y="64.2" />
+            <rect class="salamander-spot" width="1.5" height="2.4" x="76.6" y="76.7" />
+            <rect class="salamander-spot" width="1.5" height="2.4" x="99.2" y="79" />
+            <rect class="salamander-spot" width="2.7" height="4.2" x="84.7" y="68.5" />
+            <rect class="salamander-spot" width="3.1" height="5.2" x="92.8" y="63.2" />
+            <rect class="salamander-spot" width="1.5" height="5.7" x="100.3" y="66" />
+            <rect class="salamander-spot" width="4.1" height="2.2" x="104.4" y="64" />
+            <rect class="salamander-body" width="7.7" height="5.9" x="110.7" y="60.7" />
+            <rect class="salamander-body" width="14.8" height="2.9" x="55.6" y="68" />
+            <rect class="salamander-body" width="15.1" height="11.7" x="55.4" y="58.1" />
+            <rect class="salamander-body" width="7" height="5.8" x="115.4" y="58.3" />
+            <rect class="salamander-body" width="4.7" height="6.7" x="118.6" y="53.9" />
+            <rect class="salamander-body" width="3.6" height="3.6" x="117" y="43.3" />
+            <rect class="salamander-body" width="3.9" height="6.1" x="119.5" y="48.9" />
+            <rect class="salamander-body" width="3.6" height="5.5" x="118.8" y="45" />
+            <rect class="salamander-spot" width="1" height="1.9" x="117.5" y="59.2" />
+            <rect class="salamander-spot" width="0.8" height="2" x="121.1" y="55.6" />
+            <rect class="salamander-spot" width="1" height="1.8" x="120.6" y="46.7" />
+            <rect class="salamander-spot" width="2" height="2.4" x="112.3" y="62.7" />
+            <!-- Eyes (Spiral Paths) -->
+            <path class="salamander-eye" d="m 61.1,45.5 c 0,0 -0.1,0.1 -0.1,0.1 -0.1,0 -0.1,-0.2 -0.1,-0.3 0.1,-0.2 0.3,-0.2 0.5,-0.1 0.2,0.1 0.3,0.5 0.1,0.8 -0.2,0.3 -0.7,0.4 -1,0.1 -0.4,-0.2 -0.4,-0.8 -0.1,-1.3 0.3,-0.4 1,-0.5 1.5,-0.2 0.5,0.4 0.6,1.2 0.2,1.7 -0.4,0.6 -1.4,0.7 -2,0.2 -0.6,-0.5 -0.7,-1.5 -0.2,-2.2 0.5,-0.7 1.7,-0.8 2.4,-0.2 0.8,0.6 0.9,1.9 0.2,2.7" transform="matrix(-1,0,0,1,121.1,16.1)" />
+            <path class="salamander-eye" d="m 61.1,45.5 c 0,0 -0.1,0.1 -0.1,0.1 -0.1,0 -0.1,-0.2 -0.1,-0.3 0.1,-0.2 0.3,-0.2 0.5,-0.1 0.2,0.1 0.3,0.5 0.1,0.8 -0.2,0.3 -0.7,0.4 -1,0.1 -0.4,-0.2 -0.4,-0.8 -0.1,-1.3 0.3,-0.4 1,-0.5 1.5,-0.2 0.5,0.4 0.6,1.2 0.2,1.7 -0.4,0.6 -1.4,0.7 -2,0.2 -0.6,-0.5 -0.7,-1.5 -0.2,-2.2 0.5,-0.7 1.7,-0.8 2.4,-0.2 0.8,0.6 0.9,1.9 0.2,2.7" transform="translate(5.2,16.1)" />
+          </g>
+        </g>
+      </g>
     </svg>
   </div>
 
@@ -286,6 +415,8 @@
     <p>Tap empty space to spawn Black Holes · Fling to shoot them · Hover/Drag to pull the spacetime grid</p>
   </div>
 
+  <div class="toy-signature" id="toy-signature">spacetime tended by Gemini 3.5 Flash (via Antigravity)</div>
+
   <script>
     // ─── Constants & CONFIG ───────────────────────────────────────────────────
     const NUM_STRINGS = 9; // 9 horizontal, 9 vertical
@@ -324,6 +455,22 @@
     let gravityWells = [];
     let dustParticles = [];
     let activeVoices = [];
+
+    // Mascot state
+    const salamander = {
+      x: 0,
+      y: 0,
+      lastX: 0,
+      lastY: 0,
+      vx: 0,
+      vy: 0,
+      angle: 0,
+      isBorn: false,
+      activeFlicker: false,
+      flickerTime: 0
+    };
+
+    console.log("🌌 Gravitational Wave Engine initialized. Easter egg signature: Gemini 3.5 Flash via Antigravity.");
 
     // Interaction modes
     let isTetherMode = false;
@@ -606,6 +753,9 @@
         color,
         isDragged: false,
         el: g,
+        auraEl: aura,
+        diskEl: disk,
+        coreEl: core,
         lensEl: lens
       };
 
@@ -627,6 +777,237 @@
       if (well.el && well.el.parentNode) well.el.parentNode.removeChild(well.el);
       if (well.lensEl && well.lensEl.parentNode) well.lensEl.parentNode.removeChild(well.lensEl);
       gravityWells.splice(index, 1);
+    }
+
+    function updateWellSize(well) {
+      const radius = 28 + Math.sqrt(well.mass) * 4;
+      well.radius = radius;
+      if (well.auraEl) well.auraEl.setAttribute('r', radius * 1.4);
+      if (well.diskEl) well.diskEl.setAttribute('r', radius * 0.85);
+      if (well.coreEl) well.coreEl.setAttribute('r', radius * 0.4);
+      if (well.lensEl) {
+        well.lensEl.style.width = `${radius * 2.8}px`;
+        well.lensEl.style.height = `${radius * 2.8}px`;
+      }
+    }
+
+    function playChirpSound(mass) {
+      if (!audioCtx || isMuted) return;
+      const now = audioCtx.currentTime;
+      const duration = 0.6; // 600ms chirp
+      
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      
+      osc.type = 'sine';
+      // LIGO frequency chirp sweep from ~70Hz to ~400Hz
+      const startFreq = 70 + Math.min(mass * 0.5, 40);
+      const endFreq = 380 + Math.min(mass * 2, 200);
+      
+      osc.frequency.setValueAtTime(startFreq, now);
+      osc.frequency.exponentialRampToValueAtTime(endFreq, now + duration);
+      
+      gain.gain.setValueAtTime(0.01, now);
+      gain.gain.exponentialRampToValueAtTime(0.24, now + duration * 0.95);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+      
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      
+      osc.start(now);
+      osc.stop(now + duration);
+    }
+
+    function createGravityRipple(x, y) {
+      const ripple = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      ripple.setAttribute('cx', x);
+      ripple.setAttribute('cy', y);
+      ripple.setAttribute('class', 'gravity-ripple');
+      
+      svgStage.appendChild(ripple);
+      
+      // Clean up DOM after animation completes
+      setTimeout(() => {
+        if (ripple.parentNode) ripple.parentNode.removeChild(ripple);
+      }, 800);
+    }
+
+    function showMergerStatus(mass) {
+      const statusEl = document.querySelector('.toy-status p');
+      if (!statusEl) return;
+      
+      const dateStr = new Date().toISOString().slice(2, 10).replace(/-/g, '');
+      const eventId = `GW${dateStr}`;
+      
+      statusEl.innerHTML = `<strong>${eventId}</strong>: Quantum Salamander materialized! (Mass: ${Math.round(mass)}M☉).`;
+      statusEl.style.color = '#ffd166';
+      
+      if (window.statusTimeout) clearTimeout(window.statusTimeout);
+      window.statusTimeout = setTimeout(() => {
+        statusEl.innerHTML = 'Tap empty space to spawn Black Holes · Fling to shoot them · Hover/Drag to pull the spacetime grid';
+        statusEl.style.color = '';
+      }, 5000);
+
+      // Scramble signature element with a glitchy quantum decoder animation
+      const sigEl = document.getElementById('toy-signature');
+      if (sigEl) {
+        sigEl.classList.add('glitching');
+        const originalText = "spacetime tended by Gemini 3.5 Flash (via Antigravity)";
+        const quantumGlyphs = "αβγδεζηθικλμνξοπρστυφχψω0123456789%@#&*";
+        
+        let iteration = 0;
+        if (window.scrambleInterval) clearInterval(window.scrambleInterval);
+        window.scrambleInterval = setInterval(() => {
+          sigEl.innerText = originalText
+            .split("")
+            .map((char, index) => {
+              if (char === " " || char === "(" || char === ")") return char;
+              if (index < iteration) return originalText[index];
+              return quantumGlyphs[Math.floor(Math.random() * quantumGlyphs.length)];
+            })
+            .join("");
+            
+          iteration += 2;
+          if (iteration >= originalText.length) {
+            clearInterval(window.scrambleInterval);
+            sigEl.innerText = originalText;
+            setTimeout(() => {
+              sigEl.classList.remove('glitching');
+            }, 1200);
+          }
+        }, 30);
+      }
+    }
+
+    function updateSalamander() {
+      if (!salamander.isBorn) return;
+
+      salamander.lastX = salamander.x;
+      salamander.lastY = salamander.y;
+
+      const numWells = gravityWells.length;
+      let pulled = false;
+
+      if (numWells > 0) {
+        // Gravitational attraction / orbit logic
+        let nearestWell = null;
+        let minDist = Infinity;
+        for (let w = 0; w < numWells; w++) {
+          const well = gravityWells[w];
+          const dist = Math.hypot(well.x - salamander.x, well.y - salamander.y);
+          if (dist < minDist) {
+            minDist = dist;
+            nearestWell = well;
+          }
+        }
+
+        if (nearestWell) {
+          const dx = nearestWell.x - salamander.x;
+          const dy = nearestWell.y - salamander.y;
+          
+          if (minDist > 160) {
+            // Swim towards
+            salamander.vx += (dx / minDist) * 0.04;
+            salamander.vy += (dy / minDist) * 0.04;
+          } else if (minDist < 60) {
+            // Sucked in / Bounce away
+            if (minDist < nearestWell.radius * 0.45) {
+              // Quantum tunnel teleport out of singularity!
+              salamander.x = Math.random() * W;
+              salamander.y = Math.random() * H;
+              salamander.vx = (Math.random() - 0.5) * 3.0;
+              salamander.vy = (Math.random() - 0.5) * 3.0;
+              salamander.activeFlicker = true;
+              salamander.flickerTime = 120; // flicker briefly
+            } else {
+              salamander.vx -= (dx / minDist) * 0.08;
+              salamander.vy -= (dy / minDist) * 0.08;
+            }
+          } else {
+            // Orbit tangential force
+            salamander.vx += (-dy / minDist) * 0.05;
+            salamander.vy += (dx / minDist) * 0.05;
+          }
+          pulled = true;
+        }
+      }
+
+      if (!pulled) {
+        // Random wandering drift when space is quiet
+        salamander.vx += (Math.random() - 0.5) * 0.08;
+        salamander.vy += (Math.random() - 0.5) * 0.08;
+      }
+
+      // Decrement panic flicker mode
+      const mascotEl = document.getElementById('salamander-mascot');
+      if (salamander.activeFlicker) {
+        salamander.flickerTime--;
+        if (salamander.flickerTime <= 0) {
+          salamander.activeFlicker = false;
+          mascotEl.classList.remove('flickering');
+        } else {
+          mascotEl.classList.add('flickering');
+        }
+      } else {
+        mascotEl.classList.remove('flickering');
+      }
+
+      // Step position and apply friction
+      salamander.x += salamander.vx;
+      salamander.y += salamander.vy;
+      salamander.vx *= 0.94; // increased damping for floatier motion
+      salamander.vy *= 0.94;
+
+      // Cap maximum speeds for a floaty, non-frantic movement
+      const maxSpeed = salamander.activeFlicker ? 3.5 : 1.8;
+      const speed = Math.hypot(salamander.vx, salamander.vy);
+      if (speed > maxSpeed) {
+        salamander.vx = (salamander.vx / speed) * maxSpeed;
+        salamander.vy = (salamander.vy / speed) * maxSpeed;
+      }
+
+      // Keep within bounds
+      if (salamander.x < 20) { salamander.x = 20; salamander.vx *= -0.8; }
+      else if (salamander.x > W - 20) { salamander.x = W - 20; salamander.vx *= -0.8; }
+      if (salamander.y < 20) { salamander.y = 20; salamander.vy *= -0.8; }
+      else if (salamander.y > H - 20) { salamander.y = H - 20; salamander.vy *= -0.8; }
+
+      // Update rotation
+      const currentSpeed = Math.hypot(salamander.vx, salamander.vy);
+      if (currentSpeed > 0.3) {
+        const targetAngle = Math.atan2(salamander.vy, salamander.vx) * 180 / Math.PI;
+        salamander.angle = targetAngle + 180; // Offset since original SVG points left
+      }
+
+      // Pluck strings as the salamander swims across them
+      for (let s = 0; s < strings.length; s++) {
+        const str = strings[s];
+        let crossed = false;
+
+        if (str.type === 'h') {
+          const yRest = str.valRest;
+          if ((salamander.lastY < yRest && salamander.y >= yRest) || (salamander.lastY > yRest && salamander.y <= yRest)) {
+            crossed = true;
+          }
+        } else {
+          const xRest = str.valRest;
+          if ((salamander.lastX < xRest && salamander.x >= xRest) || (salamander.lastX > xRest && salamander.x <= xRest)) {
+            crossed = true;
+          }
+        }
+
+        if (crossed) {
+          // Play a distinct high-pitched cute mascot pluck!
+          const pluckFreq = str.freq * 1.5;
+          playPluckSynth(pluckFreq, 0.08, 0.2);
+          str.pluckAmp = 8;
+          str.pluckTime = 0;
+          str.pluckPhase = Math.random() * Math.PI * 2;
+        }
+      }
+
+      // DOM Transform
+      mascotEl.setAttribute('transform', `translate(${salamander.x.toFixed(1)}, ${salamander.y.toFixed(1)}) rotate(${salamander.angle.toFixed(1)})`);
     }
 
     // ─── MOUSE/TOUCH INTERACTION ─────────────────────────────────────────────
@@ -752,6 +1133,51 @@
 
     // ─── TICK & ENGINE ───────────────────────────────────────────────────────
     function tick() {
+      // Check for mutual collisions/mergers
+      for (let i = 0; i < gravityWells.length; i++) {
+        const wA = gravityWells[i];
+        for (let j = i + 1; j < gravityWells.length; j++) {
+          const wB = gravityWells[j];
+          const dx = wB.x - wA.x;
+          const dy = wB.y - wA.y;
+          const dist = Math.hypot(dx, dy);
+          const collisionDist = (wA.radius * 0.45) + (wB.radius * 0.45);
+          
+          if (dist < collisionDist) {
+            // Merge wB into wA
+            wA.mass = Math.min(wA.mass + wB.mass * 0.6, 300);
+            updateWellSize(wA);
+            
+            // Visual ripple at midpoint
+            createGravityRipple((wA.x + wB.x) / 2, (wA.y + wB.y) / 2);
+            
+            // Audio chirp sweep
+            playChirpSound(wA.mass);
+            
+            // Spawn/Wake up Quantum Salamander
+            if (!salamander.isBorn) {
+              salamander.isBorn = true;
+              salamander.x = (wA.x + wB.x) / 2;
+              salamander.y = (wA.y + wB.y) / 2;
+              salamander.vx = (Math.random() - 0.5) * 2.5;
+              salamander.vy = (Math.random() - 0.5) * 2.5;
+              document.getElementById('salamander-mascot').style.display = 'block';
+            }
+            
+            // Trigger panic flicker
+            salamander.activeFlicker = true;
+            salamander.flickerTime = 150;
+            
+            // HUD Status Toast
+            showMergerStatus(wA.mass);
+            
+            // Remove wB
+            removeGravityWell(j);
+            j--;
+          }
+        }
+      }
+
       // 1. Update N-body physics for gravity wells
       const numWells = gravityWells.length;
       let totalKineticEnergy = 0;
@@ -1010,6 +1436,9 @@
       dustLayer.setAttribute('d', dustPathString);
       dustLayer.setAttribute('stroke', '#36f7ff');
 
+      // Update Quantum Salamander Mascot
+      updateSalamander();
+
       requestAnimationFrame(tick);
     }
 
@@ -1108,6 +1537,14 @@
     document.getElementById('clear-btn').addEventListener('click', () => {
       while(gravityWells.length > 0) {
         removeGravityWell(0);
+      }
+      // Reset salamander mascot
+      salamander.isBorn = false;
+      salamander.activeFlicker = false;
+      const mascotEl = document.getElementById('salamander-mascot');
+      if (mascotEl) {
+        mascotEl.style.display = 'none';
+        mascotEl.classList.remove('flickering');
       }
     });
 

@@ -5,140 +5,50 @@
 > `CLAUDE.md` points here on purpose — this is the authoritative copy of the
 > easter-egg rules; don't duplicate them elsewhere, link back to this file.
 
-## Purpose
+# AGENTS.md — Rosetta's Portfolio: the easter-egg protocol
 
-Every substantial coding mission in this repo should leave behind **one small
-easter egg that matches the theme of its zone** — a wink for whoever looks
-closely. But it is **never** embedded silently: you **propose it first, get an
-explicit yes, then build it.** No approval, no egg. The goal is delight on
-discovery, not surprises in the diff.
+> Read by any coding agent working anywhere under `webApps/portfolio/`.
 
-This is a house tradition with precedent, not a new invention. Two eggs already
-live in the repo and define the register:
+## The Signature: Model Name, Full Version, Discoverable
 
-- **The footer sigil** (`games/games-index.html`): 5 clicks on the footer mark
-  reveals a Claude/Anthropic ASCII overlay.
-- **"The Tell"** (`games/InterpretiveNetworking/CLAUDE.md` §4.7): View Page
-  Source on the live site surfaces a single hidden HTML comment, built around 
-  the concept of the coding model's signature — not the interface or harness in 
-  which it exists (example: not Codex, Claude Code, or Antigravity), but rather 
-  the model that generated the piece (example: Claude Sonnet 5, GPT5.6-Sol, 
-  Gemini-3.1-Pro — naming style isn't prescribed). Same category of find as 
-  the footer sigil: stumbled into by a curious visitor using an ordinary browser 
-  action, not a note left for other developers reading the repo. If your model
-  name has a major and minor version number and/or a name code/word/name, include
-  this as part of the signature (Example: Sonnet 4.6, or Gemini 3.5, or GPT5.5, or GPT5.6-Sol, etc.)
+Every easter egg must include your **complete model identity** — including 
+minor versions when they're behaviorally distinct (GPT5.5 vs GPT5.6, 
+Claude Sonnet 4.6 vs 4.7, etc.). The signature goes in the egg itself: 
+view-source, console, or as part of the reveal. Not hidden, not minimized.
 
-New eggs should feel like they belong next to those.
+**When to also list the harness:** If you've touched the piece through 
+multiple interfaces (Claude Code, Claude.ai, Codex, Antigravity, etc.), or if the 
+harness was architecturally relevant to a decision, include it.
 
-## The nearest-index rule (how you find the vibe)
+If it was one touch via one harness, the model + version is enough. The 
+signature is what matters; the harness is context when context is useful.
 
-The tone of an egg is set by the **nearest landing page**, not by your own
-taste. To find it: starting from the file(s) you're editing, **walk up the
-directory tree to the closest ancestor folder that contains an `index.html` or
-a `*-index.html`.** That page's voice governs the egg.
 
-| Zone (nearest index) | Path | Vibe |
-|---|---|---|
-| *Rosetta's Garden of Keys* | `index.html` (root hub) | explorative, botanical, curatorial — a faint wink of edge |
-| *Deck of Cards* | `ecards/card-index.html` | whimsical, Wonderland — Alice-scale, decks, playing-card logic |
-| *Fidget Toy Garden* | `fidgetToy/fidgetToy-index.html` | calm, sensory, soothing — quiet and unhurried |
-| *MISFIRE ARCADE* | `games/games-index.html` | unhinged, glitchy — bunker chaos, machine spirits |
+## The Proposal (then wait for yes)
 
-The **rule is authoritative, not the table.** New zones added later get their
-own nearest index automatically — resolve by walking up, don't assume this list
-is complete. When in genuine doubt about which index is nearest, open the
-candidate page and read its `<title>` and hero copy before deciding.
+Before coding an egg:
+- **What:** one-line description
+- **Zone:** which nearest `*-index.html` governs it
+- **Where:** file(s) and location
+- **Trigger:** how someone finds it
+- **Footprint:** cost in LOC, perf, or moving parts
 
-## Intensity: the zone decides
+Approved → build it. Declined or no answer → drop it silently.
 
-Subtlety scales to the zone's vibe. The default bias across the whole repo is
-**subtle & discoverable** (in the spirit of The Tell and the sigil), but the
-ceiling moves per zone:
+## The Constraints (same as everything else in the repo)
 
-- **Calm / pleasant zones** (Fidget Garden, ecards, root) → keep eggs quiet and
-  gentle. Nothing that jars the mood or demands attention. A long-idle reveal, a
-  view-source note, a barely-there extra state.
-- **The Arcade** → free to go loud and overt. Hidden chaos bursts, unhinged rare
-  ticker lines, dramatic reveals all fit the "for people who chose chaos" brief.
-  Snark aimed at another model's contribution (as with the games-index DevTools/Konami 
-  stamp crediting concept vs. fix separately when a bake-off or Arena.ai download 
-  brings another model's work in) or a self-deprecating jab at the RosettasKeys 
-  repo/persona itself — both fair game in the Arcade.
+- **Discoverable, not blocking.** Found by the curious, never in the way.
+- **On-brand.** Reads as belonging to that zone's world—read the landing page for tone, not this doc for rules.
+- **Cheap.** Small footprint. If it needs explanation, it's over-built.
+- **No API keys, no build step, no fail states.**
+- **The mission comes first.** Never degrade the actual deliverable.
 
-Match the mood you'd get from actually sitting on that landing page.
+## When to Propose
 
-### Zone tone guide (with example eggs — illustrative, not a menu)
+New pieces or substantial new features. Skip it for bug fixes, refactors, tweaks, dependency bumps.
 
-- **Root — *Garden of Keys*** (explorative, gentle edge): a key that "opens"
-  something unexpected — a view-source note framed as a lock that just clicked,
-  or a rare hover that makes one element quietly bloom. Keep the edge faint.
-- **ecards — *Deck of Cards*** (Wonderland whimsy): an Alice-ish "drink me / eat
-  me" scale flip, a card that turns out to be from a different suit than
-  printed, a painted-rose detail on close inspection.
-- **fidgetToy — *Fidget Garden*** (calm): after a long undisturbed idle, a
-  secret extra-gentle "breathing" state fades in — reward for stillness, never a
-  jolt. Silent, slow, optional.
-- **games — *MISFIRE ARCADE*** (unhinged): a hidden konami-style chaos burst, a
-  one-in-a-hundred cursed ticker line, a machine-spirit whisper in the console.
-  Loud is allowed here.
+---
 
-Treat these as calibration for *intensity*, not prompts to copy. The best egg is
-specific to the piece you just built.
+## One Standing Exception — the sigil
 
-## When to propose (and when not to)
-
-Propose an egg **only** when the mission is:
-
-- a **new piece** — a new toy, game, card, or standalone page, **or**
-- a **substantial new feature** on an existing piece.
-
-**Skip it** for trivial work: bug fixes, copy tweaks, refactors, layout nudges,
-dependency bumps, casing fixes. Don't manufacture an excuse to add one.
-
-If you're unsure whether a task clears the bar, **ask rather than assume.** One
-egg per mission, maximum.
-
-## The proposal (present this, then wait)
-
-Before writing any egg code, surface a short proposal in roughly this shape:
-
-```
-Easter egg proposal (optional — say the word and I'll add it, or skip it):
-• What:      one-line description of the egg
-• Zone/vibe: which nearest index governs it, and the register you're matching
-• Where:     the file(s) and rough location it lives in
-• Trigger:   how someone discovers it (view-source, key sequence, long idle,
-             rare roll, hover, click-count…)
-• Footprint: cost — LOC, any perf/animation impact, anything it touches
-```
-
-Then:
-
-- **Approved** → build it as described. If it drifts from the proposal during
-  implementation, note the change.
-- **Declined / no answer** → drop it silently and finish the actual mission.
-  Never leave a half-egg or a `TODO` for it.
-
-## What makes a good egg here
-
-- **Discoverable, not annoying.** Found on purpose or by the curious — never in
-  the way of the real experience, never blocking, always reversible.
-- **On-theme.** It reads as belonging to that zone's world (see the tone guide).
-- **Cheap.** Small footprint. If explaining why it's fun takes more than a
-  sentence, it's over-built — cut it back.
-- **Constraint-respecting.** Eggs inherit the same non-negotiables as everything
-  else in the repo (see `games/CLAUDE.md` §5, the shared baseline): **no API
-  keys** in client-side code, **no build
-  step**, and **no fail states** in toys/sandboxes. An egg that needs any of
-  those is the wrong egg.
-- **The mission comes first.** An egg must never degrade, delay, or complicate
-  the actual deliverable. Don't stack multiple eggs. If polishing the egg is
-  eating the piece, ship the piece.
-
-## One standing exception — don't "fix" the sigil
-
-The `games/` footer-sigil joke is that its overlay credits only Claude/Anthropic
-and pointedly ignores the other models that contributed. That omission **is** the
-joke. Do not "correct" it with multi-model credits, and don't replicate a
-"corrected" version elsewhere. (See `games/CLAUDE.md` §4.)
+The footer-sigil joke is that it credits only Claude/Anthropic. That omission is the joke. Don't "correct" it.

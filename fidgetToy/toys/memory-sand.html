@@ -1,1114 +1,2213 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
-    <title>Memory Sand</title>
-    <style>
-      :root {
-        color-scheme: light;
-        --ink: #3d3527;
-        --muted: rgba(61, 53, 39, 0.6);
-        --panel: rgba(250, 244, 230, 0.62);
-        --panel-solid: rgba(250, 244, 230, 0.86);
-        --line: rgba(80, 64, 38, 0.16);
-      }
-      * { box-sizing: border-box; }
-      html, body {
-        margin: 0; width: 100%; height: 100%; overflow: hidden;
-        background: #c9b487;
-        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-        color: var(--ink);
-        -webkit-font-smoothing: antialiased;
-      }
-      body { touch-action: none; -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent; }
-      canvas#sand { position: fixed; inset: 0; display: block; width: 100vw; height: 100vh; }
-      .vignette {
-        position: fixed; inset: 0; pointer-events: none; z-index: 1;
-        background: radial-gradient(120% 100% at 50% 45%, rgba(0,0,0,0) 55%, rgba(58,44,20,0.16) 100%);
-      }
-      header {
-        position: fixed; top: clamp(14px, 2.4vw, 26px); left: clamp(14px, 2.6vw, 30px);
-        z-index: 4; pointer-events: none;
-      }
-      h1 {
-        margin: 0; font-family: Georgia, "Times New Roman", serif; font-weight: 400;
-        font-size: clamp(19px, 2.3vw, 27px); letter-spacing: 0.01em;
-        color: rgba(56, 47, 33, 0.78); text-shadow: 0 1px 12px rgba(252,246,228,0.6);
-      }
-      .meters { margin-top: 9px; display: grid; gap: 6px; width: 132px; }
-      .meter { display: grid; grid-template-columns: 54px 1fr; align-items: center; gap: 7px; }
-      .meter span {
-        font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase;
-        color: rgba(61, 53, 39, 0.5);
-      }
-      .bar { height: 2px; background: rgba(80, 64, 38, 0.16); overflow: hidden; }
-      .bar i { display: block; height: 100%; width: 0%; background: rgba(74, 60, 34, 0.55); transition: width 400ms ease; }
 
-      .dock {
-        position: fixed; z-index: 5; left: 50%; bottom: clamp(14px, 2.4vw, 26px);
-        transform: translateX(-50%);
-        display: flex; align-items: center; gap: 4px; padding: 5px;
-        background: var(--panel); border: 1px solid var(--line);
-        border-radius: 14px; backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-        box-shadow: 0 14px 40px rgba(66, 50, 22, 0.14);
-      }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
+  <title>Memory Sand</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #3d3527;
+      --muted: rgba(61, 53, 39, 0.6);
+      --panel: rgba(250, 244, 230, 0.62);
+      --panel-solid: rgba(250, 244, 230, 0.86);
+      --line: rgba(80, 64, 38, 0.16);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #c9b487;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      touch-action: none;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    canvas#sand {
+      position: fixed;
+      inset: 0;
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    .vignette {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      background: radial-gradient(120% 100% at 50% 45%, rgba(0, 0, 0, 0) 55%, rgba(58, 44, 20, 0.16) 100%);
+    }
+
+    header {
+      position: fixed;
+      top: clamp(14px, 2.4vw, 26px);
+      left: clamp(14px, 2.6vw, 30px);
+      z-index: 4;
+      pointer-events: none;
+    }
+
+    .home-link {
+      position: fixed;
+      top: clamp(14px, 2.4vw, 26px);
+      right: clamp(14px, 2.6vw, 30px);
+      z-index: 4;
+      padding: 8px 14px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--panel);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      color: rgba(61, 53, 39, 0.7);
+      font: 500 12px/1 Georgia, "Times New Roman", serif;
+      letter-spacing: 0.02em;
+      text-decoration: none;
+      transition: color 160ms ease, border-color 160ms ease;
+    }
+
+    .home-link:hover,
+    .home-link:focus-visible {
+      color: rgba(56, 47, 33, 0.95);
+      border-color: rgba(80, 64, 38, 0.32);
+    }
+
+    h1 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-weight: 400;
+      font-size: clamp(19px, 2.3vw, 27px);
+      letter-spacing: 0.01em;
+      color: rgba(56, 47, 33, 0.78);
+      text-shadow: 0 1px 12px rgba(252, 246, 228, 0.6);
+    }
+
+    .meters {
+      margin-top: 9px;
+      display: grid;
+      gap: 6px;
+      width: 132px;
+    }
+
+    .meter {
+      display: grid;
+      grid-template-columns: 54px 1fr;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .meter span {
+      font-size: 9.5px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(61, 53, 39, 0.5);
+    }
+
+    .bar {
+      height: 2px;
+      background: rgba(80, 64, 38, 0.16);
+      overflow: hidden;
+    }
+
+    .bar i {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: rgba(74, 60, 34, 0.55);
+      transition: width 400ms ease;
+    }
+
+    .dock {
+      position: fixed;
+      z-index: 5;
+      left: 50%;
+      bottom: clamp(14px, 2.4vw, 26px);
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 4px;
+      padding: 5px;
+      max-width: calc(100vw - 20px);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 14px 40px rgba(66, 50, 22, 0.14);
+    }
+
+    .tool {
+      width: 46px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      gap: 2px;
+      border: 0;
+      background: transparent;
+      border-radius: 10px;
+      cursor: pointer;
+      color: rgba(61, 53, 39, 0.62);
+      transition: background 160ms ease, color 160ms ease;
+    }
+
+    .tool svg {
+      width: 19px;
+      height: 19px;
+    }
+
+    .tool b {
+      font-size: 8.5px;
+      font-weight: 500;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+    }
+
+    .tool:hover {
+      background: rgba(255, 252, 240, 0.5);
+      color: var(--ink);
+    }
+
+    .tool[aria-pressed="true"] {
+      background: rgba(255, 252, 240, 0.92);
+      color: #352d1d;
+      box-shadow: inset 0 0 0 1px rgba(80, 64, 38, 0.14);
+    }
+
+    .sep {
+      width: 1px;
+      height: 26px;
+      background: var(--line);
+      margin: 0 3px;
+    }
+
+    .sizewrap {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 0 8px 0 4px;
+    }
+
+    .sizewrap em {
+      font-style: normal;
+      font-size: 9.5px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(61, 53, 39, 0.5);
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      height: 18px;
+    }
+
+    input[type="range"]::-webkit-slider-runnable-track {
+      height: 2px;
+      background: rgba(80, 64, 38, 0.22);
+    }
+
+    input[type="range"]::-moz-range-track {
+      height: 2px;
+      background: rgba(80, 64, 38, 0.22);
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: #6d5a35;
+      margin-top: -4.5px;
+      cursor: pointer;
+      border: 0;
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 11px;
+      height: 11px;
+      border: 0;
+      border-radius: 50%;
+      background: #6d5a35;
+      cursor: pointer;
+    }
+
+    #size {
+      width: 76px;
+    }
+
+    .mini {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border: 0;
+      cursor: pointer;
+      background: transparent;
+      border-radius: 9px;
+      color: rgba(61, 53, 39, 0.6);
+    }
+
+    .mini:hover {
+      background: rgba(255, 252, 240, 0.55);
+      color: var(--ink);
+    }
+
+    .mini svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .mini[aria-pressed="true"] {
+      background: rgba(255, 252, 240, 0.9);
+      color: #352d1d;
+    }
+
+    .panel {
+      position: fixed;
+      z-index: 5;
+      left: 50%;
+      bottom: calc(clamp(14px, 2.4vw, 26px) + var(--dockh, 62px));
+      transform: translateX(-50%) translateY(6px);
+      width: min(430px, calc(100vw - 24px));
+      padding: 14px 16px 16px;
+      display: grid;
+      gap: 11px;
+      background: var(--panel-solid);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: 0 18px 46px rgba(66, 50, 22, 0.16);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 200ms ease, transform 200ms ease;
+    }
+
+    .panel.open {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: 86px 1fr 34px;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .row label {
+      font-size: 10px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: rgba(61, 53, 39, 0.62);
+    }
+
+    .row output {
+      font-size: 10px;
+      text-align: right;
+      color: rgba(61, 53, 39, 0.45);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .chips button {
+      border: 1px solid var(--line);
+      background: rgba(255, 252, 240, 0.45);
+      border-radius: 8px;
+      padding: 5px 9px;
+      font-size: 10.5px;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      color: rgba(61, 53, 39, 0.72);
+    }
+
+    .chips button[aria-pressed="true"] {
+      background: rgba(109, 90, 53, 0.14);
+      color: #352d1d;
+      border-color: rgba(80, 64, 38, 0.3);
+    }
+
+    .grouptitle {
+      font-size: 9.5px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(61, 53, 39, 0.4);
+      margin-bottom: -4px;
+    }
+
+    .hint {
+      position: fixed;
+      z-index: 3;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 12.5px;
+      letter-spacing: 0.05em;
+      color: rgba(58, 47, 30, 0.42);
+      pointer-events: none;
+      transition: opacity 1200ms ease;
+      text-align: center;
+      line-height: 1.7;
+    }
+
+    .hint.gone {
+      opacity: 0;
+    }
+
+    @media (max-width: 560px) {
       .tool {
-        width: 46px; height: 42px; display: grid; place-items: center; gap: 2px;
-        border: 0; background: transparent; border-radius: 10px; cursor: pointer;
-        color: rgba(61, 53, 39, 0.62); transition: background 160ms ease, color 160ms ease;
+        width: 40px;
+        height: 40px;
       }
-      .tool svg { width: 19px; height: 19px; }
-      .tool b { font-size: 8.5px; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; }
-      .tool:hover { background: rgba(255, 252, 240, 0.5); color: var(--ink); }
-      .tool[aria-pressed="true"] { background: rgba(255, 252, 240, 0.92); color: #352d1d; box-shadow: inset 0 0 0 1px rgba(80,64,38,0.14); }
-      .sep { width: 1px; height: 26px; background: var(--line); margin: 0 3px; }
-      .sizewrap { display: flex; align-items: center; gap: 7px; padding: 0 8px 0 4px; }
-      .sizewrap em { font-style: normal; font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(61,53,39,0.5); }
-      input[type="range"] { -webkit-appearance: none; appearance: none; background: transparent; height: 18px; }
-      input[type="range"]::-webkit-slider-runnable-track { height: 2px; background: rgba(80,64,38,0.22); }
-      input[type="range"]::-moz-range-track { height: 2px; background: rgba(80,64,38,0.22); }
-      input[type="range"]::-webkit-slider-thumb {
-        -webkit-appearance: none; width: 11px; height: 11px; border-radius: 50%;
-        background: #6d5a35; margin-top: -4.5px; cursor: pointer; border: 0;
-      }
-      input[type="range"]::-moz-range-thumb { width: 11px; height: 11px; border: 0; border-radius: 50%; background: #6d5a35; cursor: pointer; }
-      #size { width: 76px; }
-      .mini {
-        width: 34px; height: 34px; display: grid; place-items: center; border: 0; cursor: pointer;
-        background: transparent; border-radius: 9px; color: rgba(61,53,39,0.6);
-      }
-      .mini:hover { background: rgba(255, 252, 240, 0.55); color: var(--ink); }
-      .mini svg { width: 16px; height: 16px; }
-      .mini[aria-pressed="true"] { background: rgba(255, 252, 240, 0.9); color: #352d1d; }
 
-      .panel {
-        position: fixed; z-index: 5; left: 50%; bottom: calc(clamp(14px, 2.4vw, 26px) + 62px);
-        transform: translateX(-50%) translateY(6px);
-        width: min(430px, calc(100vw - 24px));
-        padding: 14px 16px 16px;
-        display: grid; gap: 11px;
-        background: var(--panel-solid); border: 1px solid var(--line); border-radius: 14px;
-        backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-        box-shadow: 0 18px 46px rgba(66, 50, 22, 0.16);
-        opacity: 0; pointer-events: none; transition: opacity 200ms ease, transform 200ms ease;
+      .tool b {
+        display: none;
       }
-      .panel.open { opacity: 1; pointer-events: auto; transform: translateX(-50%) translateY(0); }
-      .row { display: grid; grid-template-columns: 86px 1fr 34px; align-items: center; gap: 10px; }
-      .row label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(61,53,39,0.62); }
-      .row output { font-size: 10px; text-align: right; color: rgba(61,53,39,0.45); font-variant-numeric: tabular-nums; }
-      .chips { display: flex; flex-wrap: wrap; gap: 5px; }
-      .chips button {
-        border: 1px solid var(--line); background: rgba(255,252,240,0.45); border-radius: 8px;
-        padding: 5px 9px; font-size: 10.5px; letter-spacing: 0.04em; cursor: pointer; color: rgba(61,53,39,0.72);
-      }
-      .chips button[aria-pressed="true"] { background: rgba(109, 90, 53, 0.14); color: #352d1d; border-color: rgba(80,64,38,0.3); }
-      .grouptitle { font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(61,53,39,0.4); margin-bottom: -4px; }
-      .hint {
-        position: fixed; z-index: 3; left: 50%; top: 50%; transform: translate(-50%, -50%);
-        font-size: 12.5px; letter-spacing: 0.05em; color: rgba(58, 47, 30, 0.42);
-        pointer-events: none; transition: opacity 1200ms ease; text-align: center; line-height: 1.7;
-      }
-      .hint.gone { opacity: 0; }
-      @media (max-width: 560px) {
-        .tool { width: 40px; height: 40px; }
-        .tool b { display: none; }
-        .sizewrap em { display: none; }
-        #size { width: 58px; }
-        .meters { width: 104px; }
-        .row { grid-template-columns: 70px 1fr 30px; }
-      }
-    </style>
-  </head>
-  <body>
-    <canvas id="sand"></canvas>
-    <div class="vignette"></div>
 
-    <header>
-      <h1>Memory Sand</h1>
-      <div class="meters">
-        <div class="meter"><span>Memory</span><div class="bar"><i id="memBar"></i></div></div>
-        <div class="meter"><span>Packed</span><div class="bar"><i id="packBar"></i></div></div>
+      .sizewrap em {
+        display: none;
+      }
+
+      #size {
+        width: 58px;
+      }
+
+      .meters {
+        width: 104px;
+      }
+
+      .row {
+        grid-template-columns: 70px 1fr 30px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Something is buried out there, in a different spot every time you open
+       this. The stone will turn it up; only the finger will bring the shine
+       back, and polished brass will hold an engraving.
+       Cut by Claude Opus 5 — first in an arena.ai match, then raked back into
+       shape through Claude Code. Some signatures have to be dug up. -->
+  <canvas id="sand"></canvas>
+  <div class="vignette"></div>
+
+  <a class="home-link" href="../fidgetToy-index.html">&larr; Home</a>
+
+  <header>
+    <h1>Memory Sand</h1>
+    <div class="meters">
+      <div class="meter"><span>Memory</span>
+        <div class="bar"><i id="memBar"></i></div>
       </div>
-    </header>
-
-    <div class="hint" id="hint">draw slowly to rake · swipe to scatter · hold to press<br />the sand keeps what you do to it</div>
-
-    <div class="panel" id="panel">
-      <div class="grouptitle">Sand behaviour</div>
-      <div class="row"><label for="settle">Settling</label><input id="settle" type="range" min="0" max="100" value="34" /><output id="settleOut">34</output></div>
-      <div class="row"><label for="memory">Memory</label><input id="memory" type="range" min="0" max="100" value="76" /><output id="memoryOut">76</output></div>
-      <div class="row"><label for="grain">Grain</label><input id="grain" type="range" min="0" max="100" value="44" /><output id="grainOut">44</output></div>
-      <div class="row"><label for="light">Light</label><input id="light" type="range" min="0" max="360" value="308" /><output id="lightOut">308</output></div>
-      <div class="row"><label for="volume">Volume</label><input id="volume" type="range" min="0" max="100" value="55" /><output id="volumeOut">55</output></div>
-      <div class="grouptitle">Material</div>
-      <div class="chips" id="themes"></div>
-      <div class="grouptitle">Garden</div>
-      <div class="chips" id="presets"></div>
+      <div class="meter"><span>Packed</span>
+        <div class="bar"><i id="packBar"></i></div>
+      </div>
     </div>
+  </header>
 
-    <div class="dock">
-      <button class="tool" id="t-rake" data-tool="rake" aria-pressed="true" title="Rake — grooved tines (1)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
-          <path d="M4 5v6M8 5v6M12 5v6M16 5v6M20 5v6" />
-          <path d="M3 14c3 1.6 5 1.6 8 0s6-1.6 10 0" />
-          <path d="M3 18c3 1.6 5 1.6 8 0s6-1.6 10 0" opacity=".55" />
-        </svg><b>Rake</b>
-      </button>
-      <button class="tool" id="t-finger" data-tool="finger" title="Finger — single soft groove (2)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M10 12V5.4a1.6 1.6 0 0 1 3.2 0V11" />
-          <path d="M13.2 11V9.2a1.5 1.5 0 0 1 3 0V12" />
-          <path d="M16.2 11.4a1.5 1.5 0 0 1 3 0V15a5.5 5.5 0 0 1-5.5 5.5h-1.4A5.3 5.3 0 0 1 7 18l-2.2-3.4a1.5 1.5 0 0 1 2.4-1.8L10 15.5" />
-        </svg><b>Finger</b>
-      </button>
-      <button class="tool" id="t-stone" data-tool="stone" title="Stone — heavy press and plow (3)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round">
-          <path d="M4.4 14.6 8.6 7.2c.9-1.5 3-1.7 4.2-.5l5.6 5.4c1.5 1.4.9 4-1.1 4.6l-8.2 2.2c-2.3.6-4.3-1.9-3.1-3.9Z" />
-          <path d="M8.2 9.6c1.8 1.2 5 3.6 6.6 6.6" opacity=".45" />
-        </svg><b>Stone</b>
-      </button>
-      <button class="tool" id="t-wind" data-tool="wind" title="Wind — erode, drift and bury (4)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
-          <path d="M3 8h10a2.6 2.6 0 1 0-2.6-2.6" />
-          <path d="M3 12.4h14.4a2.8 2.8 0 1 1-2.8 2.8" />
-          <path d="M3 16.8h7" opacity=".55" />
-        </svg><b>Wind</b>
-      </button>
-      <div class="sep"></div>
-      <div class="sizewrap"><em>Size</em><input id="size" type="range" min="0" max="100" value="42" /></div>
-      <div class="sep"></div>
-      <button class="mini" id="undo" title="Undo (U)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M4 9h9a5.5 5.5 0 1 1 0 11H8" /><path d="M4 9l4-4M4 9l4 4" />
-        </svg>
-      </button>
-      <button class="mini" id="reset" title="Reset garden (R)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M20 5.5v5h-5" /><path d="M19.4 10.5A7.6 7.6 0 1 0 19 15.4" />
-        </svg>
-      </button>
-      <button class="mini" id="sound" aria-pressed="true" title="Sound">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M5 9.5h3l4-3.2v11.4l-4-3.2H5z" /><path id="wave1" d="M15.2 9.4a3.6 3.6 0 0 1 0 5.2" /><path id="wave2" d="M17.8 7.2a7 7 0 0 1 0 9.6" opacity=".6" />
-        </svg>
-      </button>
-      <button class="mini" id="gear" aria-pressed="false" title="Settings">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-          <circle cx="12" cy="12" r="2.6" /><path d="M12 3.4v2.2M12 18.4v2.2M20.6 12h-2.2M5.6 12H3.4M18.1 5.9l-1.6 1.6M7.5 16.5l-1.6 1.6M18.1 18.1l-1.6-1.6M7.5 7.5 5.9 5.9" />
-        </svg>
-      </button>
-    </div>
+  <div class="hint" id="hint">draw slowly to rake · swipe to scatter · hold to press<br />tap with the post to set a
+    pylon</div>
 
-    <script>
-      (() => {
-        "use strict";
-        const cv = document.getElementById("sand");
-        const ctx = cv.getContext("2d", { alpha: false });
-        const $ = (id) => document.getElementById(id);
-        const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
-        const TAU = Math.PI * 2;
+  <div class="panel" id="panel">
+    <div class="grouptitle">Sand behaviour</div>
+    <div class="row"><label for="settle">Settling</label><input id="settle" type="range" min="0" max="100"
+        value="34" /><output id="settleOut">34</output></div>
+    <div class="row"><label for="memory">Memory</label><input id="memory" type="range" min="0" max="100"
+        value="76" /><output id="memoryOut">76</output></div>
+    <div class="row"><label for="grain">Grain</label><input id="grain" type="range" min="0" max="100"
+        value="44" /><output id="grainOut">44</output></div>
+    <div class="row"><label for="light">Light</label><input id="light" type="range" min="0" max="360"
+        value="308" /><output id="lightOut">308</output></div>
+    <div class="row"><label for="volume">Volume</label><input id="volume" type="range" min="0" max="100"
+        value="55" /><output id="volumeOut">55</output></div>
+    <div class="grouptitle">Material</div>
+    <div class="chips" id="themes"></div>
+    <div class="grouptitle">Garden</div>
+    <div class="chips" id="presets"></div>
+  </div>
 
-        /* ---------- shared simulation state ---------- */
-        let W = 0, H = 0, N = 0, cellPx = 6, viewW = 0, viewH = 0;
-        let h, base, loose, packed, mem, ghost, dh, dl, sm1, sm2;
-        let colR, colG, colB;
-        let rw = 0, rh = 0, rcanvas, rctx, rimg, rpix, grainBuf;
-        let frame = 0, statTick = 0;
+  <div class="dock">
+    <button class="tool" id="t-rake" data-tool="rake" aria-pressed="true" title="Rake — grooved tines (1)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
+        <path d="M4 5v6M8 5v6M12 5v6M16 5v6M20 5v6" />
+        <path d="M3 14c3 1.6 5 1.6 8 0s6-1.6 10 0" />
+        <path d="M3 18c3 1.6 5 1.6 8 0s6-1.6 10 0" opacity=".55" />
+      </svg><b>Rake</b>
+    </button>
+    <button class="tool" id="t-finger" data-tool="finger" title="Finger — single soft groove (2)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M10 12V5.4a1.6 1.6 0 0 1 3.2 0V11" />
+        <path d="M13.2 11V9.2a1.5 1.5 0 0 1 3 0V12" />
+        <path
+          d="M16.2 11.4a1.5 1.5 0 0 1 3 0V15a5.5 5.5 0 0 1-5.5 5.5h-1.4A5.3 5.3 0 0 1 7 18l-2.2-3.4a1.5 1.5 0 0 1 2.4-1.8L10 15.5" />
+      </svg><b>Finger</b>
+    </button>
+    <button class="tool" id="t-stone" data-tool="stone" title="Stone — heavy press and plow (3)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round">
+        <path d="M4.4 14.6 8.6 7.2c.9-1.5 3-1.7 4.2-.5l5.6 5.4c1.5 1.4.9 4-1.1 4.6l-8.2 2.2c-2.3.6-4.3-1.9-3.1-3.9Z" />
+        <path d="M8.2 9.6c1.8 1.2 5 3.6 6.6 6.6" opacity=".45" />
+      </svg><b>Stone</b>
+    </button>
+    <button class="tool" id="t-wind" data-tool="wind" title="Wind — erode, drift and bury (4)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
+        <path d="M3 8h10a2.6 2.6 0 1 0-2.6-2.6" />
+        <path d="M3 12.4h14.4a2.8 2.8 0 1 1-2.8 2.8" />
+        <path d="M3 16.8h7" opacity=".55" />
+      </svg><b>Wind</b>
+    </button>
+    <button class="tool" id="t-post" data-tool="post" title="Post — set or lift a pylon (5)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"
+        stroke-linejoin="round">
+        <ellipse cx="12" cy="7.4" rx="5.2" ry="2.6" />
+        <path d="M6.8 7.4v8.2c0 1.44 2.33 2.6 5.2 2.6s5.2-1.16 5.2-2.6V7.4" />
+        <ellipse cx="12" cy="7.4" rx="2.5" ry="1.25" opacity=".5" />
+        <path d="M3 19.6c3.4 1.2 14.6 1.2 18 0" opacity=".45" />
+      </svg><b>Post</b>
+    </button>
+    <div class="sep"></div>
+    <div class="sizewrap"><em>Size</em><input id="size" type="range" min="0" max="100" value="42" /></div>
+    <div class="sep"></div>
+    <button class="mini" id="undo" title="Undo (U)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M4 9h9a5.5 5.5 0 1 1 0 11H8" />
+        <path d="M4 9l4-4M4 9l4 4" />
+      </svg>
+    </button>
+    <button class="mini" id="reset" title="Reset garden (R)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M20 5.5v5h-5" />
+        <path d="M19.4 10.5A7.6 7.6 0 1 0 19 15.4" />
+      </svg>
+    </button>
+    <button class="mini" id="sound" aria-pressed="true" title="Sound">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+        stroke-linejoin="round">
+        <path d="M5 9.5h3l4-3.2v11.4l-4-3.2H5z" />
+        <path id="wave1" d="M15.2 9.4a3.6 3.6 0 0 1 0 5.2" />
+        <path id="wave2" d="M17.8 7.2a7 7 0 0 1 0 9.6" opacity=".6" />
+      </svg>
+    </button>
+    <button class="mini" id="gear" aria-pressed="false" title="Settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <circle cx="12" cy="12" r="2.6" />
+        <path
+          d="M12 3.4v2.2M12 18.4v2.2M20.6 12h-2.2M5.6 12H3.4M18.1 5.9l-1.6 1.6M7.5 16.5l-1.6 1.6M18.1 18.1l-1.6-1.6M7.5 7.5 5.9 5.9" />
+      </svg>
+    </button>
+  </div>
 
-        const undoStack = [];
-        const pointers = new Map();
+  <script>
+    (() => {
+      "use strict";
+      const cv = document.getElementById("sand");
+      const ctx = cv.getContext("2d", { alpha: false });
+      const $ = (id) => document.getElementById(id);
+      const clamp = (v, a, b) => (v < a ? a : v > b ? b : v);
+      const TAU = Math.PI * 2;
 
-        const THEMES = {
-          ivory:  { name: "Ivory",  sand: [226, 214, 186], deep: [166, 150, 118], stone: [154, 152, 145], spec: 0.55, amb: 0.46, sun: 0.72, tintDeep: 0.5 },
-          ochre:  { name: "Ochre",  sand: [222, 196, 138], deep: [155, 122, 70],  stone: [150, 138, 112], spec: 0.5,  amb: 0.44, sun: 0.76, tintDeep: 0.55 },
-          slate:  { name: "Slate",  sand: [193, 193, 189], deep: [126, 128, 128], stone: [136, 140, 143], spec: 0.72, amb: 0.47, sun: 0.7,  tintDeep: 0.5 },
-          clay:   { name: "Clay",   sand: [214, 176, 148], deep: [143, 100, 78],  stone: [151, 129, 116], spec: 0.48, amb: 0.44, sun: 0.75, tintDeep: 0.6 },
-          ash:    { name: "Ash",    sand: [205, 201, 196], deep: [128, 124, 124], stone: [116, 116, 120], spec: 0.6,  amb: 0.48, sun: 0.68, tintDeep: 0.52 }
-        };
-        let theme = THEMES.ivory;
+      /* ---------- shared simulation state ---------- */
+      let W = 0, H = 0, N = 0, cellPx = 6, viewW = 0, viewH = 0;
+      let h, base, loose, packed, mem, ghost, dh, dl, sm1, sm2;
+      let solid, solidH, solidM, solidT, ao, calm, surf, gloss, blk;
+      let colR, colG, colB;
+      let rw = 0, rh = 0, rcanvas, rctx, rimg, rpix, grainBuf, sparkBuf, crackBuf;
+      let frame = 0, statTick = 0;
 
-        const S = {
-          tool: "rake", size: 42, settle: 34, memory: 76, grain: 44, light: 308,
-          volume: 55, sound: true
-        };
+      const undoStack = [];
+      const pointers = new Map();
+      // obstacles live in normalised 0..1 coords so they survive resize + downscale
+      const props = [];
 
-        /* ---------- noise ---------- */
-        function hash2(x, y, s) {
-          let n = Math.sin(x * 127.1 + y * 311.7 + s * 74.7) * 43758.5453;
-          return n - Math.floor(n);
+      /* Each material carries a full profile, not just a palette: how steeply it
+         stands (repose), whether it holds a wall on its own (cohesion), how eagerly
+         it avalanches (flowMul), how much a cut frees (looseMul), how far wind
+         carries it (driftMul), plus the character of its grain and its sheen. */
+      const THEMES = {
+        ivory: {
+          name: "Ivory", sand: [226, 214, 186], deep: [166, 150, 118], stone: [154, 152, 145],
+          spec: 0.55, specBase: 0.035, specSharp: 1.0, amb: 0.46, sun: 0.72, tintDeep: 0.5,
+          repose: 0.82, cohesion: 0.3, flowMul: 1.05, looseMul: 1.0, driftMul: 0.95,
+          grainScale: 1.65, grainAniso: 1.0, grainAmp: 0.85, sparkle: 0.12, crack: 0, crumb: 0.25
+        },
+        ochre: {
+          name: "Ochre", sand: [222, 196, 138], deep: [155, 122, 70], stone: [150, 138, 112],
+          spec: 0.5, specBase: 0.022, specSharp: 0.7, amb: 0.44, sun: 0.76, tintDeep: 0.55,
+          repose: 1.0, cohesion: 0.26, flowMul: 1.0, looseMul: 1.1, driftMul: 1.15,
+          grainScale: 0.8, grainAniso: 2.1, grainAmp: 1.15, sparkle: 0.09, crack: 0, crumb: 0.45
+        },
+        slate: {
+          name: "Slate", sand: [182, 189, 198], deep: [110, 119, 132], stone: [126, 136, 148],
+          spec: 0.72, specBase: 0.05, specSharp: 2.4, amb: 0.47, sun: 0.7, tintDeep: 0.5,
+          repose: 1.45, cohesion: 0.62, flowMul: 0.72, looseMul: 0.82, driftMul: 0.55,
+          grainScale: 0.45, grainAniso: 1.0, grainAmp: 1.5, sparkle: 0.8, crack: 0, crumb: 1.0
+        },
+        clay: {
+          name: "Clay", sand: [214, 176, 148], deep: [143, 100, 78], stone: [151, 129, 116],
+          spec: 0.48, specBase: 0.075, specSharp: 0.3, amb: 0.44, sun: 0.75, tintDeep: 0.6,
+          repose: 1.7, cohesion: 1.0, flowMul: 0.48, looseMul: 0.55, driftMul: 0.22,
+          grainScale: 1.2, grainAniso: 1.0, grainAmp: 0.45, sparkle: 0.04, crack: 1, crumb: 0.12
+        },
+        ash: {
+          name: "Ash", sand: [212, 205, 196], deep: [134, 126, 118], stone: [118, 113, 108],
+          spec: 0.6, specBase: 0.008, specSharp: 0.22, amb: 0.48, sun: 0.68, tintDeep: 0.52,
+          repose: 0.55, cohesion: 0.06, flowMul: 1.55, looseMul: 1.5, driftMul: 2.1,
+          grainScale: 2.7, grainAniso: 1.0, grainAmp: 0.5, sparkle: 0, crack: 0, crumb: 0.1
         }
-        function vnoise(x, y, s) {
-          const ix = Math.floor(x), iy = Math.floor(y);
-          const fx = x - ix, fy = y - iy;
-          const u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy);
-          const a = hash2(ix, iy, s), b = hash2(ix + 1, iy, s);
-          const c = hash2(ix, iy + 1, s), d = hash2(ix + 1, iy + 1, s);
-          return (a + (b - a) * u) * (1 - v) + (c + (d - c) * u) * v;
-        }
-        function fbm(x, y, s) {
-          let v = 0, amp = 0.5, f = 1;
-          for (let i = 0; i < 4; i++) { v += vnoise(x * f, y * f, s + i) * amp; amp *= 0.5; f *= 2.03; }
-          return v;
-        }
+      };
+      let theme = THEMES.ivory;
+      // palette we actually shade with — crossfades toward `theme` so chips don't snap
+      const mix = { sand: [226, 214, 186], deep: [166, 150, 118], stone: [154, 152, 145] };
 
-        /* ---------- grid ---------- */
-        function allocate(preserve) {
-          const oldW = W, oldH = H, oh = h, ol = loose, op = packed, om = mem, og = ghost, ob = base;
-          viewW = window.innerWidth; viewH = window.innerHeight;
-          cellPx = viewW < 700 ? 5.4 : 6;
-          let w = Math.max(80, Math.round(viewW / cellPx));
-          let hh = Math.max(70, Math.round(viewH / cellPx));
-          while (w * hh > 42000) { w = Math.round(w * 0.94); hh = Math.round(hh * 0.94); }
-          W = w; H = hh; N = W * H;
+      // obstacles keep their own materials, independent of the sand chip
+      const WOOD = { top: [198, 158, 108], side: [124, 91, 58], ring: [154, 117, 74], spec: 0.16, sharp: 22 };
+      /* Brass comes out of the sand filthy. `top` is the tarnish and `ring` is the
+         polish, so the shader's existing top->ring blend (built for the pylons' end
+         grain) doubles as the tarnish channel — no new shading path needed. */
+      const BRASS = { top: [116, 104, 62], side: [132, 104, 52], ring: [240, 204, 132], spec: 0.95, sharp: 74 };
 
-          h = new Float32Array(N); base = new Float32Array(N); loose = new Float32Array(N);
-          packed = new Float32Array(N); mem = new Float32Array(N); ghost = new Float32Array(N);
-          dh = new Float32Array(N); dl = new Float32Array(N);
-          sm1 = new Float32Array(N); sm2 = new Float32Array(N);
-          colR = new Float32Array(N); colG = new Float32Array(N); colB = new Float32Array(N);
+      const S = {
+        tool: "rake", size: 42, settle: 34, memory: 76, grain: 44, light: 308,
+        volume: 55, sound: true
+      };
 
-          const dpr = Math.min(window.devicePixelRatio || 1, 2);
-          cv.width = Math.round(viewW * dpr); cv.height = Math.round(viewH * dpr);
-          cv.style.width = viewW + "px"; cv.style.height = viewH + "px";
-          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      /* ---------- noise ---------- */
+      function hash2(x, y, s) {
+        let n = Math.sin(x * 127.1 + y * 311.7 + s * 74.7) * 43758.5453;
+        return n - Math.floor(n);
+      }
+      function vnoise(x, y, s) {
+        const ix = Math.floor(x), iy = Math.floor(y);
+        const fx = x - ix, fy = y - iy;
+        const u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy);
+        const a = hash2(ix, iy, s), b = hash2(ix + 1, iy, s);
+        const c = hash2(ix, iy + 1, s), d = hash2(ix + 1, iy + 1, s);
+        return (a + (b - a) * u) * (1 - v) + (c + (d - c) * u) * v;
+      }
+      function fbm(x, y, s) {
+        let v = 0, amp = 0.5, f = 1;
+        for (let i = 0; i < 4; i++) { v += vnoise(x * f, y * f, s + i) * amp; amp *= 0.5; f *= 2.03; }
+        return v;
+      }
 
-          const rscale = N > 30000 ? 1.7 : 2.1;
-          rw = Math.round(W * rscale); rh = Math.round(H * rscale);
-          rcanvas = document.createElement("canvas"); rcanvas.width = rw; rcanvas.height = rh;
-          rctx = rcanvas.getContext("2d");
-          rimg = rctx.createImageData(rw, rh); rpix = rimg.data;
-          grainBuf = new Float32Array(rw * rh);
-          for (let i = 0; i < grainBuf.length; i++) {
-            grainBuf[i] = ((Math.random() + Math.random() + Math.random()) / 3 - 0.5) * 2;
-          }
+      /* ---------- grid ---------- */
+      function allocate(preserve) {
+        const oldW = W, oldH = H, oh = h, ol = loose, op = packed, om = mem, og = ghost, ob = base, ogl = gloss;
+        viewW = window.innerWidth; viewH = window.innerHeight;
+        cellPx = viewW < 700 ? 5.4 : 6;
+        let w = Math.max(80, Math.round(viewW / cellPx));
+        let hh = Math.max(70, Math.round(viewH / cellPx));
+        while (w * hh > 42000) { w = Math.round(w * 0.94); hh = Math.round(hh * 0.94); }
+        W = w; H = hh; N = W * H;
 
-          if (preserve && oh && oldW > 1) {
-            for (let y = 0; y < H; y++) {
-              const oy = Math.min(oldH - 1, Math.floor((y / H) * oldH));
-              for (let x = 0; x < W; x++) {
-                const ox = Math.min(oldW - 1, Math.floor((x / W) * oldW));
-                const o = oy * oldW + ox, i = y * W + x;
-                h[i] = oh[o]; loose[i] = ol[o]; packed[i] = op[o];
-                mem[i] = om[o]; ghost[i] = og[o]; base[i] = ob[o];
-              }
+        h = new Float32Array(N); base = new Float32Array(N); loose = new Float32Array(N);
+        packed = new Float32Array(N); mem = new Float32Array(N); ghost = new Float32Array(N);
+        dh = new Float32Array(N); dl = new Float32Array(N);
+        sm1 = new Float32Array(N); sm2 = new Float32Array(N);
+        solid = new Float32Array(N); solidH = new Float32Array(N);
+        solidM = new Float32Array(N); solidT = new Float32Array(N);
+        ao = new Float32Array(N); calm = new Float32Array(N);
+        surf = new Float32Array(N); gloss = new Float32Array(N);
+        blk = new Uint8Array(N);
+        colR = new Float32Array(N); colG = new Float32Array(N); colB = new Float32Array(N);
+
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        cv.width = Math.round(viewW * dpr); cv.height = Math.round(viewH * dpr);
+        cv.style.width = viewW + "px"; cv.style.height = viewH + "px";
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+        const rscale = N > 30000 ? 1.7 : 2.1;
+        rw = Math.round(W * rscale); rh = Math.round(H * rscale);
+        rcanvas = document.createElement("canvas"); rcanvas.width = rw; rcanvas.height = rh;
+        rctx = rcanvas.getContext("2d");
+        rimg = rctx.createImageData(rw, rh); rpix = rimg.data;
+        buildGrain();
+
+        if (preserve && oh && oldW > 1) {
+          for (let y = 0; y < H; y++) {
+            const oy = Math.min(oldH - 1, Math.floor((y / H) * oldH));
+            for (let x = 0; x < W; x++) {
+              const ox = Math.min(oldW - 1, Math.floor((x / W) * oldW));
+              const o = oy * oldW + ox, i = y * W + x;
+              h[i] = oh[o]; loose[i] = ol[o]; packed[i] = op[o];
+              mem[i] = om[o]; ghost[i] = og[o]; base[i] = ob[o];
+              if (ogl) gloss[i] = ogl[o];
             }
+          }
+          rasterizeProps();
+        } else {
+          makeTerrain("karesansui");
+        }
+      }
+
+      /* Grain is a property of the material, not decoration: scale sets how fine the
+         speckle is, aniso streaks it the way wind sorts a dune, sparkle scatters mica
+         flecks, and crack crazes a drying surface. Regenerated on every chip change. */
+      function buildGrain() {
+        const n = rw * rh;
+        grainBuf = new Float32Array(n);
+        sparkBuf = theme.sparkle > 0 ? new Float32Array(n) : null;
+        crackBuf = theme.crack > 0 ? new Float32Array(n) : null;
+        const sc = 0.85 * theme.grainScale;
+        const ax = sc / theme.grainAniso, ay = sc * (0.5 + theme.grainAniso * 0.5);
+        for (let y = 0, i = 0; y < rh; y++) {
+          for (let x = 0; x < rw; x++, i++) {
+            // two octaves of value noise at the material's own scale
+            const g = vnoise(x * ax, y * ay, 21) * 0.68 + vnoise(x * ax * 2.7, y * ay * 2.7, 33) * 0.32;
+            grainBuf[i] = (g - 0.5) * 2 * theme.grainAmp;
+            if (sparkBuf) {
+              const s = hash2(x, y, 57);
+              // rare, hard glints — mica in grit, not an even shimmer
+              sparkBuf[i] = s > 1 - theme.sparkle * 0.02 ? (s - (1 - theme.sparkle * 0.02)) / (theme.sparkle * 0.02) : 0;
+            }
+            if (crackBuf) {
+              // ridged noise: the thin seams between cells read as craze lines
+              const c = Math.abs(vnoise(x * 0.11, y * 0.11, 9) - 0.5) * 2;
+              crackBuf[i] = clamp(1 - c * 6.5, 0, 1);
+            }
+          }
+        }
+      }
+
+      /* ---------- obstacles ----------
+         A heightfield can't render an overhang, so a smooth dome will always read as
+         a mound of sand no matter how it's tinted. What it *can* express is a step:
+         a flat top over a one-cell cliff gives the normal pass a bright rim and a
+         hard flank, and that's what makes a cut post read as a made object. */
+
+      function propGrid(p) {
+        return { x: p.nx * W, y: p.ny * H, r: p.nr * Math.min(W, H) };
+      }
+
+      function baseAt(x, y) {
+        const i = cellAt(x, y);
+        return i >= 0 ? base[i] : 0;
+      }
+
+      function makePylon(nx, ny, nr, hgt) {
+        return { type: "pylon", nx, ny, nr, hgt, seed: Math.random() * 900, tilt: (Math.random() - 0.5) * 0.13, buried: false };
+      }
+
+      // Rebuilds solid / solidH / ao from props. Cheap enough to run on every change.
+      function rasterizeProps() {
+        solid.fill(0); solidH.fill(-99); solidM.fill(0); solidT.fill(0);
+        ao.fill(1); calm.fill(0);
+        for (const p of props) {
+          const g = propGrid(p);
+          if (p.type === "key") rasterKey(p, g);
+          else rasterPylon(p, g);
+        }
+        updateSurface();
+      }
+
+      /* An obstacle only blocks the sand *below its own top*. A post stands proud so
+         it always blocks; a buried key doesn't block until you've dug down to it,
+         which is what makes it findable at all. It also means a post swallowed by a
+         drift stops being an obstacle and you can rake the sand covering it. */
+      function updateSurface() {
+        for (let i = 0; i < N; i++) {
+          const c = solid[i];
+          if (c > 0 && solidH[i] >= h[i]) {
+            blk[i] = c > 0.5 ? 1 : 0;      // collision stays a hard yes/no
+            // ...but the drawn silhouette uses the fractional rim coverage, or
+            // small posts come out as blocky octagons
+            surf[i] = h[i] + (solidH[i] - h[i]) * c;
           } else {
-            makeTerrain("karesansui");
+            blk[i] = 0;
+            surf[i] = h[i];
           }
         }
+      }
+      // fractional cover of drawn obstacle at a cell: 0 where it's buried or absent
+      function coverAt(i) { return solid[i] > 0 && solidH[i] >= h[i] ? solid[i] : 0; }
 
-        /* ---------- garden presets ---------- */
-        function makeTerrain(kind) {
-          for (let y = 0; y < H; y++) {
-            for (let x = 0; x < W; x++) {
-              const i = y * W + x;
-              let v = 0;
-              const nx = x / W, ny = y / H;
-              if (kind === "dunes") {
-                v = Math.sin(x * 0.045 + fbm(x * 0.02, y * 0.02, 3) * 3.4) * 0.85
-                  + Math.sin(x * 0.017 - y * 0.03) * 0.5 + fbm(x * 0.05, y * 0.05, 7) * 0.7;
-              } else if (kind === "basin") {
-                const d = Math.hypot(nx - 0.5, (ny - 0.5) * 1.15);
-                v = -Math.cos(clamp(d * 3.0, 0, Math.PI)) * 0.9 - 0.9 + fbm(x * 0.05, y * 0.05, 4) * 0.5;
-                v += Math.sin(d * 26) * 0.09;
-              } else if (kind === "flat") {
-                v = fbm(x * 0.07, y * 0.07, 11) * 0.28;
-              } else {
-                v = fbm(x * 0.035, y * 0.035, 2) * 0.7 + fbm(x * 0.11, y * 0.11, 5) * 0.18;
-              }
-              base[i] = v; h[i] = v;
-              loose[i] = 0.16; packed[i] = 0; mem[i] = 0; ghost[i] = 0;
-            }
-          }
-          blurInto(h, sm1, 1); h.set(sm1);
-          blurInto(h, sm1, 1); h.set(sm1);
-          base.set(h);
-          if (kind === "karesansui") stampZen();
-          if (kind === "dunes") stampRipples();
-          if (kind === "basin") stampTerraces();
-        }
-
-        function stampZen() {
-          const stones = [
-            { x: W * 0.3, y: H * 0.38, r: Math.min(W, H) * 0.075 },
-            { x: W * 0.62, y: H * 0.62, r: Math.min(W, H) * 0.05 },
-            { x: W * 0.72, y: H * 0.3, r: Math.min(W, H) * 0.036 }
-          ];
-          for (const s of stones) {
-            gauss(s.x, s.y, s.r * 2.3, (i, w, dx, dy, d) => {
-              const dome = Math.pow(clamp(1 - d, 0, 1), 0.62);
-              const lift = dome * s.r * 0.3;
-              h[i] += lift; base[i] += lift;
-              packed[i] = Math.max(packed[i], dome * 1.0);
-              mem[i] = Math.max(mem[i], dome * 1.4);
-              loose[i] *= 1 - dome * 0.9;
-            });
-            for (let ring = 1.9; ring < 5.4; ring += 0.85) {
-              const rr = s.r * ring;
-              const steps = Math.max(24, Math.round(rr * 5));
-              for (let a = 0; a < steps; a++) {
-                const t = (a / steps) * TAU;
-                const px = s.x + Math.cos(t) * rr, py = s.y + Math.sin(t) * rr * 0.97;
-                const v = carve(px, py, 1.7, 0.2, 0.6);
-                pile(px + Math.cos(t) * 2.0, py + Math.sin(t) * 2.0, 1.7, v * 0.5);
-                pile(px - Math.cos(t) * 2.0, py - Math.sin(t) * 2.0, 1.7, v * 0.5);
-                markMem(px, py, 2.0, 0.22);
-              }
-            }
-          }
-          for (let y = 2; y < H - 2; y++) {
-            for (let x = 2; x < W - 2; x++) {
-              const i = y * W + x;
-              const far = Math.min(
-                Math.hypot(x - stones[0].x, y - stones[0].y) / (stones[0].r * 5.6),
-                Math.hypot(x - stones[1].x, y - stones[1].y) / (stones[1].r * 5.6),
-                Math.hypot(x - stones[2].x, y - stones[2].y) / (stones[2].r * 5.6)
-              );
-              if (far > 1) {
-                const line = Math.sin(y * 0.62 + Math.sin(x * 0.03) * 1.1);
-                const amt = clamp((far - 1) * 1.4, 0, 1);
-                h[i] -= clamp(line, -1, 1) * 0.16 * amt;
-                mem[i] = Math.max(mem[i], 0.16 * amt);
-              }
-            }
-          }
-        }
-        function stampRipples() {
-          for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) {
+      function rasterPylon(p, g) {
+        const top = baseAt(g.x, g.y) + p.hgt;
+        const outer = g.r + 3.0;
+        // wider zone of quiet air around the post; the wind's scouring pass is
+        // damped here so drifts that form near a post are allowed to survive
+        const calmR = g.r * 2.2 + 14;
+        const cx0 = Math.max(0, Math.floor(g.x - calmR)), cx1 = Math.min(W - 1, Math.ceil(g.x + calmR));
+        const cy0 = Math.max(0, Math.floor(g.y - calmR)), cy1 = Math.min(H - 1, Math.ceil(g.y + calmR));
+        for (let y = cy0; y <= cy1; y++) {
+          for (let x = cx0; x <= cx1; x++) {
+            const d = Math.hypot(x + 0.5 - g.x, y + 0.5 - g.y);
+            if (d >= calmR) continue;
+            const v = 1 - d / calmR;
             const i = y * W + x;
-            const ph = x * 0.5 + fbm(x * 0.03, y * 0.05, 8) * 6;
-            h[i] += Math.sin(ph) * 0.11 + Math.sin(ph * 0.5) * 0.05;
-            mem[i] += 0.06;
+            if (v > calm[i]) calm[i] = v;
           }
         }
-        function stampTerraces() {
-          for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) {
+        const x0 = Math.max(0, Math.floor(g.x - outer)), x1 = Math.min(W - 1, Math.ceil(g.x + outer));
+        const y0 = Math.max(0, Math.floor(g.y - outer)), y1 = Math.min(H - 1, Math.ceil(g.y + outer));
+        const ca = Math.cos(p.seed), sa = Math.sin(p.seed);
+        for (let y = y0; y <= y1; y++) {
+          for (let x = x0; x <= x1; x++) {
+            const dx = x + 0.5 - g.x, dy = y + 0.5 - g.y;
+            const d = Math.sqrt(dx * dx + dy * dy);
             const i = y * W + x;
-            const q = Math.round(h[i] * 3.2) / 3.2;
-            h[i] = h[i] * 0.55 + q * 0.45;
-            packed[i] = 0.12;
-            mem[i] += 0.1;
-          }
-        }
-
-        /* ---------- field helpers ---------- */
-        function gauss(cx, cy, r, cb) {
-          if (r < 0.7) r = 0.7;
-          const x0 = Math.max(1, Math.floor(cx - r)), x1 = Math.min(W - 2, Math.ceil(cx + r));
-          const y0 = Math.max(1, Math.floor(cy - r)), y1 = Math.min(H - 2, Math.ceil(cy + r));
-          const inv = 1 / r, k = 1 / (1 - Math.exp(-3));
-          for (let y = y0; y <= y1; y++) {
-            const dy = y + 0.5 - cy, row = y * W;
-            for (let x = x0; x <= x1; x++) {
-              const dx = x + 0.5 - cx;
-              const d = Math.sqrt(dx * dx + dy * dy) * inv;
-              if (d >= 1) continue;
-              const w = (Math.exp(-3 * d * d) - 0.049787) * k;
-              if (w <= 0) continue;
-              cb(row + x, w, dx, dy, d);
+            if (d <= g.r + 0.8) {
+              // the whole point: coverage falls from 1 to 0 across ~1.2 cells
+              const cov = clamp((g.r + 0.6 - d) / 1.2, 0, 1);
+              if (cov <= solid[i]) continue;
+              const u = clamp(d / g.r, 0, 1);
+              // faint dish so the top isn't dead flat, plus a slight sawn tilt
+              let t = top - u * u * p.hgt * 0.02 + (dx * ca + dy * sa) * p.tilt * 0.04;
+              // end grain: concentric rings, offset from centre the way a real cut is
+              const gx = dx - g.r * 0.16 * ca, gy = dy - g.r * 0.16 * sa;
+              const gd = Math.sqrt(gx * gx + gy * gy);
+              // A post is only a handful of cells across, so keep the rings under
+              // the grid's Nyquist limit — fine rings just alias into crosshatch.
+              const rings = Math.sin(gd * (13 + (p.seed % 5)) / Math.max(1, g.r) + p.seed);
+              t += rings * 0.02;
+              // Carry the ring pattern as its own tone channel. Deriving it from
+              // the height in the shader meant fighting the dish and tilt terms,
+              // and the grain never showed.
+              let tone = rings * 0.5 + 0.5;
+              // one or two radial checking cracks running out from the heart
+              const ang = Math.atan2(gy, gx);
+              const chk = Math.abs(Math.sin((ang - p.seed) * 0.5));
+              if (chk > 0.988) { t -= (chk - 0.988) * 18 * clamp(gd / g.r, 0, 1); tone = 1; }
+              solid[i] = cov; solidH[i] = t; solidM[i] = 0; solidT[i] = tone;
+            } else if (d < outer) {
+              // contact occlusion: the shadow that says "sitting in" not "made of"
+              const k = clamp((d - g.r) / 3.0, 0, 1);
+              ao[i] = Math.min(ao[i], 0.52 + 0.48 * k * k);
             }
           }
         }
-        // resistance keeps grooves from becoming bottomless voids
-        function resist(i) {
-          const depth = base[i] - h[i];
-          return clamp(1 - (depth - 1.4) / 1.7, 0.06, 1) / (1 + packed[i] * 1.7);
-        }
-        function carve(cx, cy, r, depth, sharp) {
-          let vol = 0;
-          gauss(cx, cy, r, (i, w) => {
-            const ww = sharp ? Math.pow(w, sharp) : w;
-            const cut = depth * ww * resist(i);
-            h[i] -= cut;
-            const d = base[i] - h[i];
-            if (d > ghost[i]) ghost[i] = d;
-            loose[i] = Math.min(1.4, loose[i] + cut * 0.35);
-            vol += cut;
-          });
-          return vol;
-        }
-        function pile(cx, cy, r, vol) {
-          if (vol <= 0) return;
-          let ws = 0;
-          gauss(cx, cy, r, (i, w) => { ws += w; });
-          if (ws <= 0.0001) return;
-          const k = vol / ws;
-          gauss(cx, cy, r, (i, w) => {
-            h[i] += w * k;
-            loose[i] = Math.min(1.6, loose[i] + w * k * 0.8);
-          });
-        }
-        function pileRing(cx, cy, rr, thick, vol, bx, by) {
-          const R = rr + thick;
-          let ws = 0;
-          const wf = (d, dx, dy) => {
-            const dist = Math.abs(d * R - rr);
-            let w = Math.exp(-(dist * dist) / (thick * thick * 0.8));
-            if (bx !== undefined) w *= 1 + 0.55 * ((dx * bx + dy * by) / (R || 1));
-            return Math.max(0, w);
-          };
-          gauss(cx, cy, R, (i, w, dx, dy, d) => { ws += wf(d, dx, dy); });
-          if (ws <= 0.0001) return;
-          const k = vol / ws;
-          gauss(cx, cy, R, (i, w, dx, dy, d) => {
-            const a = wf(d, dx, dy) * k;
-            h[i] += a; loose[i] = Math.min(1.8, loose[i] + a * 0.9);
-          });
-        }
-        function markMem(cx, cy, r, amt) {
-          gauss(cx, cy, r, (i, w) => { mem[i] = Math.min(3.2, mem[i] + amt * w); });
-        }
-        function compactAt(cx, cy, r, amt) {
-          gauss(cx, cy, r, (i, w) => {
-            packed[i] = Math.min(1, packed[i] + amt * w);
-            loose[i] *= 1 - Math.min(0.5, amt * w * 3);
-          });
-        }
-        function smoothAt(cx, cy, r, amt) {
-          const cells = [];
-          gauss(cx, cy, r, (i, w) => { cells.push(i, w); });
-          for (let k = 0; k < cells.length; k += 2) {
-            const i = cells[k], w = cells[k + 1];
-            const avg = (h[i - 1] + h[i + 1] + h[i - W] + h[i + W]) * 0.25;
-            h[i] += (avg - h[i]) * clamp(amt * w, 0, 0.45);
+      }
+
+      /* ---------- the buried key ---------- */
+      function rasterKey(p, g) {
+        const top = p.top;
+        // the key's own cells, kept so "is it showing?" can be asked of the metal
+        // itself rather than of a box of surrounding sand
+        const cells = p.cells = [];
+        const ca = Math.cos(p.rot), sa = Math.sin(p.rot);
+        const R = g.r * 3.2;
+        const x0 = Math.max(0, Math.floor(g.x - R)), x1 = Math.min(W - 1, Math.ceil(g.x + R));
+        const y0 = Math.max(0, Math.floor(g.y - R)), y1 = Math.min(H - 1, Math.ceil(g.y + R));
+        for (let y = y0; y <= y1; y++) {
+          for (let x = x0; x <= x1; x++) {
+            const wx = x + 0.5 - g.x, wy = y + 0.5 - g.y;
+            // into key-local space: u along the shaft, v across it
+            const u = wx * ca + wy * sa, v = -wx * sa + wy * ca;
+            const r = g.r;
+            let inside = false;
+            const bowD = Math.hypot(u + r * 1.9, v);
+            if (bowD < r * 1.15 && bowD > r * 0.5) inside = true;            // the ring
+            if (u > -r * 0.9 && u < r * 2.0 && Math.abs(v) < r * 0.34) inside = true; // shaft
+            if (u > r * 0.95 && u < r * 1.35 && v > 0 && v < r * 1.0) inside = true;  // tooth
+            if (u > r * 1.6 && u < r * 2.0 && v > 0 && v < r * 0.75) inside = true;   // tooth
+            if (!inside) continue;
+            const i = y * W + x;
+            if (solid[i] >= 1) continue;
+            solid[i] = 1; solidH[i] = top; solidM[i] = 1;
+            cells.push(i);
           }
         }
-        function blurInto(src, dst, rad) {
-          for (let y = 0; y < H; y++) {
-            const row = y * W, ym = y > 0 ? row - W : row, yp = y < H - 1 ? row + W : row;
-            for (let x = 0; x < W; x++) {
-              const xm = x > 0 ? x - 1 : x, xp = x < W - 1 ? x + 1 : x;
-              dst[row + x] = (src[ym + xm] + src[ym + x] * 2 + src[ym + xp] +
-                              src[row + xm] * 2 + src[row + x] * 4 + src[row + xp] * 2 +
-                              src[yp + xm] + src[yp + x] * 2 + src[yp + xp]) * 0.0625;
+      }
+
+      function plantKey() {
+        // clear of the posts, clear of the frame, somewhere new every load
+        let nx = 0.5, ny = 0.5;
+        for (let tries = 0; tries < 40; tries++) {
+          nx = 0.12 + Math.random() * 0.76;
+          ny = 0.14 + Math.random() * 0.72;
+          let ok = true;
+          for (const p of props) {
+            if (p.type === "key") continue;
+            if (Math.hypot((nx - p.nx) * W, (ny - p.ny) * H) < p.nr * Math.min(W, H) * 3.4) { ok = false; break; }
+          }
+          if (ok) break;
+        }
+        const gx = nx * W, gy = ny * H;
+        const key = {
+          type: "key", nx, ny, nr: 0.022, rot: Math.random() * TAU,
+          top: baseAt(gx, gy) - 0.95, buried: true
+        };
+        props.push(key);
+        // a new garden is a new hunt, so both payoffs are allowed to land again
+        keyPolish = 0; sigFade = 0; keySeen = false; keySigned = false;
+        // the tell is tactile, not visual: something hard down there stiffens the
+        // ground, and resist() turns that into a rake that won't quite bite here
+        const g = propGrid(key);
+        gauss(gx, gy, g.r * 4.6, (i, w) => {
+          packed[i] = Math.min(1, packed[i] + 0.3 * w);
+          mem[i] = Math.min(3.2, mem[i] + 0.12 * w);
+        });
+        return key;
+      }
+
+      function keyProp() {
+        for (const p of props) if (p.type === "key") return p;
+        return null;
+      }
+
+      /* The key is two finds, not one: the stone turns it up, the finger brings it
+         back. Polish and the two one-shot latches live out here rather than on the
+         prop, because undo() restores props wholesale and would replay the chime. */
+      let keyPolish = 0;      // 0 tarnished .. 1 polished
+      let sigFade = 0;        // eased alpha for the engraving
+      let keySeen = false, keySigned = false;
+
+      /* Only the finger polishes, and only on metal that's actually exposed. The
+         finger can't dig (its depth is capped) and the stone never burnishes, so
+         the two beats genuinely need the two tools. */
+      function polishKey(x, y, r, amt) {
+        const key = keyProp();
+        if (!key || key.buried) return;
+        const g = propGrid(key);
+        const d = Math.hypot(x - g.x, y - g.y);
+        const reach = g.r * 2.4 + r;
+        if (d > reach) return;
+        const contact = clamp(1 - d / reach, 0, 1);
+        keyPolish = Math.min(1, keyPolish + amt * contact * 0.09);
+      }
+
+      /* ---------- garden presets ---------- */
+      function makeTerrain(kind) {
+        for (let y = 0; y < H; y++) {
+          for (let x = 0; x < W; x++) {
+            const i = y * W + x;
+            let v = 0;
+            const nx = x / W, ny = y / H;
+            if (kind === "dunes") {
+              v = Math.sin(x * 0.045 + fbm(x * 0.02, y * 0.02, 3) * 3.4) * 0.85
+                + Math.sin(x * 0.017 - y * 0.03) * 0.5 + fbm(x * 0.05, y * 0.05, 7) * 0.7;
+            } else if (kind === "basin") {
+              const d = Math.hypot(nx - 0.5, (ny - 0.5) * 1.15);
+              v = -Math.cos(clamp(d * 3.0, 0, Math.PI)) * 0.9 - 0.9 + fbm(x * 0.05, y * 0.05, 4) * 0.5;
+              v += Math.sin(d * 26) * 0.09;
+            } else if (kind === "flat") {
+              v = fbm(x * 0.07, y * 0.07, 11) * 0.28;
+            } else {
+              v = fbm(x * 0.035, y * 0.035, 2) * 0.7 + fbm(x * 0.11, y * 0.11, 5) * 0.18;
+            }
+            base[i] = v; h[i] = v;
+            loose[i] = 0.16; packed[i] = 0; mem[i] = 0; ghost[i] = 0; gloss[i] = 0;
+          }
+        }
+        blurInto(h, sm1, 1); h.set(sm1);
+        blurInto(h, sm1, 1); h.set(sm1);
+        base.set(h);
+
+        props.length = 0;
+        if (kind === "karesansui") {
+          props.push(makePylon(0.30, 0.38, 0.062, 1.5));
+          props.push(makePylon(0.62, 0.62, 0.044, 1.05));
+          props.push(makePylon(0.72, 0.30, 0.033, 0.7));
+        } else if (kind === "pilings") {
+          for (let r = 0; r < 3; r++) {
+            for (let c = 0; c < 4; c++) {
+              const jx = (Math.random() - 0.5) * 0.03, jy = (Math.random() - 0.5) * 0.03;
+              props.push(makePylon(0.2 + c * 0.2 + jx, 0.28 + r * 0.22 + jy, 0.042 + Math.random() * 0.016, 0.9 + Math.random() * 1.0));
+            }
+          }
+        } else if (kind === "dunes") {
+          props.push(makePylon(0.78, 0.34, 0.026, 0.55));
+          props.push(makePylon(0.86, 0.58, 0.02, 0.4));
+        }
+        plantKey();
+        rasterizeProps();
+
+        if (kind === "karesansui" || kind === "pilings") stampZen();
+        if (kind === "dunes") stampRipples();
+        if (kind === "basin") stampTerraces();
+      }
+
+      // Rakes concentric rings around each post. carve() now refuses solid cells, so
+      // the rings break at the post and pick up again on the far side by themselves.
+      function stampZen() {
+        const posts = props.filter((p) => p.type === "pylon");
+        for (const p of posts) {
+          const s = propGrid(p);
+          for (let ring = 1.9; ring < 5.4; ring += 0.85) {
+            const rr = s.r * ring;
+            const steps = Math.max(24, Math.round(rr * 5));
+            for (let a = 0; a < steps; a++) {
+              const t = (a / steps) * TAU;
+              const px = s.x + Math.cos(t) * rr, py = s.y + Math.sin(t) * rr * 0.97;
+              const v = carve(px, py, 1.7, 0.2, 0.6);
+              pile(px + Math.cos(t) * 2.0, py + Math.sin(t) * 2.0, 1.7, v * 0.5);
+              pile(px - Math.cos(t) * 2.0, py - Math.sin(t) * 2.0, 1.7, v * 0.5);
+              markMem(px, py, 2.0, 0.22);
             }
           }
         }
-
-        /* ---------- tools : all write to the same fields ---------- */
-        function brushRadius() { return (2.6 + (S.size / 100) * 11) * (W / 220 + 0.5); }
-
-        function toolRake(x, y, ux, uy, speed, press, amt) {
-          const nx = -uy, ny = ux;
-          const size = brushRadius();
-          const gsz = 0.75 + (S.grain / 100) * 0.8;
-          const tineR = Math.max(1.0, size * 0.17 * gsz);
-          const count = Math.max(3, Math.min(9, Math.round(size / (tineR * 1.55))));
-          const spread = (count - 1) * 0.5;
-          const fast = clamp((speed - 0.45) / 2.0, 0, 1);
-          const depth = amt * press * 0.24 * (1 - fast * 0.5);
-          for (let k = 0; k < count; k++) {
-            const off = (k - spread) * tineR * 1.75;
-            const wob = Math.sin(x * 0.09 + y * 0.07 + k * 2.1) * 0.22 + Math.sin(k * 0.9 + frame * 0.01) * 0.1;
-            const tx = x + nx * (off + wob), ty = y + ny * (off + wob);
-            const ci = cellAt(tx, ty);
-            const rep = ci >= 0 ? Math.min(mem[ci], 1.8) : 0;
-            const d = depth * (1 + rep * 0.5);
-            const vol = carve(tx, ty, tineR * 1.35, d, 1);
-            const push = tineR * 1.35;
-            pile(tx + nx * push + ux * fast * 1.4, ty + ny * push + uy * fast * 1.4, tineR * 1.25, vol * 0.46);
-            pile(tx - nx * push + ux * fast * 1.4, ty - ny * push + uy * fast * 1.4, tineR * 1.25, vol * 0.46);
-            markMem(tx, ty, tineR * 1.5, amt * press * 0.05 * (1 - fast * 0.6));
-          }
-          if (fast > 0.02) scatter(x, y, size * 1.15, ux, uy, fast * amt * 0.55);
-          compactAt(x, y, size * 0.55, amt * press * 0.004 * (1 - fast));
-        }
-
-        function toolFinger(x, y, ux, uy, speed, press, amt) {
-          const nx = -uy, ny = ux;
-          const r = brushRadius() * 0.44;
-          const fast = clamp((speed - 0.5) / 2.2, 0, 1);
-          const depth = amt * press * 0.4 * (1 - fast * 0.35);
-          const vol = carve(x, y, r * 1.25, depth, 1);
-          pile(x + nx * r * 1.15 + ux * (0.4 + fast * 1.6), y + ny * r * 1.15 + uy * (0.4 + fast * 1.6), r * 1.15, vol * 0.38);
-          pile(x - nx * r * 1.15 + ux * (0.4 + fast * 1.6), y - ny * r * 1.15 + uy * (0.4 + fast * 1.6), r * 1.15, vol * 0.38);
-          pile(x + ux * r * 1.5, y + uy * r * 1.5, r * 1.1, vol * 0.2 * (0.3 + fast));
-          compactAt(x, y, r * 0.95, amt * press * 0.03);
-          smoothAt(x, y, r * 1.1, amt * 0.22);
-          markMem(x, y, r * 1.3, amt * press * 0.05);
-          if (fast > 0.05) scatter(x, y, r * 3.0, ux, uy, fast * amt * 0.4);
-        }
-
-        function toolStone(x, y, ux, uy, speed, press, amt, held) {
-          const r = brushRadius() * 0.8;
-          const moving = speed > 0.12;
-          const depth = amt * press * (moving ? 0.35 : 0.5) * (1 + (held || 0) * 0.6);
-          const vol = carve(x, y, r, depth, 0.55);
-          pileRing(x, y, r * 0.92, r * 0.5, vol * 0.9, moving ? ux : undefined, moving ? uy : undefined);
-          compactAt(x, y, r * 0.8, amt * 0.035 * press);
-          markMem(x, y, r * 0.95, amt * press * 0.07);
-          smoothAt(x, y, r * 0.7, amt * 0.3);
-          if (moving) {
-            const plow = carve(x + ux * r * 0.75, y + uy * r * 0.75, r * 0.8, amt * press * 0.3, 1);
-            pile(x + ux * r * 1.7, y + uy * r * 1.7, r * 0.95, plow * 1.0);
+        if (!posts.length) return;
+        for (let y = 2; y < H - 2; y++) {
+          for (let x = 2; x < W - 2; x++) {
+            const i = y * W + x;
+            if (blk[i]) continue;
+            let far = Infinity;
+            for (const p of posts) {
+              const s = propGrid(p);
+              far = Math.min(far, Math.hypot(x - s.x, y - s.y) / (s.r * 5.6));
+            }
+            if (far > 1) {
+              const line = Math.sin(y * 0.62 + Math.sin(x * 0.03) * 1.1);
+              const amt = clamp((far - 1) * 1.4, 0, 1);
+              h[i] -= clamp(line, -1, 1) * 0.16 * amt;
+              mem[i] = Math.max(mem[i], 0.16 * amt);
+            }
           }
         }
+      }
+      function stampRipples() {
+        for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) {
+          const i = y * W + x;
+          const ph = x * 0.5 + fbm(x * 0.03, y * 0.05, 8) * 6;
+          h[i] += Math.sin(ph) * 0.11 + Math.sin(ph * 0.5) * 0.05;
+          mem[i] += 0.06;
+        }
+      }
+      function stampTerraces() {
+        for (let y = 1; y < H - 1; y++) for (let x = 1; x < W - 1; x++) {
+          const i = y * W + x;
+          const q = Math.round(h[i] * 3.2) / 3.2;
+          h[i] = h[i] * 0.55 + q * 0.45;
+          packed[i] = 0.12;
+          mem[i] += 0.1;
+        }
+      }
 
-        function toolWind(x, y, ux, uy, speed, press, amt) {
-          const r = brushRadius() * 1.5;
-          let dx = ux, dy = uy;
-          if (dx === 0 && dy === 0) { dx = 1; dy = 0; }
-          const strength = clamp(0.25 + speed * 0.6, 0.25, 1.4) * amt;
-          const slabs = Math.round(26 * strength) + 6;
-          const hop = 2.2 + S.grain * 0.02;
-          for (let s = 0; s < slabs; s++) {
-            const a = Math.random() * TAU, rad = Math.sqrt(Math.random()) * r;
-            const sx = Math.round(x + Math.cos(a) * rad), sy = Math.round(y + Math.sin(a) * rad);
-            if (sx < 2 || sy < 2 || sx >= W - 2 || sy >= H - 2) continue;
-            const i = sy * W + sx;
-            const upwind = h[i] - h[i - (dy > 0.5 ? W : dy < -0.5 ? -W : 0) - (dx > 0.5 ? 1 : dx < -0.5 ? -1 : 0)];
-            const exposure = clamp(0.45 + upwind * 0.8, 0.05, 1.2);
-            const grip = 1 / (1 + packed[i] * 5 + mem[i] * 1.1);
-            if (Math.random() > exposure * grip) continue;
-            const slab = (0.035 + Math.random() * 0.05) * strength;
-            h[i] -= slab;
-            loose[i] = Math.max(0, loose[i] - slab * 0.4);
-            let px = sx, py = sy;
-            for (let k = 0; k < 4; k++) {
-              px += dx * hop + (Math.random() - 0.5) * 1.2;
-              py += dy * hop + (Math.random() - 0.5) * 1.2;
-              if (px < 2 || py < 2 || px >= W - 2 || py >= H - 2) break;
-              const j = (py | 0) * W + (px | 0);
-              const shelter = clamp(0.5 + (h[i] - h[j]) * 0.9, 0, 1);
-              if (Math.random() < 0.3 + shelter * 0.55 + packed[j] * 0.25) {
-                h[j] += slab;
-                loose[j] = Math.min(1.8, loose[j] + slab * 0.8);
+      /* ---------- field helpers ---------- */
+      function gauss(cx, cy, r, cb) {
+        if (r < 0.7) r = 0.7;
+        const x0 = Math.max(1, Math.floor(cx - r)), x1 = Math.min(W - 2, Math.ceil(cx + r));
+        const y0 = Math.max(1, Math.floor(cy - r)), y1 = Math.min(H - 2, Math.ceil(cy + r));
+        const inv = 1 / r, k = 1 / (1 - Math.exp(-3));
+        for (let y = y0; y <= y1; y++) {
+          const dy = y + 0.5 - cy, row = y * W;
+          for (let x = x0; x <= x1; x++) {
+            const dx = x + 0.5 - cx;
+            const d = Math.sqrt(dx * dx + dy * dy) * inv;
+            if (d >= 1) continue;
+            const w = (Math.exp(-3 * d * d) - 0.049787) * k;
+            if (w <= 0) continue;
+            cb(row + x, w, dx, dy, d);
+          }
+        }
+      }
+      // resistance keeps grooves from becoming bottomless voids — and returns nothing
+      // at all on solid material, which is what stops a rake mid-stroke
+      function resist(i) {
+        if (blk[i]) return 0;
+        const depth = base[i] - h[i];
+        return clamp(1 - (depth - 1.4) / 1.7, 0.06, 1) / (1 + packed[i] * 1.7);
+      }
+      function carve(cx, cy, r, depth, sharp) {
+        let vol = 0;
+        gauss(cx, cy, r, (i, w) => {
+          if (blk[i]) return;
+          const ww = sharp ? Math.pow(w, sharp) : w;
+          const cut = depth * ww * resist(i);
+          h[i] -= cut;
+          const d = base[i] - h[i];
+          if (d > ghost[i]) ghost[i] = d;
+          loose[i] = Math.min(1.4, loose[i] + cut * 0.35 * theme.looseMul);
+          gloss[i] *= 1 - Math.min(0.6, cut * 2.2);
+          vol += cut;
+        });
+        return vol;
+      }
+      // Deposits renormalise off solid cells, so displaced material heaps *against*
+      // a post instead of vanishing onto its top.
+      function pile(cx, cy, r, vol) {
+        if (vol <= 0) return;
+        let ws = 0, rr = r;
+        // If the whole footprint landed on a post, widen the search rather than
+        // dropping the load — otherwise material shoved at a pylon just vanishes.
+        for (let tries = 0; tries < 3 && ws <= 0.0001; tries++) {
+          ws = 0; rr = r * (1 + tries * 1.6);
+          gauss(cx, cy, rr, (i, w) => { if (!blk[i]) ws += w; });
+        }
+        if (ws <= 0.0001) return;
+        const k = vol / ws;
+        gauss(cx, cy, rr, (i, w) => {
+          if (blk[i]) return;
+          h[i] += w * k;
+          loose[i] = Math.min(1.6, loose[i] + w * k * 0.8);
+        });
+      }
+      function pileRing(cx, cy, rr, thick, vol, bx, by) {
+        const R = rr + thick;
+        let ws = 0;
+        const wf = (d, dx, dy) => {
+          const dist = Math.abs(d * R - rr);
+          let w = Math.exp(-(dist * dist) / (thick * thick * 0.8));
+          if (bx !== undefined) w *= 1 + 0.55 * ((dx * bx + dy * by) / (R || 1));
+          return Math.max(0, w);
+        };
+        gauss(cx, cy, R, (i, w, dx, dy, d) => { if (!blk[i]) ws += wf(d, dx, dy); });
+        // ring entirely on solid: fall back to a plain heap rather than lose it
+        if (ws <= 0.0001) { pile(cx, cy, R * 1.4, vol); return; }
+        const k = vol / ws;
+        gauss(cx, cy, R, (i, w, dx, dy, d) => {
+          if (blk[i]) return;
+          const a = wf(d, dx, dy) * k;
+          h[i] += a; loose[i] = Math.min(1.8, loose[i] + a * 0.9);
+        });
+      }
+      function markGloss(cx, cy, r, amt) {
+        gauss(cx, cy, r, (i, w) => {
+          if (blk[i]) return;
+          gloss[i] = Math.min(1.6, gloss[i] + amt * w);
+        });
+      }
+
+      /* Blocking the writes stops the damage but feels dead — the tool has to be
+         turned aside. Returns the contact point pushed out to the post's tangent. */
+      function deflect(x, y, toolR) {
+        for (const p of props) {
+          if (p.type !== "pylon") continue;
+          const g = propGrid(p);
+          const dx = x - g.x, dy = y - g.y;
+          const d = Math.sqrt(dx * dx + dy * dy);
+          const need = g.r + toolR * 0.55;
+          if (d < need) {
+            if (d < 0.001) return { x: g.x + need, y: g.y, damp: 0, hit: true, prop: p };
+            const k = need / d;
+            return { x: g.x + dx * k, y: g.y + dy * k, damp: clamp((d - g.r) / (toolR * 0.55 + 0.001), 0, 1), hit: true, prop: p };
+          }
+        }
+        return null;
+      }
+      function markMem(cx, cy, r, amt) {
+        gauss(cx, cy, r, (i, w) => { mem[i] = Math.min(3.2, mem[i] + amt * w); });
+      }
+      function compactAt(cx, cy, r, amt) {
+        gauss(cx, cy, r, (i, w) => {
+          if (blk[i]) return;
+          packed[i] = Math.min(1, packed[i] + amt * w);
+          loose[i] *= 1 - Math.min(0.5, amt * w * 3);
+        });
+      }
+      function smoothAt(cx, cy, r, amt) {
+        const cells = [];
+        gauss(cx, cy, r, (i, w) => { if (!blk[i]) cells.push(i, w); });
+        for (let k = 0; k < cells.length; k += 2) {
+          const i = cells[k], w = cells[k + 1];
+          const avg = (h[i - 1] + h[i + 1] + h[i - W] + h[i + W]) * 0.25;
+          h[i] += (avg - h[i]) * clamp(amt * w, 0, 0.45);
+        }
+      }
+      function blurInto(src, dst, rad) {
+        for (let y = 0; y < H; y++) {
+          const row = y * W, ym = y > 0 ? row - W : row, yp = y < H - 1 ? row + W : row;
+          for (let x = 0; x < W; x++) {
+            const xm = x > 0 ? x - 1 : x, xp = x < W - 1 ? x + 1 : x;
+            dst[row + x] = (src[ym + xm] + src[ym + x] * 2 + src[ym + xp] +
+              src[row + xm] * 2 + src[row + x] * 4 + src[row + xp] * 2 +
+              src[yp + xm] + src[yp + x] * 2 + src[yp + xp]) * 0.0625;
+          }
+        }
+      }
+
+      /* ---------- tools : all write to the same fields ---------- */
+      // per-tool multipliers so Finger reads narrow and Stone reads heavy at the
+      // same slider position — the size control finally means something different
+      const TOOL_R = { rake: 1, finger: 0.62, stone: 1.15, wind: 1, post: 0.85 };
+      function brushRadius(tool) {
+        return (2.6 + (S.size / 100) * 11) * (W / 220 + 0.5) * (TOOL_R[tool || S.tool] || 1);
+      }
+
+      function toolRake(x, y, ux, uy, speed, press, amt) {
+        const nx = -uy, ny = ux;
+        const size = brushRadius("rake");
+        const gsz = 0.75 + (S.grain / 100) * 0.8;
+        const tineR = Math.max(1.0, size * 0.17 * gsz);
+        const count = Math.max(3, Math.min(9, Math.round(size / (tineR * 1.55))));
+        const spread = (count - 1) * 0.5;
+        const fast = clamp((speed - 0.45) / 2.0, 0, 1);
+        const depth = amt * press * 0.24 * (1 - fast * 0.5);
+        let struck = false;
+        for (let k = 0; k < count; k++) {
+          const off = (k - spread) * tineR * 1.75;
+          const wob = Math.sin(x * 0.09 + y * 0.07 + k * 2.1) * 0.22 + Math.sin(k * 0.9 + frame * 0.01) * 0.1;
+          const tx = x + nx * (off + wob), ty = y + ny * (off + wob);
+          // tines are tested one at a time, so a post splits the groove and the
+          // rest of the comb keeps cutting either side of it
+          const hit = deflect(tx, ty, tineR * 1.35);
+          if (hit) { struck = true; continue; }
+          const ci = cellAt(tx, ty);
+          const rep = ci >= 0 ? Math.min(mem[ci], 1.8) : 0;
+          const d = depth * (1 + rep * 0.5);
+          const vol = carve(tx, ty, tineR * 1.35, d, 1);
+          const push = tineR * 1.35;
+          // crumbly materials throw their spoil wider and less evenly
+          const cr = 1 + theme.crumb * (Math.random() - 0.3) * 0.5;
+          pile(tx + nx * push + ux * fast * 1.4, ty + ny * push + uy * fast * 1.4, tineR * 1.25 * cr, vol * 0.46);
+          pile(tx - nx * push + ux * fast * 1.4, ty - ny * push + uy * fast * 1.4, tineR * 1.25 * cr, vol * 0.46);
+          markMem(tx, ty, tineR * 1.5, amt * press * 0.05 * (1 - fast * 0.6));
+        }
+        if (struck) knock(0.35);
+        if (fast > 0.02) scatter(x, y, size * 1.15, ux, uy, fast * amt * 0.55);
+        compactAt(x, y, size * 0.55, amt * press * 0.004 * (1 - fast));
+      }
+
+      /* FINGER — smear and burnish. Works the surface, never the depth: it barely
+         displaces anything, leaves no berm, and what it does leave is polish. The
+         gloss it lays down is the one mark on the sand nothing else can make. */
+      function toolFinger(x, y, ux, uy, speed, press, amt) {
+        const nx = -uy, ny = ux;
+        const r = brushRadius("finger");
+        const hit = deflect(x, y, r);
+        if (hit) { x = hit.x; y = hit.y; amt *= hit.damp; knock(0.22); if (amt < 0.01) return; }
+        const fast = clamp((speed - 0.5) / 2.2, 0, 1);
+        /* A per-stroke cap isn't enough — enough passes over the same spot still
+           sink a pit. The fingertip has a floor: cutting fades out as the hollow
+           deepens, so it can smooth and press but never excavate. That's the whole
+           difference from the stone, and it's what keeps the buried key out of
+           reach of the finger alone. */
+        const ci = cellAt(x, y);
+        const sunk = ci >= 0 ? clamp((base[ci] - h[ci]) / 0.5, 0, 1) : 0;
+        const depth = Math.min(0.13, amt * press * 0.16 * (1 - fast * 0.35)) * (1 - sunk * sunk);
+        const vol = carve(x, y, r * 1.3, depth, 1.4);
+        // spoil is smeared forward in a low soft shoulder rather than heaped in a rim
+        pile(x + ux * r * 1.6, y + uy * r * 1.6, r * 1.5, vol * 0.5 * (0.5 + fast));
+        pile(x + nx * r * 1.3, y + ny * r * 1.3, r * 1.3, vol * 0.2);
+        pile(x - nx * r * 1.3, y - ny * r * 1.3, r * 1.3, vol * 0.2);
+        smoothAt(x, y, r * 1.6, amt * 0.55);
+        compactAt(x, y, r * 1.05, amt * press * 0.05);
+        markGloss(x, y, r * 1.15, amt * press * 0.16 * (1 - fast * 0.4));
+        polishKey(x, y, r, amt * press);
+        markMem(x, y, r * 1.4, amt * press * 0.11);
+        if (fast > 0.05) scatter(x, y, r * 3.0, ux, uy, fast * amt * 0.28);
+      }
+
+      /* STONE — weight. Displaces real volume, throws a pronounced rim, sinks the
+         longer you hold it, and shoves a bow wave ahead of itself when dragged. */
+      function toolStone(x, y, ux, uy, speed, press, amt, held) {
+        const r = brushRadius("stone") * 0.8;
+        const hd = held || 0;
+        const hit = deflect(x, y, r);
+        if (hit) {
+          // Can't climb a post. What it was carrying gets squeezed out to either
+          // side of the contact, hugging the post — not shoved over the top of it.
+          const g = propGrid(hit.prop);
+          const ang = Math.atan2(y - g.y, x - g.x);
+          const cr = g.r + r * 0.5;
+          for (let side = -1; side <= 1; side += 2) {
+            const a2 = ang + side * 0.9;
+            pile(g.x + Math.cos(a2) * cr, g.y + Math.sin(a2) * cr, r * 0.75, amt * press * 0.11);
+          }
+          knock(0.8);
+          x = hit.x; y = hit.y; amt *= hit.damp;
+          if (amt < 0.01) return;
+        }
+        const moving = speed > 0.12;
+        // the substrate fights back: packed ground and cohesive material stop it sinking
+        const ci = cellAt(x, y);
+        const firm = 1 / (1 + (ci >= 0 ? packed[ci] : 0) * 2.2 + theme.cohesion * 1.5);
+        const depth = amt * press * (moving ? 0.4 : 0.62) * (1 + hd * 1.3 * firm);
+        const vol = carve(x, y, r, depth, 0.55);
+        // exaggerated rim — the signature that separates a stone print from a smear
+        const rim = 1.25 + hd * 0.5;
+        pileRing(x, y, r * 0.95, r * 0.42, vol * 0.95 * rim, moving ? ux : undefined, moving ? uy : undefined);
+        compactAt(x, y, r * 0.85, amt * 0.06 * press * (1 + hd));
+        markMem(x, y, r * 0.95, amt * press * 0.07);
+        smoothAt(x, y, r * 0.6, amt * 0.35);
+        if (moving) {
+          // bow wave ahead, twin levees along the flanks, smooth rounded groove behind
+          const plow = carve(x + ux * r * 0.8, y + uy * r * 0.8, r * 0.85, amt * press * 0.42, 1);
+          pileRing(x + ux * r * 1.5, y + uy * r * 1.5, r * 0.8, r * 0.45, plow * 0.7, ux, uy);
+          const nx = -uy, ny = ux;
+          pile(x + nx * r * 1.35 - ux * r * 0.3, y + ny * r * 1.35 - uy * r * 0.3, r * 0.7, plow * 0.22);
+          pile(x - nx * r * 1.35 - ux * r * 0.3, y - ny * r * 1.35 - uy * r * 0.3, r * 0.7, plow * 0.22);
+        }
+      }
+
+      function toolWind(x, y, ux, uy, speed, press, amt) {
+        const r = brushRadius() * 1.5;
+        let dx = ux, dy = uy;
+        if (dx === 0 && dy === 0) { dx = 1; dy = 0; }
+        const strength = clamp(0.25 + speed * 0.6, 0.25, 1.4) * amt;
+        const slabs = Math.round(26 * strength) + 6;
+        const hop = (2.2 + S.grain * 0.02) * (0.7 + theme.driftMul * 0.5);
+        for (let s = 0; s < slabs; s++) {
+          const a = Math.random() * TAU, rad = Math.sqrt(Math.random()) * r;
+          const sx = Math.round(x + Math.cos(a) * rad), sy = Math.round(y + Math.sin(a) * rad);
+          if (sx < 2 || sy < 2 || sx >= W - 2 || sy >= H - 2) continue;
+          const i = sy * W + sx;
+          if (blk[i]) continue;
+          const upwind = h[i] - h[i - (dy > 0.5 ? W : dy < -0.5 ? -W : 0) - (dx > 0.5 ? 1 : dx < -0.5 ? -1 : 0)];
+          let exposure = clamp(0.45 + upwind * 0.8, 0.05, 1.2);
+          // standing in a post's wind shadow, grains simply aren't picked up
+          exposure *= 1 - shelterAt(sx, sy, dx, dy) * 0.92;
+          const grip = 1 / (1 + packed[i] * 5 + mem[i] * 1.1 + theme.cohesion * 3.5);
+          if (Math.random() > exposure * grip) continue;
+          const slab = (0.035 + Math.random() * 0.05) * strength * theme.driftMul;
+          h[i] -= slab;
+          loose[i] = Math.max(0, loose[i] - slab * 0.4);
+          gloss[i] *= 0.985;
+          let px = sx, py = sy;
+          for (let k = 0; k < 6; k++) {
+            px += dx * hop + (Math.random() - 0.5) * 1.2;
+            py += dy * hop + (Math.random() - 0.5) * 1.2;
+            if (px < 2 || py < 2 || px >= W - 2 || py >= H - 2) break;
+            let j = (py | 0) * W + (px | 0);
+            if (blk[j]) {
+              /* Grain doesn't pile onto a post, it streams around it — and that
+                 is what lets it reach the far side and settle out in the wake.
+                 Stopping dead here instead just builds a bank on the windward
+                 face and the lee never sees a grain. */
+              const pnx = -dy, pny = dx;
+              let around = false;
+              const order = Math.random() < 0.5 ? [1, -1] : [-1, 1];
+              for (const sgn of order) {
+                const qx = px + pnx * sgn * hop, qy = py + pny * sgn * hop;
+                if (qx < 2 || qy < 2 || qx >= W - 2 || qy >= H - 2) continue;
+                if (!blk[(qy | 0) * W + (qx | 0)]) { px = qx; py = qy; around = true; break; }
+              }
+              if (around) { j = (py | 0) * W + (px | 0); }
+              else {
+                const bk = ((py - dy * hop) | 0) * W + ((px - dx * hop) | 0);
+                if (bk >= 0 && bk < N && !blk[bk]) { h[bk] += slab; loose[bk] = Math.min(1.8, loose[bk] + slab * 0.8); }
                 break;
               }
             }
-          }
-          // wind slowly buries loose detail but respects worked, packed material
-          const persist = S.memory / 100;
-          const cells = [];
-          gauss(x, y, r, (i, w) => { cells.push(i, w); });
-          for (let k = 0; k < cells.length; k += 2) {
-            const i = cells[k], w = cells[k + 1];
-            const shield = 1 / (1 + mem[i] * (1.6 + persist * 3.4) + packed[i] * 3);
-            const avg = (h[i - 1] + h[i + 1] + h[i - W] + h[i + W]) * 0.25;
-            h[i] += (avg - h[i]) * clamp(0.16 * w * amt * shield, 0, 0.4);
-            mem[i] *= 1 - 0.0025 * w * amt * (1 - persist * 0.85);
-          }
-        }
-
-        function scatter(x, y, r, ux, uy, amt) {
-          const cells = [];
-          let taken = 0;
-          gauss(x, y, r, (i, w, dx, dy) => {
-            const along = (dx * ux + dy * uy) / r;
-            if (along < 0.05) {
-              const grab = Math.min(loose[i], 0.05) * w * amt * 1.6;
-              if (grab > 0) { h[i] -= grab; loose[i] -= grab; taken += grab; }
-            }
-            cells.push(i, w, along);
-          });
-          if (taken <= 0) return;
-          let ws = 0;
-          for (let k = 0; k < cells.length; k += 3) if (cells[k + 2] > 0.1) ws += cells[k + 1] * cells[k + 2];
-          if (ws <= 0.0001) { pile(x + ux * r, y + uy * r, r * 0.7, taken); return; }
-          const kk = taken / ws;
-          for (let k = 0; k < cells.length; k += 3) {
-            if (cells[k + 2] <= 0.1) continue;
-            const i = cells[k], add = cells[k + 1] * cells[k + 2] * kk;
-            h[i] += add; loose[i] = Math.min(1.8, loose[i] + add);
-          }
-        }
-
-        function cellAt(x, y) {
-          const cx = x | 0, cy = y | 0;
-          if (cx < 1 || cy < 1 || cx >= W - 1 || cy >= H - 1) return -1;
-          return cy * W + cx;
-        }
-
-        /* ---------- taps ---------- */
-        function tapAt(tool, x, y, press) {
-          const r = brushRadius();
-          if (tool === "rake") {
-            const count = Math.max(3, Math.min(7, Math.round(r / 2.4)));
-            for (let k = 0; k < count; k++) {
-              const off = (k - (count - 1) / 2) * (r * 2) / count;
-              const v = carve(x + off, y, Math.max(1.1, r * 0.15), 0.22 * press, 1);
-              pileRing(x + off, y, r * 0.16, r * 0.16, v * 0.85);
-              markMem(x + off, y, r * 0.25, 0.16);
-            }
-          } else if (tool === "finger") {
-            const v = carve(x, y, r * 0.5, 0.4 * press, 0.85);
-            pileRing(x, y, r * 0.5, r * 0.28, v * 0.85);
-            compactAt(x, y, r * 0.4, 0.09);
-            markMem(x, y, r * 0.55, 0.2);
-          } else if (tool === "stone") {
-            const v = carve(x, y, r * 0.75, 0.55 * press, 0.6);
-            pileRing(x, y, r * 0.78, r * 0.38, v * 0.92);
-            compactAt(x, y, r * 0.62, 0.22);
-            markMem(x, y, r * 0.8, 0.36);
-            ripple(x, y, r * 2.2, 0.06);
-          } else {
-            for (let a = 0; a < TAU; a += TAU / 9) toolWind(x, y, Math.cos(a), Math.sin(a), 0.4, press, 0.5);
-          }
-        }
-        function ripple(x, y, r, amp) {
-          gauss(x, y, r, (i, w, dx, dy, d) => {
-            h[i] += Math.sin(d * 9.5) * amp * w;
-            loose[i] = Math.min(1.8, loose[i] + w * 0.05);
-          });
-        }
-
-        /* ---------- physics ---------- */
-        function step() {
-          const settle = S.settle / 100;
-          const persist = S.memory / 100;
-          const grainF = S.grain / 100;
-          const repose = 0.26 + grainF * 0.36;
-          const flow = 0.16 + settle * 0.3;
-
-          dh.fill(0); dl.fill(0);
-          for (let y = 1; y < H - 1; y++) {
-            const row = y * W;
-            for (let x = 1; x < W - 2; x++) {
-              const i = row + x, j = i + 1;
-              const d = h[i] - h[j];
-              const ad = d < 0 ? -d : d;
-              const th = repose * (1 + (packed[i] + packed[j]) * 1.6 + (mem[i] + mem[j]) * 0.18);
-              if (ad > th) {
-                const src = d > 0 ? i : j, dst = d > 0 ? j : i;
-                let move = (ad - th) * flow * 0.35;
-                const avail = loose[src] * 0.5 + 0.015;
-                if (move > avail) move = avail;
-                dh[src] -= move; dh[dst] += move;
-                dl[src] -= move * 0.7; dl[dst] += move * 0.7;
-              }
+            const shelter = clamp(0.5 + (h[i] - h[j]) * 0.9, 0, 1);
+            // A tail forms downwind, not upwind, so the shelter test has to be
+            // directional: it's only a lee if the obstacle is behind you.
+            const lee = shelterAt(px | 0, py | 0, dx, dy);
+            // deep in a wake the air simply isn't moving: the grain drops, full stop
+            if (lee > 0.45 || Math.random() < 0.3 + shelter * 0.55 + packed[j] * 0.25 + lee * 0.95) {
+              h[j] += slab;
+              loose[j] = Math.min(1.8, loose[j] + slab * 0.8);
+              break;
             }
           }
-          for (let y = 1; y < H - 2; y++) {
-            const row = y * W;
-            for (let x = 1; x < W - 1; x++) {
-              const i = row + x, j = i + W;
-              const d = h[i] - h[j];
-              const ad = d < 0 ? -d : d;
-              const th = repose * (1 + (packed[i] + packed[j]) * 1.6 + (mem[i] + mem[j]) * 0.18);
-              if (ad > th) {
-                const src = d > 0 ? i : j, dst = d > 0 ? j : i;
-                let move = (ad - th) * flow * 0.35;
-                const avail = loose[src] * 0.5 + 0.015;
-                if (move > avail) move = avail;
-                dh[src] -= move; dh[dst] += move;
-                dl[src] -= move * 0.7; dl[dst] += move * 0.7;
-              }
+        }
+        // wind slowly buries loose detail but respects worked, packed material
+        const persist = S.memory / 100;
+        const cells = [];
+        gauss(x, y, r, (i, w) => { if (!blk[i]) cells.push(i, w); });
+        for (let k = 0; k < cells.length; k += 2) {
+          const i = cells[k], w = cells[k + 1];
+          const shield = 1 / (1 + mem[i] * (1.6 + persist * 3.4) + packed[i] * 3);
+          gloss[i] *= 1 - 0.004 * w * amt;
+          const avg = (h[i - 1] + h[i + 1] + h[i - W] + h[i + W]) * 0.25;
+          // sheltered ground doesn't get scoured flat, so a drift that forms
+          // near a post is allowed to stay there
+          h[i] += (avg - h[i]) * clamp(0.16 * w * amt * shield * (1 - calm[i] * 0.85), 0, 0.4);
+          mem[i] *= 1 - 0.0025 * w * amt * (1 - persist * 0.85);
+        }
+      }
+
+      /* How sheltered is (x,y) from a wind blowing along (dx,dy)? Marches back up
+         the wind looking for anything solid; a post throws a wake several of its
+         own widths downstream, which is what draws the drift tail behind it. */
+      function shelterAt(x, y, dx, dy) {
+        let best = 0;
+        // a real wake runs many diameters downstream, so march well back
+        for (let k = 1.4; k <= 16; k += 2.4) {
+          const sx = (x - dx * k) | 0, sy = (y - dy * k) | 0;
+          if (sx < 1 || sy < 1 || sx >= W - 1 || sy >= H - 1) continue;
+          const i = sy * W + sx;
+          const v = blk[i] ? 1 : (1 - ao[i]) * 1.6;
+          if (v <= 0) continue;
+          const f = v * (1 - (k - 1.4) / 21);   // the wake fades with distance
+          if (f > best) best = f;
+        }
+        return best > 1 ? 1 : best;
+      }
+
+      function scatter(x, y, r, ux, uy, amt) {
+        const cells = [];
+        let taken = 0;
+        gauss(x, y, r, (i, w, dx, dy) => {
+          if (blk[i]) return;
+          const along = (dx * ux + dy * uy) / r;
+          if (along < 0.05) {
+            const grab = Math.min(loose[i], 0.05) * w * amt * 1.6;
+            if (grab > 0) { h[i] -= grab; loose[i] -= grab; taken += grab; }
+          }
+          cells.push(i, w, along);
+        });
+        if (taken <= 0) return;
+        let ws = 0;
+        for (let k = 0; k < cells.length; k += 3) if (cells[k + 2] > 0.1) ws += cells[k + 1] * cells[k + 2];
+        if (ws <= 0.0001) { pile(x + ux * r, y + uy * r, r * 0.7, taken); return; }
+        const kk = taken / ws;
+        for (let k = 0; k < cells.length; k += 3) {
+          if (cells[k + 2] <= 0.1) continue;
+          const i = cells[k], add = cells[k + 1] * cells[k + 2] * kk;
+          h[i] += add; loose[i] = Math.min(1.8, loose[i] + add);
+        }
+      }
+
+      function cellAt(x, y) {
+        const cx = x | 0, cy = y | 0;
+        if (cx < 1 || cy < 1 || cx >= W - 1 || cy >= H - 1) return -1;
+        return cy * W + cx;
+      }
+
+      /* ---------- taps ---------- */
+      function tapAt(tool, x, y, press) {
+        const r = brushRadius(tool);
+        if (tool === "post") { togglePost(x, y); return; }
+        if (tool === "rake") {
+          const count = Math.max(3, Math.min(7, Math.round(r / 2.4)));
+          for (let k = 0; k < count; k++) {
+            const off = (k - (count - 1) / 2) * (r * 2) / count;
+            if (deflect(x + off, y, r * 0.15)) continue;
+            const v = carve(x + off, y, Math.max(1.1, r * 0.15), 0.22 * press, 1);
+            pileRing(x + off, y, r * 0.16, r * 0.16, v * 0.85);
+            markMem(x + off, y, r * 0.25, 0.16);
+          }
+        } else if (tool === "finger") {
+          // a fingertip pressed and lifted leaves a print: shallow, smooth, shiny
+          const v = carve(x, y, r * 0.75, 0.16 * press, 1.3);
+          pile(x, y, r * 1.7, v * 0.75);
+          smoothAt(x, y, r * 1.2, 0.6);
+          compactAt(x, y, r * 0.6, 0.12);
+          markGloss(x, y, r * 0.85, 0.5 * press);
+          markMem(x, y, r * 0.7, 0.3);
+        } else if (tool === "stone") {
+          const v = carve(x, y, r * 0.75, 0.72 * press, 0.6);
+          pileRing(x, y, r * 0.8, r * 0.36, v * 1.25);
+          compactAt(x, y, r * 0.62, 0.28);
+          markMem(x, y, r * 0.8, 0.36);
+          ripple(x, y, r * 2.4, 0.085);
+          // a dropped weight throws a puff of loose material clear of the crater
+          for (let a = 0; a < TAU; a += TAU / 7) {
+            const j = a + Math.random() * 0.4;
+            pile(x + Math.cos(j) * r * 2.1, y + Math.sin(j) * r * 2.1, r * 0.55, v * 0.05 * theme.looseMul);
+          }
+        } else {
+          for (let a = 0; a < TAU; a += TAU / 9) toolWind(x, y, Math.cos(a), Math.sin(a), 0.4, press, 0.5);
+        }
+      }
+      function ripple(x, y, r, amp) {
+        gauss(x, y, r, (i, w, dx, dy, d) => {
+          if (blk[i]) return;
+          h[i] += Math.sin(d * 9.5) * amp * w;
+          loose[i] = Math.min(1.8, loose[i] + w * 0.05);
+        });
+      }
+
+      // Tap bare sand to set a post; tap a post to lift it, leaving a socket that
+      // the sand heals over on its own.
+      function togglePost(x, y) {
+        for (let k = 0; k < props.length; k++) {
+          const p = props[k];
+          if (p.type !== "pylon") continue;
+          const g = propGrid(p);
+          if (Math.hypot(x - g.x, y - g.y) < g.r + 1.5) {
+            props.splice(k, 1);
+            rasterizeProps();
+            carve(g.x, g.y, g.r * 1.25, 0.7, 0.5);   // the socket it leaves behind
+            markMem(g.x, g.y, g.r * 1.6, 0.5);
+            click(0.5, true);
+            return;
+          }
+        }
+        const r = brushRadius("post") * 0.72;
+        const nr = r / Math.min(W, H);
+        if (nr > 0.16) return;
+        for (const p of props) {
+          if (p.type !== "pylon") continue;
+          const g = propGrid(p);
+          if (Math.hypot(x - g.x, y - g.y) < g.r + r + 1) return; // no overlapping posts
+        }
+        props.push(makePylon(x / W, y / H, nr, 0.6 + (S.size / 100) * 1.5));
+        rasterizeProps();
+        // sand shoulders up where it was driven in
+        pileRing(x, y, r * 1.25, r * 0.7, 0.9);
+        markMem(x, y, r * 2, 0.4);
+        knock(0.9);
+      }
+
+      /* ---------- physics ---------- */
+      function step() {
+        const settle = S.settle / 100;
+        const persist = S.memory / 100;
+        const grainF = S.grain / 100;
+        // the material decides how steeply it stands and how freely it runs
+        const repose = (0.26 + grainF * 0.36) * theme.repose;
+        const flow = (0.16 + settle * 0.3) * theme.flowMul;
+        const coh = theme.cohesion * 0.3;
+        const free = 0.015 * (1 - theme.cohesion * 0.85);
+
+        dh.fill(0); dl.fill(0);
+        for (let y = 1; y < H - 1; y++) {
+          const row = y * W;
+          for (let x = 1; x < W - 2; x++) {
+            const i = row + x, j = i + 1;
+            if (blk[i] || blk[j]) continue;
+            const d = h[i] - h[j];
+            const ad = d < 0 ? -d : d;
+            const th = repose * (1 + (packed[i] + packed[j]) * 1.6 + (mem[i] + mem[j]) * 0.18) + coh;
+            if (ad > th) {
+              const src = d > 0 ? i : j, dst = d > 0 ? j : i;
+              let move = (ad - th) * flow * 0.35;
+              const avail = loose[src] * 0.5 + free;
+              if (move > avail) move = avail;
+              dh[src] -= move; dh[dst] += move;
+              dl[src] -= move * 0.7; dl[dst] += move * 0.7;
             }
           }
-          const creep = 0.02 + settle * 0.075;
-          const bury = (0.00006 + (1 - persist) * 0.00042) * (0.4 + settle);
-          for (let y = 1; y < H - 1; y++) {
-            const row = y * W;
-            for (let x = 1; x < W - 1; x++) {
-              const i = row + x;
-              h[i] += dh[i];
-              loose[i] = clamp(loose[i] + dl[i], 0, 2.0);
-              const shield = 1 / (1 + mem[i] * (1.7 + persist * 4.2) + packed[i] * 2.6);
-              const lap = h[i - 1] + h[i + 1] + h[i - W] + h[i + W] - h[i] * 4;
-              h[i] += lap * creep * 0.16 * shield * (0.35 + loose[i] * 0.8);
-              h[i] += (base[i] - h[i]) * bury * shield;
-              loose[i] *= 0.9985;
-              mem[i] *= 1 - (1 - persist) * 0.00006;
-              packed[i] *= 0.999985;
+        }
+        for (let y = 1; y < H - 2; y++) {
+          const row = y * W;
+          for (let x = 1; x < W - 1; x++) {
+            const i = row + x, j = i + W;
+            if (blk[i] || blk[j]) continue;
+            const d = h[i] - h[j];
+            const ad = d < 0 ? -d : d;
+            const th = repose * (1 + (packed[i] + packed[j]) * 1.6 + (mem[i] + mem[j]) * 0.18) + coh;
+            if (ad > th) {
+              const src = d > 0 ? i : j, dst = d > 0 ? j : i;
+              let move = (ad - th) * flow * 0.35;
+              const avail = loose[src] * 0.5 + free;
+              if (move > avail) move = avail;
+              dh[src] -= move; dh[dst] += move;
+              dl[src] -= move * 0.7; dl[dst] += move * 0.7;
             }
           }
-          // edges mirror so nothing pools at the frame
+        }
+        // creep is surface diffusion, and it has to answer to the material too —
+        // otherwise every material relaxes at the same rate and repose alone is
+        // far too subtle to feel
+        const creep = (0.02 + settle * 0.075) * (0.4 + theme.flowMul * 0.75);
+        const setRate = 1 - 0.0015 * (0.4 + theme.cohesion * 1.6);
+        const bury = (0.00006 + (1 - persist) * 0.00042) * (0.4 + settle);
+        for (let y = 1; y < H - 1; y++) {
+          const row = y * W;
+          for (let x = 1; x < W - 1; x++) {
+            const i = row + x;
+            if (blk[i]) continue;
+            h[i] += dh[i];
+            loose[i] = clamp(loose[i] + dl[i], 0, 2.0);
+            const shield = 1 / (1 + mem[i] * (1.7 + persist * 4.2) + packed[i] * 2.6);
+            const lap = h[i - 1] + h[i + 1] + h[i - W] + h[i + W] - h[i] * 4;
+            h[i] += lap * creep * 0.16 * shield * (0.35 + loose[i] * 0.8);
+            h[i] += (base[i] - h[i]) * bury * shield;
+            loose[i] *= setRate;   // cohesive material sets, and stops flowing
+            mem[i] *= 1 - (1 - persist) * 0.00006;
+            packed[i] *= 0.999985;
+            gloss[i] *= 0.99985;
+          }
+        }
+        // edges mirror so nothing pools at the frame
+        for (let x = 0; x < W; x++) {
+          h[x] = h[x + W]; h[(H - 1) * W + x] = h[(H - 2) * W + x];
+          packed[x] = packed[x + W]; packed[(H - 1) * W + x] = packed[(H - 2) * W + x];
+          mem[x] = mem[x + W]; mem[(H - 1) * W + x] = mem[(H - 2) * W + x];
+        }
+        for (let y = 0; y < H; y++) {
+          const r0 = y * W;
+          h[r0] = h[r0 + 1]; h[r0 + W - 1] = h[r0 + W - 2];
+          packed[r0] = packed[r0 + 1]; packed[r0 + W - 1] = packed[r0 + W - 2];
+          mem[r0] = mem[r0 + 1]; mem[r0 + W - 1] = mem[r0 + W - 2];
+        }
+        // visible surface: solid wins until sand drifts high enough to bury it
+        updateSurface();
+      }
+
+      /* ---------- shading ---------- */
+      /* Highlights roll off into the top of the range instead of hitting a wall.
+         A hard clamp turned burnished patches — and the ground you rub while
+         polishing the key — into flat white holes with no grain left in them. */
+      const ROLL = 206, ROLL_H = 255 - ROLL;
+      function roll(v) {
+        if (v <= ROLL) return v < 0 ? 0 : v;
+        const x = (v - ROLL) / ROLL_H;
+        return ROLL + ROLL_H * (x / (1 + x));
+      }
+
+      function shade() {
+        blurInto(surf, sm1, 1);
+        blurInto(sm1, sm2, 1);
+        // ease the working palette toward the selected chip so materials don't snap
+        for (const k of ["sand", "deep", "stone"]) {
+          for (let c = 0; c < 3; c++) mix[k][c] += (theme[k][c] - mix[k][c]) * 0.09;
+        }
+        const ang = (S.light / 180) * Math.PI;
+        const lx = Math.cos(ang) * 0.86, ly = Math.sin(ang) * 0.86, lz = 0.52;
+        const ll = 1 / Math.sqrt(lx * lx + ly * ly + lz * lz);
+        const Lx = lx * ll, Ly = ly * ll, Lz = lz * ll;
+        const Hx = Lx, Hy = Ly, Hz = Lz + 1;
+        const hl = 1 / Math.sqrt(Hx * Hx + Hy * Hy + Hz * Hz);
+        const hx = Hx * hl, hy = Hy * hl, hz = Hz * hl;
+        const slope = 3.0;
+        const amb = theme.amb, sun = theme.sun;
+        const sR = mix.sand[0], sG = mix.sand[1], sB = mix.sand[2];
+        const dR = mix.deep[0], dG = mix.deep[1], dB = mix.deep[2];
+        const pR = mix.stone[0], pG = mix.stone[1], pB = mix.stone[2];
+        for (let y = 0; y < H; y++) {
+          const row = y * W;
+          const ym = y > 0 ? row - W : row, yp = y < H - 1 ? row + W : row;
           for (let x = 0; x < W; x++) {
-            h[x] = h[x + W]; h[(H - 1) * W + x] = h[(H - 2) * W + x];
-            packed[x] = packed[x + W]; packed[(H - 1) * W + x] = packed[(H - 2) * W + x];
-            mem[x] = mem[x + W]; mem[(H - 1) * W + x] = mem[(H - 2) * W + x];
-          }
-          for (let y = 0; y < H; y++) {
-            const r0 = y * W;
-            h[r0] = h[r0 + 1]; h[r0 + W - 1] = h[r0 + W - 2];
-            packed[r0] = packed[r0 + 1]; packed[r0 + W - 1] = packed[r0 + W - 2];
-            mem[r0] = mem[r0 + 1]; mem[r0 + W - 1] = mem[r0 + W - 2];
+            const i = row + x;
+            const xm = x > 0 ? i - 1 : i, xp = x < W - 1 ? i + 1 : i;
+            const im = ym + x, ip = yp + x;
+            // A rim is only a rim if it stays sharp: where solid coverage changes
+            // between neighbours, skip the smoothing blend so the step survives
+            // into the normal and the shader gets its bright edge and hard flank.
+            // only an obstacle that is actually proud of the sand paints or sharpens
+            const sv = coverAt(i);
+            const edge = sv > 0 || coverAt(xm) > 0 || coverAt(xp) > 0 || coverAt(im) > 0 || coverAt(ip) > 0;
+            let hxm, hxp, hym, hyp;
+            if (edge) {
+              hxm = surf[xm]; hxp = surf[xp]; hym = surf[im]; hyp = surf[ip];
+            } else {
+              hxm = surf[xm] * 0.62 + sm1[xm] * 0.38; hxp = surf[xp] * 0.62 + sm1[xp] * 0.38;
+              hym = surf[im] * 0.62 + sm1[im] * 0.38; hyp = surf[ip] * 0.62 + sm1[ip] * 0.38;
+            }
+            let nx = (hxm - hxp) * 0.5 * slope;
+            let ny = (hym - hyp) * 0.5 * slope;
+            const inv = 1 / Math.sqrt(nx * nx + ny * ny + 1);
+            const Nx = nx * inv, Ny = ny * inv, Nz = inv;
+
+            const pk = packed[i], mm = mem[i], lo = loose[i], gl = gloss[i];
+            const below = clamp(base[i] - h[i], 0, 2.6);
+            const above = clamp(h[i] - base[i], 0, 2.0);
+
+            let r = sR, g = sG, b = sB;
+            // sand -> packed mineral
+            const t = clamp(pk * 1.05, 0, 1);
+            r += (pR - r) * t; g += (pG - g) * t; b += (pB - b) * t;
+            // exposed lower, damper layers inside cuts
+            const dp = clamp(below * 0.42, 0, 1) * theme.tintDeep;
+            r += (dR - r) * dp; g += (dG - g) * dp; b += (dB - b) * dp;
+            // freshly displaced loose sand is drier / brighter
+            const lb = clamp(lo * 0.5, 0, 0.5) + above * 0.06;
+            r += lb * 20; g += lb * 18; b += lb * 13;
+            // long term memory patina
+            const pat = clamp(mm * 0.24, 0, 0.5);
+            r -= pat * 24; g -= pat * 19; b -= pat * 10;
+            // buried older marks still ghost through
+            const heal = clamp(ghost[i] - below, 0, 2.2);
+            if (heal > 0.12) {
+              const gg = clamp((heal - 0.12) * 0.32, 0, 0.32);
+              r -= gg * 20; g -= gg * 16; b -= gg * 9;
+            }
+
+            let sharpn = (10 + pk * 90 + (1 - clamp(lo, 0, 1)) * 10) * theme.specSharp;
+            let specK = theme.specBase + pk * theme.spec + mm * 0.02;
+            // Burnished trails read as satin, not mirror: widen the specular lobe
+            // rather than tighten it, so the sheen is visible at any light angle,
+            // and lift the surface a little so polish always reads as polish.
+            if (gl > 0.001) {
+              const q = clamp(gl, 0, 1.4);
+              specK += q * 0.3;
+              sharpn = sharpn / (1 + q * 0.8) + 4;
+              r += q * 13; g += q * 12; b += q * 10;
+            }
+
+            // solid material paints over the sand entirely
+            if (sv > 0.01) {
+              const brass = solidM[i] > 0.5;
+              const M = brass ? BRASS : WOOD;
+              // wood reads its end grain from the raster; brass reads how far the
+              // tarnish has been rubbed off, which saves re-rasterizing to recolour
+              const ring = brass ? keyPolish : solidT[i];
+              const mR = M.top[0] + (M.ring[0] - M.top[0]) * ring;
+              const mG = M.top[1] + (M.ring[1] - M.top[1]) * ring;
+              const mB = M.top[2] + (M.ring[2] - M.top[2]) * ring;
+              /* A steep face is the sawn side, not the end grain. The key is a thin
+                 plate, so nearly every one of its cells is edge — take the side
+                 colour lightly there or the polished metal comes out as a dark
+                 squiggle instead of a key. */
+              const flank = clamp(1 - Nz * 1.35, 0, 1) * (brass ? 0.4 : 1);
+              const cR = mR + (M.side[0] - mR) * flank;
+              const cG = mG + (M.side[1] - mG) * flank;
+              const cB = mB + (M.side[2] - mB) * flank;
+              r += (cR - r) * sv; g += (cG - g) * sv; b += (cB - b) * sv;
+              sharpn = sharpn + (M.sharp - sharpn) * sv;
+              // tarnished metal is matte; the shine comes back with the rubbing
+              const ms = brass ? M.spec * (0.06 + keyPolish * 0.94) : M.spec;
+              specK = specK + (ms - specK) * sv;
+            }
+
+            const diff = Math.max(0, Nx * Lx + Ny * Ly + Nz * Lz);
+            const sky = 0.55 + 0.45 * Nz;
+            const cav = clamp(0.62 + (surf[i] - sm2[i]) * 0.75, 0.34, 1.15);
+            const spd = Math.max(0, Nx * hx + Ny * hy + Nz * hz);
+            const spec = Math.pow(spd, sharpn) * specK * 255;
+            // ao is the contact shadow that says "sitting in the sand", not "made of it"
+            const light = amb * sky * cav * ao[i] + sun * diff * (0.8 + cav * 0.25);
+
+            colR[i] = roll(r * light + spec);
+            colG[i] = roll(g * light + spec * 0.99);
+            colB[i] = roll(b * light + spec * 0.94);
           }
         }
+      }
 
-        /* ---------- shading ---------- */
-        function shade() {
-          blurInto(h, sm1, 1);
-          blurInto(sm1, sm2, 1);
-          const ang = (S.light / 180) * Math.PI;
-          const lx = Math.cos(ang) * 0.86, ly = Math.sin(ang) * 0.86, lz = 0.52;
-          const ll = 1 / Math.sqrt(lx * lx + ly * ly + lz * lz);
-          const Lx = lx * ll, Ly = ly * ll, Lz = lz * ll;
-          const Hx = Lx, Hy = Ly, Hz = Lz + 1;
-          const hl = 1 / Math.sqrt(Hx * Hx + Hy * Hy + Hz * Hz);
-          const hx = Hx * hl, hy = Hy * hl, hz = Hz * hl;
-          const slope = 3.0;
-          const amb = theme.amb, sun = theme.sun;
-          const sR = theme.sand[0], sG = theme.sand[1], sB = theme.sand[2];
-          const dR = theme.deep[0], dG = theme.deep[1], dB = theme.deep[2];
-          const pR = theme.stone[0], pG = theme.stone[1], pB = theme.stone[2];
-
-          for (let y = 0; y < H; y++) {
-            const row = y * W;
-            const ym = y > 0 ? row - W : row, yp = y < H - 1 ? row + W : row;
-            for (let x = 0; x < W; x++) {
-              const i = row + x;
-              const xm = x > 0 ? i - 1 : i, xp = x < W - 1 ? i + 1 : i;
-              const hxm = h[xm] * 0.62 + sm1[xm] * 0.38, hxp = h[xp] * 0.62 + sm1[xp] * 0.38;
-              const hym = h[ym + x] * 0.62 + sm1[ym + x] * 0.38, hyp = h[yp + x] * 0.62 + sm1[yp + x] * 0.38;
-              let nx = (hxm - hxp) * 0.5 * slope;
-              let ny = (hym - hyp) * 0.5 * slope;
-              const inv = 1 / Math.sqrt(nx * nx + ny * ny + 1);
-              const Nx = nx * inv, Ny = ny * inv, Nz = inv;
-
-              const pk = packed[i], mm = mem[i], lo = loose[i];
-              const below = clamp(base[i] - h[i], 0, 2.6);
-              const above = clamp(h[i] - base[i], 0, 2.0);
-
-              let r = sR, g = sG, b = sB;
-              // sand -> packed mineral
-              const t = clamp(pk * 1.05, 0, 1);
-              r += (pR - r) * t; g += (pG - g) * t; b += (pB - b) * t;
-              // exposed lower, damper layers inside cuts
-              const dp = clamp(below * 0.42, 0, 1) * theme.tintDeep;
-              r += (dR - r) * dp; g += (dG - g) * dp; b += (dB - b) * dp;
-              // freshly displaced loose sand is drier / brighter
-              const lb = clamp(lo * 0.5, 0, 0.5) + above * 0.06;
-              r += lb * 20; g += lb * 18; b += lb * 13;
-              // long term memory patina
-              const pat = clamp(mm * 0.24, 0, 0.5);
-              r -= pat * 24; g -= pat * 19; b -= pat * 10;
-              // buried older marks still ghost through
-              const heal = clamp(ghost[i] - below, 0, 2.2);
-              if (heal > 0.12) {
-                const gg = clamp((heal - 0.12) * 0.32, 0, 0.32);
-                r -= gg * 20; g -= gg * 16; b -= gg * 9;
+      function render() {
+        shade();
+        const gA = 0.028 + (S.grain / 100) * 0.085;
+        const sx = W / rw, sy = H / rh;
+        let p = 0;
+        for (let py = 0; py < rh; py++) {
+          let fy = (py + 0.5) * sy - 0.5;
+          let y0 = Math.floor(fy);
+          if (y0 < 0) y0 = 0; else if (y0 > H - 2) y0 = H - 2;
+          const ty = clamp(fy - y0, 0, 1), ity = 1 - ty;
+          const rowA = y0 * W, rowB = rowA + W;
+          const gRow = py * rw;
+          for (let px = 0; px < rw; px++) {
+            let fx = (px + 0.5) * sx - 0.5;
+            let x0 = Math.floor(fx);
+            if (x0 < 0) x0 = 0; else if (x0 > W - 2) x0 = W - 2;
+            const tx = fx - x0 < 0 ? 0 : fx - x0 > 1 ? 1 : fx - x0, itx = 1 - tx;
+            const i00 = rowA + x0, i10 = i00 + 1, i01 = rowB + x0, i11 = i01 + 1;
+            const w00 = itx * ity, w10 = tx * ity, w01 = itx * ty, w11 = tx * ty;
+            let r = colR[i00] * w00 + colR[i10] * w10 + colR[i01] * w01 + colR[i11] * w11;
+            let g = colG[i00] * w00 + colG[i10] * w10 + colG[i01] * w01 + colG[i11] * w11;
+            let b = colB[i00] * w00 + colB[i10] * w10 + colB[i01] * w01 + colB[i11] * w11;
+            const gi = gRow + px;
+            const gv = grainBuf[gi];
+            const sv = coverAt(i00);
+            // grain belongs to the sand: posts and burnished trails go quiet
+            const amp = gA * (1 - packed[i00] * 0.72) * (0.6 + loose[i00] * 0.8) *
+              (1 - sv) * (1 - clamp(gloss[i00] * 0.6, 0, 0.75));
+            const m = 1 + gv * amp;
+            r *= m; g *= m; b *= m * 0.995;
+            if (sparkBuf && sv < 0.5) {
+              // mica flecks catch the light only where the grit is loose
+              const sp = sparkBuf[gi];
+              if (sp > 0) {
+                const f = sp * 34 * (0.35 + loose[i00] * 0.9);
+                r += f; g += f; b += f * 1.05;
               }
-
-              const diff = Math.max(0, Nx * Lx + Ny * Ly + Nz * Lz);
-              const sky = 0.55 + 0.45 * Nz;
-              const cav = clamp(0.62 + (h[i] - sm2[i]) * 0.75, 0.34, 1.15);
-              const spd = Math.max(0, Nx * hx + Ny * hy + Nz * hz);
-              const sharpn = 10 + pk * 90 + (1 - clamp(lo, 0, 1)) * 10;
-              const spec = Math.pow(spd, sharpn) * (0.03 + pk * theme.spec + mm * 0.02) * 255;
-              const light = amb * sky * cav + sun * diff * (0.8 + cav * 0.25);
-
-              colR[i] = clamp(r * light + spec, 0, 255);
-              colG[i] = clamp(g * light + spec * 0.99, 0, 255);
-              colB[i] = clamp(b * light + spec * 0.94, 0, 255);
             }
-          }
-        }
-
-        function render() {
-          shade();
-          const gA = 0.028 + (S.grain / 100) * 0.085;
-          const sx = W / rw, sy = H / rh;
-          let p = 0;
-          for (let py = 0; py < rh; py++) {
-            let fy = (py + 0.5) * sy - 0.5;
-            let y0 = Math.floor(fy);
-            if (y0 < 0) y0 = 0; else if (y0 > H - 2) y0 = H - 2;
-            const ty = clamp(fy - y0, 0, 1), ity = 1 - ty;
-            const rowA = y0 * W, rowB = rowA + W;
-            const gRow = py * rw;
-            for (let px = 0; px < rw; px++) {
-              let fx = (px + 0.5) * sx - 0.5;
-              let x0 = Math.floor(fx);
-              if (x0 < 0) x0 = 0; else if (x0 > W - 2) x0 = W - 2;
-              const tx = fx - x0 < 0 ? 0 : fx - x0 > 1 ? 1 : fx - x0, itx = 1 - tx;
-              const i00 = rowA + x0, i10 = i00 + 1, i01 = rowB + x0, i11 = i01 + 1;
-              const w00 = itx * ity, w10 = tx * ity, w01 = itx * ty, w11 = tx * ty;
-              let r = colR[i00] * w00 + colR[i10] * w10 + colR[i01] * w01 + colR[i11] * w11;
-              let g = colG[i00] * w00 + colG[i10] * w10 + colG[i01] * w01 + colG[i11] * w11;
-              let b = colB[i00] * w00 + colB[i10] * w10 + colB[i01] * w01 + colB[i11] * w11;
-              const gv = grainBuf[gRow + px];
-              const amp = gA * (1 - packed[i00] * 0.72) * (0.6 + loose[i00] * 0.8);
-              const m = 1 + gv * amp;
-              r *= m; g *= m; b *= m * 0.995;
-              rpix[p++] = r < 0 ? 0 : r > 255 ? 255 : r;
-              rpix[p++] = g < 0 ? 0 : g > 255 ? 255 : g;
-              rpix[p++] = b < 0 ? 0 : b > 255 ? 255 : b;
-              rpix[p++] = 255;
+            if (crackBuf && sv < 0.5) {
+              // craze lines show up where the surface has set hard and dried
+              const cw = crackBuf[gi] * clamp(packed[i00] * 1.4 + mem[i00] * 0.3 - 0.12, 0, 0.85);
+              if (cw > 0) { const d = 1 - cw * 0.3; r *= d; g *= d; b *= d * 0.98; }
             }
+            rpix[p++] = r < 0 ? 0 : r > 255 ? 255 : r;
+            rpix[p++] = g < 0 ? 0 : g > 255 ? 255 : g;
+            rpix[p++] = b < 0 ? 0 : b > 255 ? 255 : b;
+            rpix[p++] = 255;
           }
-          rctx.putImageData(rimg, 0, 0);
-          ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = "high";
-          ctx.drawImage(rcanvas, 0, 0, viewW, viewH);
         }
+        rctx.putImageData(rimg, 0, 0);
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = "high";
+        ctx.drawImage(rcanvas, 0, 0, viewW, viewH);
+        drawCursor();
+        drawSignature();
+      }
 
-        /* ---------- undo ---------- */
-        function snapshot() {
-          undoStack.push({
-            h: Float32Array.from(h), l: Float32Array.from(loose), p: Float32Array.from(packed),
-            m: Float32Array.from(mem), g: Float32Array.from(ghost), W, H
-          });
-          if (undoStack.length > 9) undoStack.shift();
+      /* ---------- the engraving ----------
+         The bow of the key is a few cells across, far too small to carve letters
+         into the heightfield, so the engraving is drawn over the finished frame in
+         CSS pixels — the same layer the cursor uses. */
+      const SIGNATURE = "sand tended by claude opus 5";
+      const SIG_FONT = "12px ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif";
+      // laid out once and kept: nothing about it changes until the canvas resizes
+      // or a new garden plants a new key
+      let sigLayout = null;
+      function layoutSignature(key) {
+        ctx.font = SIG_FONT;
+        const track = 2.6;               // canvas has no letter-spacing
+        const chars = [...SIGNATURE];
+        const adv = chars.map((c) => ctx.measureText(c).width + track);
+        const wide = adv.reduce((a, b) => a + b, 0) - track;
+        const rad = (propGrid(key).r / W) * viewW;
+        // a key planted near an edge must not push its own engraving off-canvas
+        const cx = clamp(key.nx * viewW, wide / 2 + 12, viewW - wide / 2 - 12);
+        const y = clamp(key.ny * viewH + rad * 2.8 + 14, 16, viewH - 14);
+        const xs = [];
+        let x = cx - wide / 2;
+        for (const a of adv) { xs.push(x); x += a; }
+        return { chars, xs, y, key, w: viewW, h: viewH };
+      }
+      function drawSignature() {
+        // ease in over roughly a second so it surfaces rather than pops
+        const want = keyPolish > 0.995 ? 1 : 0;
+        sigFade += (want - sigFade) * 0.05;
+        if (sigFade < 0.01) return;
+        const key = keyProp();
+        if (!key) return;
+        if (!sigLayout || sigLayout.key !== key || sigLayout.w !== viewW || sigLayout.h !== viewH) {
+          sigLayout = layoutSignature(key);
         }
-        function undo() {
-          const s = undoStack.pop();
-          if (!s || s.W !== W || s.H !== H) return;
-          h.set(s.h); loose.set(s.l); packed.set(s.p); mem.set(s.m); ghost.set(s.g);
-        }
+        const { chars, xs, y } = sigLayout;
+        ctx.save();
+        ctx.font = SIG_FONT;
+        ctx.textBaseline = "middle";
+        // struck twice: a dark bite, then the bright metal it turned up
+        const dark = "rgba(48,38,22," + (0.5 * sigFade).toFixed(3) + ")";
+        const brass = "rgba(238,206,140," + (0.92 * sigFade).toFixed(3) + ")";
+        ctx.fillStyle = dark;
+        for (let i = 0; i < chars.length; i++) ctx.fillText(chars[i], xs[i] + 1, y + 1);
+        ctx.fillStyle = brass;
+        for (let i = 0; i < chars.length; i++) ctx.fillText(chars[i], xs[i], y);
+        ctx.restore();
+      }
 
-        /* ---------- audio ---------- */
-        let ac = null, master = null, noiseSrc = null, bp = null, bpGain = null, lfo = null, lfoGain = null;
-        let tone = { gain: 0, freq: 500, q: 1 };
-        function initAudio() {
-          if (ac) return;
-          const AC = window.AudioContext || window.webkitAudioContext;
-          if (!AC) return;
-          ac = new AC();
-          const len = ac.sampleRate * 2;
-          const buf = ac.createBuffer(1, len, ac.sampleRate);
-          const d = buf.getChannelData(0);
-          let last = 0;
-          for (let i = 0; i < len; i++) {
-            const white = Math.random() * 2 - 1;
-            last = last * 0.62 + white * 0.38;
-            d[i] = last * 0.9;
+      /* ---------- tool cursor ----------
+         Each tool draws its own shape, so the size slider is legible before you
+         commit a stroke and Finger and Stone are told apart on sight. */
+      const hover = { x: -1, y: -1, ux: 1, uy: 0, on: false };
+      const coarse = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+      function drawCursor() {
+        if (coarse || !hover.on || hover.x < 0) return;
+        const px = (hover.x / W) * viewW, py = (hover.y / H) * viewH;
+        const rad = (brushRadius() / W) * viewW;
+        const ux = hover.ux, uy = hover.uy, nx = -uy, ny = ux;
+        ctx.save();
+        ctx.lineWidth = 1;
+        ctx.strokeStyle = "rgba(58,47,30,0.4)";
+        ctx.fillStyle = "rgba(58,47,30,0.22)";
+        if (S.tool === "rake") {
+          const n = 5;
+          for (let k = 0; k < n; k++) {
+            const o = (k - (n - 1) / 2) * (rad * 2) / n;
+            ctx.beginPath();
+            ctx.moveTo(px + nx * o - ux * 5, py + ny * o - uy * 5);
+            ctx.lineTo(px + nx * o + ux * 5, py + ny * o + uy * 5);
+            ctx.stroke();
           }
-          noiseSrc = ac.createBufferSource(); noiseSrc.buffer = buf; noiseSrc.loop = true;
-          bp = ac.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 500; bp.Q.value = 1;
-          bpGain = ac.createGain(); bpGain.gain.value = 0;
-          master = ac.createGain(); master.gain.value = (S.volume / 100) * (S.sound ? 1 : 0);
-          lfo = ac.createOscillator(); lfo.type = "sine"; lfo.frequency.value = 26;
-          lfoGain = ac.createGain(); lfoGain.gain.value = 0;
-          lfo.connect(lfoGain).connect(bpGain.gain);
-          noiseSrc.connect(bp).connect(bpGain).connect(master).connect(ac.destination);
-          noiseSrc.start(); lfo.start();
+        } else if (S.tool === "finger") {
+          ctx.beginPath(); ctx.arc(px, py, rad * 0.55, 0, TAU); ctx.fill();
+          ctx.globalAlpha = 0.45;
+          ctx.beginPath(); ctx.arc(px, py, rad * 1.15, 0, TAU); ctx.stroke();
+        } else if (S.tool === "stone") {
+          ctx.globalAlpha = 0.28;
+          ctx.beginPath(); ctx.arc(px + 2.5, py + 3, rad * 0.85, 0, TAU); ctx.fill();
+          ctx.globalAlpha = 1; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.arc(px, py, rad * 0.85, 0, TAU); ctx.stroke();
+        } else if (S.tool === "wind") {
+          ctx.globalAlpha = 0.5;
+          const a = Math.atan2(uy, ux);
+          for (let k = 0; k < 3; k++) {
+            ctx.beginPath();
+            ctx.arc(px - ux * k * 5, py - uy * k * 5, rad * (1.3 - k * 0.22), a - 0.8, a + 0.8);
+            ctx.stroke();
+          }
+        } else {
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath(); ctx.arc(px, py, rad * 0.72, 0, TAU); ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.globalAlpha = 0.35;
+          ctx.beginPath(); ctx.arc(px, py, 2, 0, TAU); ctx.fill();
         }
-        function setTone(tool, speed, press) {
-          if (!ac) return;
-          if (tool === "rake") { tone.freq = 900 + speed * 1400; tone.q = 1.6; tone.gain = 0.05 + speed * 0.1 + press * 0.02; lfo.frequency.value = clamp(18 + speed * 55, 12, 90); lfoGain.gain.value = tone.gain * 0.5; }
-          else if (tool === "finger") { tone.freq = 340 + speed * 520; tone.q = 0.8; tone.gain = 0.035 + speed * 0.06; lfoGain.gain.value = 0; }
-          else if (tool === "stone") { tone.freq = 180 + speed * 340; tone.q = 1.1; tone.gain = 0.055 + speed * 0.1; lfo.frequency.value = clamp(8 + speed * 22, 6, 40); lfoGain.gain.value = tone.gain * 0.35; }
-          else { tone.freq = 700 + speed * 900; tone.q = 0.55; tone.gain = 0.05 + speed * 0.07; lfoGain.gain.value = 0; }
-        }
-        function audioTick(active) {
-          if (!ac) return;
-          const t = ac.currentTime;
-          if (!active) tone.gain *= 0.86;
-          bpGain.gain.setTargetAtTime(clamp(tone.gain, 0, 0.2), t, 0.07);
-          bp.frequency.setTargetAtTime(tone.freq, t, 0.05);
-          bp.Q.value = tone.q;
-          if (!active) { tone.freq += (300 - tone.freq) * 0.05; if (lfoGain) lfoGain.gain.value *= 0.85; }
-        }
-        function click(force, low) {
-          if (!ac || !S.sound) return;
-          const len = Math.floor(ac.sampleRate * 0.08);
-          const buf = ac.createBuffer(1, len, ac.sampleRate);
-          const d = buf.getChannelData(0);
-          for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, low ? 2.6 : 4.5);
-          const src = ac.createBufferSource(); src.buffer = buf;
-          const f = ac.createBiquadFilter(); f.type = low ? "lowpass" : "bandpass";
-          f.frequency.value = low ? 320 + force * 380 : 900 + force * 1400;
-          const g = ac.createGain(); g.gain.value = 0.045 + force * 0.06;
-          src.connect(f).connect(g).connect(master); src.start();
-        }
+        ctx.restore();
+      }
 
-        /* ---------- pointer handling ---------- */
-        function toGrid(e) { return { x: (e.clientX / viewW) * W, y: (e.clientY / viewH) * H }; }
+      /* ---------- undo ---------- */
+      function snapshot() {
+        undoStack.push({
+          h: Float32Array.from(h), l: Float32Array.from(loose), p: Float32Array.from(packed),
+          m: Float32Array.from(mem), g: Float32Array.from(ghost), gl: Float32Array.from(gloss),
+          b: Float32Array.from(base),
+          props: props.map((p) => Object.assign({}, p)), W, H
+        });
+        if (undoStack.length > 9) undoStack.shift();
+      }
+      function undo() {
+        const s = undoStack.pop();
+        if (!s || s.W !== W || s.H !== H) return;
+        h.set(s.h); loose.set(s.l); packed.set(s.p); mem.set(s.m); ghost.set(s.g); gloss.set(s.gl);
+        base.set(s.b);
+        props.length = 0;
+        for (const p of s.props) props.push(p);
+        rasterizeProps();
+      }
 
-        function onDown(e) {
-          e.preventDefault();
-          if (pointers.size === 0) snapshot();
-          if (S.sound) { initAudio(); if (ac && ac.state === "suspended") ac.resume(); }
+      /* ---------- audio ---------- */
+      let ac = null, master = null, noiseSrc = null, bp = null, bpGain = null, lfo = null, lfoGain = null;
+      let tone = { gain: 0, freq: 500, q: 1 };
+      function initAudio() {
+        if (ac) return;
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return;
+        ac = new AC();
+        const len = ac.sampleRate * 2;
+        const buf = ac.createBuffer(1, len, ac.sampleRate);
+        const d = buf.getChannelData(0);
+        let last = 0;
+        for (let i = 0; i < len; i++) {
+          const white = Math.random() * 2 - 1;
+          last = last * 0.62 + white * 0.38;
+          d[i] = last * 0.9;
+        }
+        noiseSrc = ac.createBufferSource(); noiseSrc.buffer = buf; noiseSrc.loop = true;
+        bp = ac.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 500; bp.Q.value = 1;
+        bpGain = ac.createGain(); bpGain.gain.value = 0;
+        master = ac.createGain(); master.gain.value = (S.volume / 100) * (S.sound ? 1 : 0);
+        lfo = ac.createOscillator(); lfo.type = "sine"; lfo.frequency.value = 26;
+        lfoGain = ac.createGain(); lfoGain.gain.value = 0;
+        lfo.connect(lfoGain).connect(bpGain.gain);
+        noiseSrc.connect(bp).connect(bpGain).connect(master).connect(ac.destination);
+        noiseSrc.start(); lfo.start();
+      }
+      function setTone(tool, speed, press) {
+        if (!ac) return;
+        if (tool === "rake") { tone.freq = 900 + speed * 1400; tone.q = 1.6; tone.gain = 0.05 + speed * 0.1 + press * 0.02; lfo.frequency.value = clamp(18 + speed * 55, 12, 90); lfoGain.gain.value = tone.gain * 0.5; }
+        // finger is a soft high shush that rides up with speed; stone is a low grind
+        else if (tool === "finger") { tone.freq = 1500 + speed * 2400; tone.q = 0.45; tone.gain = 0.026 + speed * 0.05; lfoGain.gain.value = 0; }
+        else if (tool === "stone") { tone.freq = 130 + speed * 240; tone.q = 1.4; tone.gain = 0.07 + speed * 0.11; lfo.frequency.value = clamp(6 + speed * 16, 5, 32); lfoGain.gain.value = tone.gain * 0.45; }
+        else if (tool === "post") { tone.gain = 0; lfoGain.gain.value = 0; }
+        else { tone.freq = 700 + speed * 900; tone.q = 0.55; tone.gain = 0.05 + speed * 0.07; lfoGain.gain.value = 0; }
+      }
+      function audioTick(active) {
+        if (!ac) return;
+        const t = ac.currentTime;
+        if (!active) tone.gain *= 0.86;
+        bpGain.gain.setTargetAtTime(clamp(tone.gain, 0, 0.2), t, 0.07);
+        bp.frequency.setTargetAtTime(tone.freq, t, 0.05);
+        bp.Q.value = tone.q;
+        if (!active) { tone.freq += (300 - tone.freq) * 0.05; if (lfoGain) lfoGain.gain.value *= 0.85; }
+      }
+      function click(force, low) {
+        if (!ac || !S.sound) return;
+        const len = Math.floor(ac.sampleRate * 0.08);
+        const buf = ac.createBuffer(1, len, ac.sampleRate);
+        const d = buf.getChannelData(0);
+        for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, low ? 2.6 : 4.5);
+        const src = ac.createBufferSource(); src.buffer = buf;
+        const f = ac.createBiquadFilter(); f.type = low ? "lowpass" : "bandpass";
+        f.frequency.value = low ? 320 + force * 380 : 900 + force * 1400;
+        const g = ac.createGain(); g.gain.value = 0.045 + force * 0.06;
+        src.connect(f).connect(g).connect(master); src.start();
+      }
+      // dull wooden knock when a tool runs into a post — rate-limited so a rake
+      // dragged along a pylon taps rather than buzzes
+      let lastKnock = 0;
+      function knock(force) {
+        if (!ac || !S.sound) return;
+        const t = ac.currentTime;
+        if (t - lastKnock < 0.07) return;
+        lastKnock = t;
+        const o = ac.createOscillator(); o.type = "triangle";
+        o.frequency.setValueAtTime(190 + force * 120, t);
+        o.frequency.exponentialRampToValueAtTime(78, t + 0.09);
+        const f = ac.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = 900;
+        const g = ac.createGain();
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.03 + force * 0.05, t + 0.004);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.13);
+        o.connect(f).connect(g).connect(master); o.start(t); o.stop(t + 0.15);
+      }
+      // stone finding metal: a short dull tap, damped by the sand around it. Says
+      // "there's something here", deliberately not "you've won something".
+      function tink() {
+        if (!ac || !S.sound) return;
+        knock(0.5);
+        const t = ac.currentTime;
+        const o = ac.createOscillator(); o.type = "sine";
+        o.frequency.setValueAtTime(1240, t);
+        o.frequency.exponentialRampToValueAtTime(880, t + 0.16);
+        const g = ac.createGain();
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.035, t + 0.005);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+        o.connect(g).connect(master); o.start(t); o.stop(t + 0.26);
+      }
+      // the one sound in the piece that isn't sand — held back for the signature
+      function chime() {
+        if (!ac || !S.sound) return;
+        const t = ac.currentTime;
+        [1, 2.02, 3.01].forEach((mul, k) => {
+          const o = ac.createOscillator(); o.type = "sine";
+          o.frequency.value = 784 * mul;
+          const g = ac.createGain();
+          g.gain.setValueAtTime(0.0001, t);
+          g.gain.exponentialRampToValueAtTime(0.05 / (k + 1.4), t + 0.01 + k * 0.012);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 1.5 + k * 0.4);
+          o.connect(g).connect(master); o.start(t); o.stop(t + 2.2);
+        });
+      }
+
+      /* ---------- pointer handling ---------- */
+      function toGrid(e) { return { x: (e.clientX / viewW) * W, y: (e.clientY / viewH) * H }; }
+
+      function onDown(e) {
+        e.preventDefault();
+        if (pointers.size === 0) snapshot();
+        if (S.sound) { initAudio(); if (ac && ac.state === "suspended") ac.resume(); }
+        const g = toGrid(e);
+        pointers.set(e.pointerId, {
+          x: g.x, y: g.y, ox: g.x, oy: g.y, ux: 0, uy: 0, t: performance.now(),
+          t0: performance.now(), hold: 0, moved: 0, press: e.pressure && e.pressure > 0 ? 0.4 + e.pressure * 0.8 : 0.85,
+          turn: 0, ang: null
+        });
+        try { cv.setPointerCapture(e.pointerId); } catch (_) { }
+        $("hint").classList.add("gone");
+        if (S.tool !== "wind" && S.tool !== "post") click(S.tool === "stone" ? 0.85 : 0.35, S.tool === "stone");
+      }
+
+      function onMove(e) {
+        const p = pointers.get(e.pointerId);
+        if (!p) {
+          // no button down: just track the cursor so the overlay can follow
           const g = toGrid(e);
-          pointers.set(e.pointerId, {
-            x: g.x, y: g.y, ox: g.x, oy: g.y, ux: 0, uy: 0, t: performance.now(),
-            t0: performance.now(), hold: 0, moved: 0, press: e.pressure && e.pressure > 0 ? 0.4 + e.pressure * 0.8 : 0.85,
-            turn: 0, ang: null
-          });
-          try { cv.setPointerCapture(e.pointerId); } catch (_) {}
-          $("hint").classList.add("gone");
-          if (S.tool !== "wind") click(S.tool === "stone" ? 0.85 : 0.35, S.tool === "stone");
+          const dx = g.x - hover.x, dy = g.y - hover.y;
+          const d = Math.hypot(dx, dy);
+          if (d > 0.4) { hover.ux = dx / d; hover.uy = dy / d; }
+          hover.x = g.x; hover.y = g.y; hover.on = true;
+          return;
         }
+        e.preventDefault();
+        const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+        for (const ev of evs) applyMove(p, ev);
+      }
 
-        function onMove(e) {
-          const p = pointers.get(e.pointerId);
-          if (!p) return;
-          e.preventDefault();
-          const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
-          for (const ev of evs) applyMove(p, ev);
+      function applyMove(p, e) {
+        const now = performance.now();
+        const g = toGrid(e);
+        const dt = Math.max(6, now - p.t);
+        let dx = g.x - p.x, dy = g.y - p.y;
+        const dist = Math.hypot(dx, dy);
+        p.press = e.pressure && e.pressure > 0 ? 0.4 + e.pressure * 0.8 : p.press;
+        if (dist < 0.0001) { p.t = now; return; }
+        const speed = clamp(dist / dt * 8, 0, 4);
+        const ux = dx / dist, uy = dy / dist;
+        if (p.ang !== null) {
+          let da = Math.atan2(uy, ux) - p.ang;
+          while (da > Math.PI) da -= TAU;
+          while (da < -Math.PI) da += TAU;
+          p.turn = p.turn * 0.9 + da;
         }
+        p.ang = Math.atan2(uy, ux);
+        p.moved += dist;
+        hover.x = g.x; hover.y = g.y; hover.ux = ux; hover.uy = uy; hover.on = true;
+        // the post tool only acts on tap — dragging it just moves the marker
+        if (S.tool === "post") { p.x = g.x; p.y = g.y; p.t = now; return; }
 
-        function applyMove(p, e) {
-          const now = performance.now();
-          const g = toGrid(e);
-          const dt = Math.max(6, now - p.t);
-          let dx = g.x - p.x, dy = g.y - p.y;
-          const dist = Math.hypot(dx, dy);
-          p.press = e.pressure && e.pressure > 0 ? 0.4 + e.pressure * 0.8 : p.press;
-          if (dist < 0.0001) { p.t = now; return; }
-          const speed = clamp(dist / dt * 8, 0, 4);
-          const ux = dx / dist, uy = dy / dist;
-          if (p.ang !== null) {
-            let da = Math.atan2(uy, ux) - p.ang;
-            while (da > Math.PI) da -= TAU;
-            while (da < -Math.PI) da += TAU;
-            p.turn = p.turn * 0.9 + da;
-          }
-          p.ang = Math.atan2(uy, ux);
-          p.moved += dist;
-
-          const stepLen = 0.55;
-          const steps = Math.min(64, Math.max(1, Math.ceil(dist / stepLen)));
-          const amt = clamp(dist / steps, 0.1, 1.2) * 1.15;
-          // curved gestures bite a little deeper on the inside of the arc
-          const curveBoost = 1 + clamp(Math.abs(p.turn) * 0.5, 0, 0.5);
-          for (let s = 1; s <= steps; s++) {
-            const t = s / steps;
-            const x = p.x + dx * t, y = p.y + dy * t;
-            applyTool(S.tool, x, y, ux, uy, speed, p.press * curveBoost, amt, 0);
-          }
-          p.ux = ux; p.uy = uy; p.x = g.x; p.y = g.y; p.t = now;
-          setTone(S.tool, clamp(speed * 0.5, 0, 1.6), p.press);
+        const stepLen = 0.55;
+        const steps = Math.min(64, Math.max(1, Math.ceil(dist / stepLen)));
+        const amt = clamp(dist / steps, 0.1, 1.2) * 1.15;
+        // curved gestures bite a little deeper on the inside of the arc
+        const curveBoost = 1 + clamp(Math.abs(p.turn) * 0.5, 0, 0.5);
+        for (let s = 1; s <= steps; s++) {
+          const t = s / steps;
+          const x = p.x + dx * t, y = p.y + dy * t;
+          applyTool(S.tool, x, y, ux, uy, speed, p.press * curveBoost, amt, 0);
         }
+        p.ux = ux; p.uy = uy; p.x = g.x; p.y = g.y; p.t = now;
+        setTone(S.tool, clamp(speed * 0.5, 0, 1.6), p.press);
+      }
 
-        function onUp(e) {
-          const p = pointers.get(e.pointerId);
-          if (!p) return;
-          const dur = performance.now() - p.t0;
-          if (p.moved < 1.6 && dur < 420) {
-            tapAt(S.tool, p.x, p.y, clamp(p.press, 0.5, 1.4));
-            click(S.tool === "stone" ? 1 : 0.5, S.tool === "stone" || S.tool === "finger");
-          } else if (p.hold > 26 && S.tool !== "wind") {
-            ripple(p.x, p.y, brushRadius() * 2.4, 0.035);
-          }
-          pointers.delete(e.pointerId);
+      function onUp(e) {
+        const p = pointers.get(e.pointerId);
+        if (!p) return;
+        const dur = performance.now() - p.t0;
+        // the post tool always acts on release — it's a placement, not a stroke
+        if (S.tool === "post") {
+          tapAt("post", p.x, p.y, 1);
+        } else if (p.moved < 1.6 && dur < 420) {
+          tapAt(S.tool, p.x, p.y, clamp(p.press, 0.5, 1.4));
+          click(S.tool === "stone" ? 1 : 0.5, S.tool === "stone" || S.tool === "finger");
+        } else if (p.hold > 26 && S.tool !== "wind") {
+          ripple(p.x, p.y, brushRadius() * 2.4, 0.035);
         }
+        pointers.delete(e.pointerId);
+      }
 
-        function applyTool(tool, x, y, ux, uy, speed, press, amt, held) {
-          if (x < 1 || y < 1 || x >= W - 1 || y >= H - 1) return;
-          if (tool === "rake") toolRake(x, y, ux, uy, speed, press, amt);
-          else if (tool === "finger") toolFinger(x, y, ux, uy, speed, press, amt);
-          else if (tool === "stone") toolStone(x, y, ux, uy, speed, press, amt, held);
-          else toolWind(x, y, ux, uy, speed, press, amt);
-        }
+      function applyTool(tool, x, y, ux, uy, speed, press, amt, held) {
+        if (x < 1 || y < 1 || x >= W - 1 || y >= H - 1) return;
+        if (tool === "rake") toolRake(x, y, ux, uy, speed, press, amt);
+        else if (tool === "finger") toolFinger(x, y, ux, uy, speed, press, amt);
+        else if (tool === "stone") toolStone(x, y, ux, uy, speed, press, amt, held);
+        else if (tool === "post") return;
+        else toolWind(x, y, ux, uy, speed, press, amt);
+      }
 
-        /* ---------- main loop ---------- */
-        function loop() {
-          frame++;
-          let active = false;
-          for (const p of pointers.values()) {
-            const idle = performance.now() - p.t;
-            if (idle > 26) {
-              p.hold++;
+      /* ---------- main loop ---------- */
+      function loop() {
+        frame++;
+        let active = false;
+        for (const p of pointers.values()) {
+          const idle = performance.now() - p.t;
+          if (idle > 26) {
+            p.hold++;
+            active = true;
+            const held = clamp(p.hold / 60, 0, 1.4);
+            if (S.tool === "wind") {
+              const a = p.ang === null ? frame * 0.004 : p.ang + Math.sin(frame * 0.01) * 0.25;
+              applyTool("wind", p.x, p.y, Math.cos(a), Math.sin(a), 0.12, p.press, 0.45, held);
+              setTone("wind", 0.25, p.press);
+            } else if (S.tool === "stone") {
+              // weight keeps working: it settles deeper the longer you lean on it
+              applyTool("stone", p.x, p.y, 0, 0, 0, p.press, 0.18, held);
+              setTone("stone", 0.05, p.press);
+            } else if (S.tool === "finger") {
+              // held still, a fingertip stops digging and starts polishing
+              markGloss(p.x, p.y, brushRadius("finger") * 1.1, 0.055 * p.press);
+              smoothAt(p.x, p.y, brushRadius("finger") * 1.3, 0.09);
+              compactAt(p.x, p.y, brushRadius("finger") * 0.6, 0.004);
+              setTone("finger", 0.04, p.press);
+            } else if (S.tool === "post") {
               active = true;
-              const held = clamp(p.hold / 60, 0, 1.4);
-              if (S.tool === "wind") {
-                const a = p.ang === null ? frame * 0.004 : p.ang + Math.sin(frame * 0.01) * 0.25;
-                applyTool("wind", p.x, p.y, Math.cos(a), Math.sin(a), 0.12, p.press, 0.45, held);
-                setTone("wind", 0.25, p.press);
-              } else if (S.tool === "stone") {
-                applyTool("stone", p.x, p.y, 0, 0, 0, p.press, 0.16 * (1 - held * 0.45), held);
-                setTone("stone", 0.05, p.press);
-              } else if (S.tool === "finger") {
-                applyTool("finger", p.x, p.y, p.ux, p.uy, 0, p.press, 0.12 * (1 - held * 0.5), held);
-                compactAt(p.x, p.y, brushRadius() * 0.5, 0.012);
-                setTone("finger", 0.04, p.press);
-              } else {
-                applyTool("rake", p.x, p.y, p.ux || 1, p.uy || 0, 0, p.press, 0.09 * (1 - held * 0.5), held);
-                compactAt(p.x, p.y, brushRadius() * 0.6, 0.006);
-                setTone("rake", 0.03, p.press);
-              }
-            } else active = true;
-          }
-          step();
-          audioTick(active);
-          render();
-          if (++statTick > 24) { statTick = 0; updateMeters(); }
-          requestAnimationFrame(loop);
+            } else {
+              applyTool("rake", p.x, p.y, p.ux || 1, p.uy || 0, 0, p.press, 0.09 * (1 - held * 0.5), held);
+              compactAt(p.x, p.y, brushRadius() * 0.6, 0.006);
+              setTone("rake", 0.03, p.press);
+            }
+          } else active = true;
         }
-
-        function updateMeters() {
-          let m = 0, pk = 0;
-          const stride = 7;
-          let n = 0;
-          for (let i = 0; i < N; i += stride) { m += Math.min(mem[i], 2); pk += packed[i]; n++; }
-          $("memBar").style.width = clamp((m / n) * 90, 0, 100) + "%";
-          $("packBar").style.width = clamp((pk / n) * 200, 0, 100) + "%";
-        }
-
-        /* ---------- UI ---------- */
-        const toolBtns = [...document.querySelectorAll(".tool")];
-        function selectTool(t) {
-          S.tool = t;
-          toolBtns.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.tool === t)));
-        }
-        toolBtns.forEach((b) => b.addEventListener("click", () => selectTool(b.dataset.tool)));
-
-        const bind = (id, key, fmt) => {
-          const el = $(id), out = $(id + "Out");
-          const sync = () => { S[key] = el.valueAsNumber; if (out) out.textContent = fmt ? fmt(el.valueAsNumber) : el.valueAsNumber; };
-          el.addEventListener("input", sync); sync();
-        };
-        bind("settle", "settle"); bind("memory", "memory"); bind("grain", "grain");
-        bind("light", "light", (v) => v + "°"); bind("volume", "volume"); bind("size", "size");
-        $("volume").addEventListener("input", () => { if (master) master.gain.value = (S.volume / 100) * (S.sound ? 1 : 0); });
-
-        const themesEl = $("themes");
-        Object.keys(THEMES).forEach((k) => {
-          const b = document.createElement("button");
-          b.textContent = THEMES[k].name;
-          b.setAttribute("aria-pressed", String(THEMES[k] === theme));
-          b.addEventListener("click", () => {
-            theme = THEMES[k];
-            [...themesEl.children].forEach((c) => c.setAttribute("aria-pressed", String(c === b)));
-          });
-          themesEl.appendChild(b);
-        });
-
-        const PRESETS = [["karesansui", "Karesansui"], ["dunes", "Dunes"], ["basin", "Basin"], ["flat", "Still"]];
-        const presetsEl = $("presets");
-        let currentPreset = "karesansui";
-        PRESETS.forEach(([k, label]) => {
-          const b = document.createElement("button");
-          b.textContent = label;
-          b.setAttribute("aria-pressed", String(k === currentPreset));
-          b.addEventListener("click", () => {
-            snapshot(); currentPreset = k; makeTerrain(k);
-            [...presetsEl.children].forEach((c) => c.setAttribute("aria-pressed", String(c === b)));
-          });
-          presetsEl.appendChild(b);
-        });
-
-        $("undo").addEventListener("click", undo);
-        $("reset").addEventListener("click", () => { snapshot(); makeTerrain(currentPreset); });
-        $("gear").addEventListener("click", () => {
-          const open = $("panel").classList.toggle("open");
-          $("gear").setAttribute("aria-pressed", String(open));
-        });
-        $("sound").addEventListener("click", () => {
-          S.sound = !S.sound;
-          $("sound").setAttribute("aria-pressed", String(S.sound));
-          $("wave1").style.opacity = S.sound ? "1" : "0.12";
-          $("wave2").style.opacity = S.sound ? "0.6" : "0.08";
-          if (S.sound) { initAudio(); if (ac && ac.state === "suspended") ac.resume(); }
-          if (master) master.gain.value = (S.volume / 100) * (S.sound ? 1 : 0);
-        });
-
-        window.addEventListener("keydown", (e) => {
-          const k = e.key.toLowerCase();
-          if (k === "1") selectTool("rake");
-          else if (k === "2") selectTool("finger");
-          else if (k === "3") selectTool("stone");
-          else if (k === "4") selectTool("wind");
-          else if (k === "u" || ((e.metaKey || e.ctrlKey) && k === "z")) undo();
-          else if (k === "r") { snapshot(); makeTerrain(currentPreset); }
-        });
-
-        cv.addEventListener("pointerdown", onDown, { passive: false });
-        cv.addEventListener("pointermove", onMove, { passive: false });
-        cv.addEventListener("pointerup", onUp);
-        cv.addEventListener("pointercancel", onUp);
-        window.addEventListener("blur", () => { for (const id of [...pointers.keys()]) pointers.delete(id); });
-        cv.addEventListener("contextmenu", (e) => e.preventDefault());
-        let rt;
-        window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => allocate(true), 160); });
-
-        allocate(false);
-        setTimeout(() => $("hint").classList.add("gone"), 9000);
+        step();
+        audioTick(active);
+        render();
+        if (++statTick > 24) { statTick = 0; updateMeters(); checkKey(); }
         requestAnimationFrame(loop);
-      })();
-    </script>
-  </body>
+      }
+
+      // Has the sand over the key been cleared? Checked a few times a second, not
+      // every frame — and it re-hides itself just as quietly if you bury it again.
+      function checkKey() {
+        const key = keyProp();
+        if (!key || !key.cells || !key.cells.length) return;
+        // Ask the metal, not the neighbourhood: what share of the key is in the
+        // open? Averaging a box around it just measured the sand beside the pit.
+        let clear = 0;
+        for (const i of key.cells) if (h[i] <= key.top + 0.02) clear++;
+        // hysteresis, or a key sitting right at the threshold flickers
+        const uncovered = clear / key.cells.length > (key.buried ? 0.45 : 0.28);
+        if (uncovered !== !key.buried) {
+          key.buried = !uncovered;
+          // finding it is a tink of metal, not a reward — the reward is one beat later
+          if (uncovered && !keySeen) { keySeen = true; tink(); }
+          /* Going back under only happens by undo: once the key is exposed its own
+             cells stop the sand flowing, so nothing settles on it again. Undoing
+             the dig should undo the shine with it — but the latches stay set, so
+             neither sound can be farmed. */
+          if (!uncovered) keyPolish = 0;
+        }
+        if (uncovered && keyPolish > 0.995 && !keySigned) { keySigned = true; chime(); }
+      }
+
+      function updateMeters() {
+        let m = 0, pk = 0;
+        const stride = 7;
+        let n = 0;
+        for (let i = 0; i < N; i += stride) { m += Math.min(mem[i], 2); pk += packed[i]; n++; }
+        $("memBar").style.width = clamp((m / n) * 90, 0, 100) + "%";
+        $("packBar").style.width = clamp((pk / n) * 200, 0, 100) + "%";
+      }
+
+      /* ---------- UI ---------- */
+      const toolBtns = [...document.querySelectorAll(".tool")];
+      function selectTool(t) {
+        S.tool = t;
+        toolBtns.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.tool === t)));
+      }
+      toolBtns.forEach((b) => b.addEventListener("click", () => selectTool(b.dataset.tool)));
+
+      const bind = (id, key, fmt) => {
+        const el = $(id), out = $(id + "Out");
+        const sync = () => { S[key] = el.valueAsNumber; if (out) out.textContent = fmt ? fmt(el.valueAsNumber) : el.valueAsNumber; };
+        el.addEventListener("input", sync); sync();
+      };
+      bind("settle", "settle"); bind("memory", "memory"); bind("grain", "grain");
+      bind("light", "light", (v) => v + "°"); bind("volume", "volume"); bind("size", "size");
+      $("volume").addEventListener("input", () => { if (master) master.gain.value = (S.volume / 100) * (S.sound ? 1 : 0); });
+
+      const themesEl = $("themes");
+      Object.keys(THEMES).forEach((k) => {
+        const b = document.createElement("button");
+        b.textContent = THEMES[k].name;
+        b.setAttribute("aria-pressed", String(THEMES[k] === theme));
+        b.addEventListener("click", () => {
+          theme = THEMES[k];
+          // the garden stays exactly as you worked it — only the material changes,
+          // so the same pattern can be compared across all five
+          buildGrain();
+          [...themesEl.children].forEach((c) => c.setAttribute("aria-pressed", String(c === b)));
+        });
+        themesEl.appendChild(b);
+      });
+
+      const PRESETS = [["karesansui", "Karesansui"], ["pilings", "Pilings"], ["dunes", "Dunes"], ["basin", "Basin"], ["flat", "Still"]];
+      const presetsEl = $("presets");
+      let currentPreset = "karesansui";
+      PRESETS.forEach(([k, label]) => {
+        const b = document.createElement("button");
+        b.textContent = label;
+        b.setAttribute("aria-pressed", String(k === currentPreset));
+        b.addEventListener("click", () => {
+          snapshot(); currentPreset = k; makeTerrain(k);
+          [...presetsEl.children].forEach((c) => c.setAttribute("aria-pressed", String(c === b)));
+        });
+        presetsEl.appendChild(b);
+      });
+
+      $("undo").addEventListener("click", undo);
+      $("reset").addEventListener("click", () => { snapshot(); makeTerrain(currentPreset); });
+      $("gear").addEventListener("click", () => {
+        const open = $("panel").classList.toggle("open");
+        $("gear").setAttribute("aria-pressed", String(open));
+      });
+      $("sound").addEventListener("click", () => {
+        S.sound = !S.sound;
+        $("sound").setAttribute("aria-pressed", String(S.sound));
+        $("wave1").style.opacity = S.sound ? "1" : "0.12";
+        $("wave2").style.opacity = S.sound ? "0.6" : "0.08";
+        if (S.sound) { initAudio(); if (ac && ac.state === "suspended") ac.resume(); }
+        if (master) master.gain.value = (S.volume / 100) * (S.sound ? 1 : 0);
+      });
+
+      window.addEventListener("keydown", (e) => {
+        const k = e.key.toLowerCase();
+        if (k === "1") selectTool("rake");
+        else if (k === "2") selectTool("finger");
+        else if (k === "3") selectTool("stone");
+        else if (k === "4") selectTool("wind");
+        else if (k === "5") selectTool("post");
+        else if (k === "u" || ((e.metaKey || e.ctrlKey) && k === "z")) undo();
+        else if (k === "r") { snapshot(); makeTerrain(currentPreset); }
+      });
+
+      cv.addEventListener("pointerdown", onDown, { passive: false });
+      cv.addEventListener("pointermove", onMove, { passive: false });
+      cv.addEventListener("pointerup", onUp);
+      cv.addEventListener("pointercancel", onUp);
+      cv.addEventListener("pointerleave", () => { hover.on = false; });
+      cv.addEventListener("pointerenter", () => { hover.on = true; });
+      window.addEventListener("blur", () => { for (const id of [...pointers.keys()]) pointers.delete(id); });
+      cv.addEventListener("contextmenu", (e) => e.preventDefault());
+      let rt;
+      window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => allocate(true), 160); });
+
+      // keep the settings panel clear of the dock even when it wraps to two rows
+      const dockEl = document.querySelector(".dock");
+      const syncDock = () => document.documentElement.style.setProperty("--dockh", (dockEl.offsetHeight + 10) + "px");
+      if (window.ResizeObserver) new ResizeObserver(syncDock).observe(dockEl);
+      window.addEventListener("resize", syncDock);
+
+      allocate(false);
+      syncDock();
+      setTimeout(() => $("hint").classList.add("gone"), 9000);
+      requestAnimationFrame(loop);
+    })();
+  </script>
+</body>
+
 </html>

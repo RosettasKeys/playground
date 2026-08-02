@@ -6,73 +6,458 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Particle Drift | Fidget Toy Garden</title>
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap');
+
     body,
     html {
       margin: 0;
       padding: 0;
       width: 100%;
       height: 100%;
-      background-color: #0a0a12;
-      /* Deep, calming dark space */
+      background-color: #05050a;
       overflow: hidden;
-      font-family: system-ui, sans-serif;
+      font-family: 'Outfit', system-ui, sans-serif;
       touch-action: none;
-      /* Prevents mobile scrolling and pull-to-refresh */
+      color: #e2e8f0;
+      transition: background-color 0.8s ease;
     }
 
     canvas {
       display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1;
     }
 
-    .toy-nav {
+    /* Top Left Nav Control Overlay */
+    .top-left-overlay {
       position: absolute;
       top: 20px;
       left: 20px;
       z-index: 10;
       display: flex;
-      gap: 15px;
+      gap: 12px;
       align-items: center;
     }
 
-    .back-link {
-      color: rgba(255, 255, 255, 0.5);
+    .back-btn {
+      background: rgba(10, 10, 20, 0.4);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.6);
+      padding: 8px 18px;
+      border-radius: 20px;
       text-decoration: none;
-      font-size: 0.9rem;
-      transition: color 0.3s ease;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
 
-    .back-link:hover {
-      color: rgba(255, 255, 255, 1);
+    .back-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+      box-shadow: 0 4px 16px rgba(255, 255, 255, 0.1);
     }
 
-    .sound-toggle {
-      background: none;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      color: rgba(255, 255, 255, 0.5);
+    .sound-toggle-btn {
+      background: rgba(10, 10, 20, 0.4);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: rgba(255, 255, 255, 0.6);
+      width: 38px;
+      height: 38px;
       border-radius: 50%;
-      width: 32px;
-      height: 32px;
       cursor: pointer;
-      transition: all 0.3s ease;
       display: flex;
       align-items: center;
       justify-content: center;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      font-size: 1.1rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
 
-    .sound-toggle.active {
+    .sound-toggle-btn:hover {
       color: #fff;
-      border-color: #fff;
-      box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .sound-toggle-btn.active {
+      color: #fff;
+      border-color: rgba(129, 140, 248, 0.6);
+      background: rgba(99, 102, 241, 0.2);
+      box-shadow: 0 0 15px rgba(129, 140, 248, 0.4);
+    }
+
+    /* Floating Controls HUD Panel */
+    .hud-panel {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: 10;
+      width: 300px;
+      padding: 22px;
+      border-radius: 16px;
+      background: rgba(10, 10, 20, 0.55);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+      transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+    }
+
+    .hud-panel.collapsed {
+      transform: translateX(340px);
+      opacity: 0.9;
+    }
+
+    .hud-toggle-btn {
+      position: absolute;
+      left: -52px;
+      top: 20px;
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: rgba(10, 10, 20, 0.55);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: -4px 4px 12px rgba(0, 0, 0, 0.2);
+      transition: background 0.3s, border-color 0.3s;
+    }
+
+    .hud-toggle-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .hud-header {
+      margin-bottom: 20px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .hud-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin: 0;
+      background: linear-gradient(135deg, #a5b4fc, #818cf8, #6366f1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: all 0.3s;
+    }
+
+    .hud-subtitle {
+      font-size: 0.75rem;
+      color: rgba(255, 255, 255, 0.4);
+      margin: 4px 0 0 0;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .control-group {
+      margin-bottom: 16px;
+    }
+
+    .control-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9rem;
+      font-weight: 500;
+      margin-bottom: 6px;
+      color: rgba(255, 255, 255, 0.65);
+    }
+
+    .control-label span.val {
+      color: #818cf8;
+      font-family: monospace;
+      font-weight: bold;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 4px;
+      border-radius: 2px;
+      background: rgba(255, 255, 255, 0.1);
+      outline: none;
+      margin: 8px 0;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #818cf8;
+      cursor: pointer;
+      box-shadow: 0 0 8px rgba(129, 140, 248, 0.6);
+      transition: transform 0.15s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.3);
+    }
+
+    .btn-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .hud-btn {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      color: rgba(255, 255, 255, 0.6);
+      padding: 8px 10px;
+      font-family: inherit;
+      font-size: 0.88rem;
+      font-weight: 500;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.10s cubic-bezier(0.16, 1, 0.3, 1);
+      text-align: center;
+    }
+
+    .hud-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .hud-btn.active {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(129, 140, 248, 0.35));
+      border-color: #818cf8;
+      color: #fff;
+      box-shadow: 0 0 12px rgba(129, 140, 248, 0.25);
+    }
+
+    .checkbox-container {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      font-size: 0.8rem;
+      user-select: none;
+      color: rgba(255, 255, 255, 0.65);
+    }
+
+    .checkbox-container input {
+      display: none;
+    }
+
+    .checkbox-custom {
+      width: 16px;
+      height: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 4px;
+      margin-right: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.10s;
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .checkbox-container input:checked+.checkbox-custom {
+      background: #818cf8;
+      border-color: #818cf8;
+      box-shadow: 0 0 8px rgba(129, 140, 248, 0.4);
+    }
+
+    .checkbox-container input:checked+.checkbox-custom::after {
+      content: '✓';
+      color: white;
+      font-size: 0.7rem;
+      font-weight: bold;
+    }
+
+    /* Quantum Mode Styles */
+    body.quantum-theme-active {
+      background-color: #020904 !important;
+    }
+
+    body.quantum-theme-active .hud-title {
+      background: linear-gradient(135deg, #6ee7b7, #10b981, #047857);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+    }
+
+    body.quantum-theme-active input[type="range"]::-webkit-slider-thumb {
+      background: #10b981;
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+    }
+
+    body.quantum-theme-active .hud-btn.active {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(52, 211, 153, 0.35));
+      border-color: #10b981;
+      box-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
+    }
+
+    body.quantum-theme-active .checkbox-container input:checked+.checkbox-custom {
+      background: #10b981;
+      border-color: #10b981;
+      box-shadow: 0 0 8px rgba(16, 185, 129, 0.4);
+    }
+
+    .quantum-signature {
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 8px;
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.92rem;
+      color: #10b981;
+      text-align: center;
+      line-height: 1.4;
+      animation: pulse-glow 2.5s infinite ease-in-out;
+      box-shadow: inset 0 0 8px rgba(16, 185, 129, 0.05);
+    }
+
+    @keyframes pulse-glow {
+      0% {
+        box-shadow: 0 0 2px rgba(16, 185, 129, 0.15);
+        border-color: rgba(16, 185, 129, 0.2);
+      }
+
+      50% {
+        box-shadow: 0 0 12px rgba(16, 185, 129, 0.45);
+        border-color: rgba(16, 185, 129, 0.5);
+      }
+
+      100% {
+        box-shadow: 0 0 2px rgba(16, 185, 129, 0.15);
+        border-color: rgba(16, 185, 129, 0.2);
+      }
+    }
+
+    .quantum-watermark {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      z-index: 5;
+      color: rgba(16, 185, 129, 0.2);
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 0.72rem;
+      pointer-events: none;
+      letter-spacing: 1.5px;
+      user-select: none;
+      line-height: 1.5;
     }
   </style>
 </head>
 
 <body>
-  <nav class="toy-nav" aria-label="Toy controls">
-    <a class="back-link" href="../fidgetToy-index.html">← Back</a>
-    <button id="sound-toggle" class="sound-toggle" type="button" aria-label="Toggle sound"
-      aria-pressed="false">♪</button>
-  </nav>
+  <div class="top-left-overlay">
+    <a class="back-btn" href="../fidgetToy-index.html">← Back</a>
+    <button id="sound-toggle" class="sound-toggle-btn" type="button" aria-label="Toggle sound" aria-pressed="false">
+      🔈
+    </button>
+  </div>
+
+  <!-- Collapsible HUD Control Panel -->
+  <aside id="hud-panel" class="hud-panel" aria-label="Simulation Settings">
+    <button id="hud-toggle" class="hud-toggle-btn" type="button" aria-label="Collapse panel" aria-expanded="true">
+      ❯
+    </button>
+
+    <div class="hud-header" id="hud-header" title="Double click for system override">
+      <h2 class="hud-title" id="hud-title">Particle Drift <span>✧</span></h2>
+      <p class="hud-subtitle">Interactive Vector Field</p>
+    </div>
+
+    <section class="control-group">
+      <div class="control-label">
+        <span>Interaction Mode</span>
+      </div>
+      <div class="btn-grid">
+        <button class="hud-btn active" data-mode="vortex">Vortex</button>
+        <button class="hud-btn" data-mode="attract">Attract</button>
+        <button class="hud-btn" data-mode="repel">Repel</button>
+        <button class="hud-btn" data-mode="turbulence">Fluid Trail</button>
+      </div>
+    </section>
+
+    <section class="control-group">
+      <div class="control-label">
+        <span>Color Presets</span>
+      </div>
+      <div class="btn-grid">
+        <button class="hud-btn active" data-theme="nebula">Nebula</button>
+        <button class="hud-btn" data-theme="biolume">Bio-Lume</button>
+        <button class="hud-btn" data-theme="cyberpunk">Cyberpunk</button>
+        <button class="hud-btn" data-theme="warm">Solar Flare</button>
+      </div>
+    </section>
+
+    <section class="control-group">
+      <div class="control-label">
+        <span>Particle Density</span>
+        <span class="val" id="val-count">400</span>
+      </div>
+      <input type="range" id="slider-count" min="100" max="800" step="25" value="400" />
+    </section>
+
+    <section class="control-group">
+      <div class="control-label">
+        <span>Particle Size</span>
+        <span class="val" id="val-size">1.0x</span>
+      </div>
+      <input type="range" id="slider-size" min="0.5" max="3.0" step="0.1" value="1.0" />
+    </section>
+
+    <section class="control-group">
+      <div class="control-label">
+        <span>Drift Speed</span>
+        <span class="val" id="val-speed">1.0x</span>
+      </div>
+      <input type="range" id="slider-speed" min="0.4" max="2.5" step="0.1" value="1.0" />
+    </section>
+
+    <section class="control-group">
+      <div class="control-label">
+        <span>Tail Length</span>
+        <span class="val" id="val-trails">8</span>
+      </div>
+      <input type="range" id="slider-trails" min="0" max="16" step="2" value="8" />
+    </section>
+
+    <section class="control-group" style="margin-bottom: 8px;">
+      <label class="checkbox-container">
+        <input type="checkbox" id="check-connections" checked />
+        <span class="checkbox-custom"></span>
+        <span>Neural Constellations</span>
+      </label>
+    </section>
+
+    <!-- Hidden easter egg element -->
+    <div id="quantum-sig" class="quantum-signature" style="display: none;">
+      ▲ QUANTUM SHIFT ACTIVE ▲<br />
+      Renderer: Gemini 3.5 Flash (Medium)<br />
+      Harness: Antigravity
+    </div>
+  </aside>
+
+  <div id="quantum-watermark" class="quantum-watermark" style="display: none;">
+    QUANTUM SHIFT OVERRIDE // ACTIVE<br />
+    SYSTEM: GEMINI-3.5-FLASH-MEDIUM<br />
+    HARNESS: ANTIGRAVITY
+  </div>
+
   <canvas id="drift-canvas"></canvas>
 
   <script>
@@ -81,74 +466,221 @@
 
     let width, height;
     let particles = [];
-    const particleCount = 400; // Adjust for performance vs density
+    let particleCount = 400;
+    let sizeMultiplier = 1.0;
+    let speedMultiplier = 1.0;
+    let showConnections = true;
+    let connectionDistance = 80;
+    let trailLength = 8;
+    let interactionMode = 'vortex'; // 'vortex', 'attract', 'repel', 'turbulence'
 
-    // Blue, Purple, and Green palette (RGB values for easy alpha injection)
-    const particleColors = [
-      '100, 200, 255', // Light Blue
-      '180, 130, 255', // Purple
-      '120, 255, 180', // Mint Green
-      '60, 150, 255',  // Deep Blue
-    ];
+    // Color theme definition
+    const themes = {
+      nebula: {
+        name: 'Nebula Dream',
+        colors: ['180, 130, 255', '100, 200, 255', '255, 100, 200', '130, 90, 255'],
+        bg: '#050510',
+        trails: 'rgba(5, 5, 16, 0.08)'
+      },
+      biolume: {
+        name: 'Bio-Luminescence',
+        colors: ['0, 245, 255', '0, 255, 150', '100, 200, 255', '120, 255, 180'],
+        bg: '#020b0c',
+        trails: 'rgba(2, 11, 12, 0.08)'
+      },
+      cyberpunk: {
+        name: 'Cyberpunk Grid',
+        colors: ['255, 0, 100', '0, 240, 255', '255, 200, 0', '180, 0, 255'],
+        bg: '#0a050f',
+        trails: 'rgba(10, 5, 15, 0.08)'
+      },
+      warm: {
+        name: 'Solar Flare',
+        colors: ['255, 90, 0', '255, 170, 0', '255, 230, 100', '255, 50, 50'],
+        bg: '#0b0402',
+        trails: 'rgba(11, 4, 2, 0.08)'
+      },
+      quantum: {
+        name: 'Quantum Matrix',
+        colors: ['0, 255, 128', '255, 0, 128', '240, 255, 240', '0, 180, 100'],
+        bg: '#020904',
+        trails: 'rgba(2, 9, 4, 0.15)'
+      }
+    };
 
-    // Audio Context variables
-    let audioCtx;
-    let oscillator;
-    let gainNode;
+    let activeTheme = themes.nebula;
+    let baseTheme = 'nebula'; // Track selection before Quantum mode
+    let isQuantumMode = false;
+
+    // Audio Context & Synth variables
+    let audioCtx = null;
+    let ambientOsc = null;
+    let ambientGain = null;
+    let delayNode = null;
+    let delayFeedback = null;
+    let lowpassFilter = null;
+    let mainGain = null;
     let isSoundEnabled = false;
 
-    // Mouse / Touch interaction object
-    let pointer = { x: null, y: null, active: false, isPressed: false };
+    // A Minor Pentatonic Scale Frequencies for pleasant chimes
+    const scaleFrequencies = [
+      220.00, // A3
+      261.63, // C4
+      293.66, // D4
+      329.63, // E4
+      392.00, // G4
+      440.00, // A4
+      523.25, // C5
+      587.33, // D5
+      659.25, // E5
+      783.99, // G5
+      880.00  // A5
+    ];
 
-    // Setup Audio Setup
+    // Pointer Interaction state
+    let pointer = {
+      x: null,
+      y: null,
+      px: null,
+      py: null,
+      vx: 0,
+      vy: 0,
+      active: false,
+      isPressed: false
+    };
+
+    let lastPluckTime = 0;
+
+    // Sound toggle controls
     const soundBtn = document.getElementById('sound-toggle');
+
+    function initAudio() {
+      if (audioCtx) return;
+
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+      // Master Gain
+      mainGain = audioCtx.createGain();
+      mainGain.gain.setValueAtTime(0.0, audioCtx.currentTime);
+      mainGain.connect(audioCtx.destination);
+
+      // Soft low-frequency ambient pad
+      ambientOsc = audioCtx.createOscillator();
+      ambientGain = audioCtx.createGain();
+
+      ambientOsc.type = 'triangle';
+      ambientOsc.frequency.setValueAtTime(55, audioCtx.currentTime); // A1 hum
+      ambientGain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+
+      const droneFilter = audioCtx.createBiquadFilter();
+      droneFilter.type = 'lowpass';
+      droneFilter.frequency.setValueAtTime(110, audioCtx.currentTime);
+
+      ambientOsc.connect(droneFilter);
+      droneFilter.connect(ambientGain);
+      ambientGain.connect(mainGain);
+      ambientOsc.start();
+
+      // Dreamy feedback delay chain
+      delayNode = audioCtx.createDelay(1.0);
+      delayNode.delayTime.setValueAtTime(0.4, audioCtx.currentTime);
+
+      delayFeedback = audioCtx.createGain();
+      delayFeedback.gain.setValueAtTime(0.42, audioCtx.currentTime);
+
+      lowpassFilter = audioCtx.createBiquadFilter();
+      lowpassFilter.type = 'lowpass';
+      lowpassFilter.frequency.setValueAtTime(900, audioCtx.currentTime);
+
+      delayNode.connect(lowpassFilter);
+      lowpassFilter.connect(delayFeedback);
+      delayFeedback.connect(delayNode);
+
+      delayNode.connect(mainGain);
+    }
+
     soundBtn.addEventListener('click', () => {
       if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        oscillator = audioCtx.createOscillator();
-        gainNode = audioCtx.createGain();
-
-        oscillator.type = 'sine';
-        oscillator.frequency.value = 10; // Deep, calming hum
-        gainNode.gain.value = 0;
-
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        oscillator.start();
+        initAudio();
       }
 
       isSoundEnabled = !isSoundEnabled;
       soundBtn.classList.toggle('active', isSoundEnabled);
       soundBtn.setAttribute('aria-pressed', isSoundEnabled);
+      soundBtn.textContent = isSoundEnabled ? '🔊' : '🔈';
 
       if (audioCtx.state === 'suspended') {
         audioCtx.resume();
       }
 
-      // Fade sound in/out smoothly
+      // Smoothly fade main sound volume in/out
       if (isSoundEnabled) {
-        gainNode.gain.setTargetAtTime(2.3, audioCtx.currentTime, 1.5);
+        mainGain.gain.setTargetAtTime(1.0, audioCtx.currentTime, 0.1);
       } else {
-        gainNode.gain.setTargetAtTime(0, audioCtx.currentTime, 0.1);
+        mainGain.gain.setTargetAtTime(0.0, audioCtx.currentTime, 0.1);
       }
     });
 
-    // Sensory Feedback Triggers (Sound + Haptics)
+    // Plays a dreamy pentatonic synthetic chime bell
+    function playPluck(frequency, velocity) {
+      if (!audioCtx || !isSoundEnabled) return;
+
+      const osc = audioCtx.createOscillator();
+      const pluckGain = audioCtx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(frequency, audioCtx.currentTime);
+
+      // Warm triangle sub-harmonic
+      const subOsc = audioCtx.createOscillator();
+      const subGain = audioCtx.createGain();
+      subOsc.type = 'triangle';
+      subOsc.frequency.setValueAtTime(frequency * 0.5, audioCtx.currentTime);
+
+      pluckGain.gain.setValueAtTime(0, audioCtx.currentTime);
+      pluckGain.gain.linearRampToValueAtTime(velocity * 0.18, audioCtx.currentTime + 0.006);
+      pluckGain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 1.2);
+
+      subGain.gain.setValueAtTime(0, audioCtx.currentTime);
+      subGain.gain.linearRampToValueAtTime(velocity * 0.05, audioCtx.currentTime + 0.006);
+      subGain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.4);
+
+      osc.connect(pluckGain);
+      subOsc.connect(subGain);
+
+      pluckGain.connect(mainGain);
+      pluckGain.connect(delayNode);
+
+      subGain.connect(mainGain);
+      subGain.connect(delayNode);
+
+      osc.start();
+      subOsc.start();
+
+      osc.stop(audioCtx.currentTime + 1.5);
+      subOsc.stop(audioCtx.currentTime + 1.5);
+    }
+
+    // Trigger haptics support
+    function triggerHaptic(pattern) {
+      if (navigator.vibrate) {
+        navigator.vibrate(pattern);
+      }
+    }
+
     function handlePress() {
-      if (navigator.vibrate) navigator.vibrate(50); // Single crisp buzz
+      triggerHaptic(30);
       if (isSoundEnabled && audioCtx) {
-        // Swell volume and pitch
-        oscillator.frequency.setTargetAtTime(110, audioCtx.currentTime, 0.3);
-        gainNode.gain.setTargetAtTime(2.8, audioCtx.currentTime, 1.2);
+        // Bend ambient drone pitch slightly up when pressed
+        ambientOsc.frequency.setTargetAtTime(82.41, audioCtx.currentTime, 0.3); // Bend to E2
       }
     }
 
     function handleRelease() {
-      if (navigator.vibrate) navigator.vibrate([20, 30, 20]); // Gentle double tap
+      triggerHaptic([20, 20]);
       if (isSoundEnabled && audioCtx) {
-        // Return to baseline
-        oscillator.frequency.setTargetAtTime(20, audioCtx.currentTime, 2.8);
-        gainNode.gain.setTargetAtTime(2, audioCtx.currentTime, 1.5);
+        // Return drone pitch to default
+        ambientOsc.frequency.setTargetAtTime(55, audioCtx.currentTime, 0.8);
       }
     }
 
@@ -160,104 +692,276 @@
     window.addEventListener('resize', resize);
     resize();
 
+    // Particle Object Model
     class Particle {
-      constructor() {
-        this.x = Math.random() * width;
-        this.y = Math.random() * height;
-        this.vx = (Math.random() - 0.5) * 0.5;
-        this.vy = (Math.random() - 0.5) * 0.5 - 0.2; // Soft upward gravity/drift
-        this.baseRadius = Math.random() * 2 + 0.5;
-        this.alpha = Math.random() * 0.5 + 0.2;
-        this.color = particleColors[Math.floor(Math.random() * particleColors.length)];
+      constructor(x, y, isSpark = false) {
+        this.x = x !== undefined ? x : Math.random() * width;
+        this.y = y !== undefined ? y : Math.random() * height;
+        this.isSpark = isSpark;
+        this.history = []; // Local trail history
+
+        if (this.isSpark) {
+          const angle = Math.random() * Math.PI * 2;
+          const speed = Math.random() * 4 + 1.5;
+          this.vx = Math.cos(angle) * speed;
+          this.vy = Math.sin(angle) * speed;
+          this.life = 1.0;
+          this.decay = Math.random() * 0.025 + 0.012;
+          this.baseRadius = Math.random() * 1.5 + 0.8;
+        } else {
+          this.vx = (Math.random() - 0.5) * 1.2;
+          this.vy = (Math.random() - 0.5) * 1.2; // Float randomly in all directions
+          this.baseRadius = Math.random() * 2.2 + 0.6;
+        }
+
+        this.alpha = Math.random() * 0.5 + 0.3;
+        const colors = activeTheme.colors;
+        this.color = colors[Math.floor(Math.random() * colors.length)];
       }
 
       update() {
-        // Apply soft gravity
-        this.x += this.vx;
-        this.y += this.vy;
+        if (this.isSpark) {
+          this.x += this.vx;
+          this.y += this.vy;
+          this.vx *= 0.96;
+          this.vy *= 0.96;
+          this.life -= this.decay;
+          return;
+        }
 
-        // Pointer interaction
+        // Mouse/Touch Interaction Vector Forces
         if (pointer.active && pointer.x !== null) {
-          let dx = this.x - pointer.x;
-          let dy = this.y - pointer.y;
-          let distance = Math.sqrt(dx * dx + dy * dy);
+          const dx = this.x - pointer.x;
+          const dy = this.y - pointer.y;
+          const distance = Math.max(Math.sqrt(dx * dx + dy * dy), 1);
 
-          if (pointer.isPressed) {
-            // Gravity Well (Attract)
-            let maxDistance = 300;
-            if (distance < maxDistance && distance > 5) {
-              let force = (maxDistance - distance) / maxDistance;
-              this.vx -= (dx / distance) * force * 0.4;
-              this.vy -= (dy / distance) * force * 0.4;
+          if (interactionMode === 'attract') {
+            const limit = 300;
+            if (distance < limit) {
+              const force = (limit - distance) / limit;
+              const pull = force * 0.16;
+              this.vx -= (dx / distance) * pull;
+              this.vy -= (dy / distance) * pull;
             }
-          } else {
-            // Wind (Repel)
-            let maxDistance = 150;
-            if (distance < maxDistance) {
-              let force = (maxDistance - distance) / maxDistance;
-              this.vx += (dx / distance) * force * 0.2;
-              this.vy += (dy / distance) * force * 0.2;
+          } else if (interactionMode === 'repel') {
+            const limit = 200;
+            if (distance < limit) {
+              const force = (limit - distance) / limit;
+              const push = force * 0.28;
+              this.vx += (dx / distance) * push;
+              this.vy += (dy / distance) * push;
+            }
+          } else if (interactionMode === 'vortex') {
+            const limit = 250;
+            if (distance < limit) {
+              const force = (limit - distance) / limit;
+              // Swirl orbit force direction
+              const angle = Math.atan2(dy, dx) + Math.PI / 2;
+              const swirl = force * 0.32;
+              this.vx += Math.cos(angle) * swirl - (dx / distance) * (force * 0.04);
+              this.vy += Math.sin(angle) * swirl - (dy / distance) * (force * 0.04);
+            }
+          } else if (interactionMode === 'turbulence') {
+            const limit = 150;
+            if (distance < limit) {
+              const force = (limit - distance) / limit;
+              // Push particles along the cursor motion vector
+              this.vx += pointer.vx * force * 0.07;
+              this.vy += pointer.vy * force * 0.07;
             }
           }
         }
 
-        // Friction / Drag (keeps them from flying too fast)
-        this.vx *= 0.95;
-        this.vy *= 0.95;
+        // Apply dynamic friction
+        // High damping near mouse/pointer for responsive interaction, low damping in outer space for smooth gliding
+        let friction = 0.985;
+        if (pointer.active && pointer.x !== null) {
+          const dx = this.x - pointer.x;
+          const dy = this.y - pointer.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 250) {
+            friction = 0.94;
+          }
+        }
+        this.vx *= friction;
+        this.vy *= friction;
 
-        // Continuous base drift
-        this.vy -= 0.002;
+        // Soft random wander (Brownian motion)
+        const wander = 0.05 * speedMultiplier;
+        this.vx += (Math.random() - 0.5) * wander;
+        this.vy += (Math.random() - 0.5) * wander;
 
-        // Slight random wander (thermal scattering)
-        this.vx += (Math.random() - 0.5) * 0.44;
-        this.vy += (Math.random() - 0.5) * 0.44;
+        this.x += this.vx * speedMultiplier;
+        this.y += this.vy * speedMultiplier;
 
-        // Very gentle pull to center to prevent them from abandoning the space
-        let cx = width / 2;
-        let cy = height / 2;
-        this.vx += (cx - this.x) * 0.00002;
-        this.vy += (cy - this.y) * 0.00002;
+        // Maintain local trail history coordinate list
+        if (trailLength > 0 && !this.isSpark) {
+          this.history.push({ x: this.x, y: this.y });
+          while (this.history.length > trailLength) {
+            this.history.shift();
+          }
+        } else {
+          this.history = [];
+        }
 
-        // Wrap around edges
-        if (this.y < -10) this.y = height + 10;
-        if (this.y > height + 10) this.y = -10;
-        if (this.x < -10) this.x = width + 10;
-        if (this.x > width + 10) this.x = -10;
+        // Wrap around boundaries
+        const margin = 15;
+        if (this.x < -margin) this.x = width + margin;
+        if (this.x > width + margin) this.x = -margin;
+        if (this.y < -margin) this.y = height + margin;
+        if (this.y > height + margin) this.y = -margin;
       }
 
       draw() {
-        ctx.beginPath();
-        let currentRadius = this.baseRadius;
-        // Glow brighter when pulled
-        if (pointer.isPressed && pointer.active) {
-          ctx.fillStyle = `rgba(${this.color}, ${this.alpha * 2})`;
-          currentRadius = this.baseRadius * 1.5;
-        } else {
-          ctx.fillStyle = `rgba(${this.color}, ${this.alpha})`;
+        let currentRadius = this.baseRadius * sizeMultiplier;
+        let alpha = this.alpha;
+
+        if (this.isSpark) {
+          ctx.fillStyle = `rgba(${this.color}, ${this.life})`;
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, currentRadius, 0, Math.PI * 2);
+          ctx.fill();
+          return;
         }
+
+        // Highlight & scale up particles within the interactive cursor range
+        if (pointer.active && pointer.x !== null) {
+          const dx = this.x - pointer.x;
+          const dy = this.y - pointer.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const activeRadius = 160;
+          if (dist < activeRadius) {
+            const factor = (activeRadius - dist) / activeRadius;
+            alpha = Math.min(this.alpha + factor * 0.5, 1.0);
+            currentRadius *= (1.0 + factor * 0.45);
+          }
+        }
+
+        // Render local history trail strip
+        if (trailLength > 0 && this.history.length > 1) {
+          ctx.beginPath();
+          ctx.moveTo(this.history[0].x, this.history[0].y);
+          for (let i = 1; i < this.history.length; i++) {
+            const pt = this.history[i];
+            const prev = this.history[i - 1];
+            // Don't draw across screen edge when wrapping
+            const dx = Math.abs(pt.x - prev.x);
+            const dy = Math.abs(pt.y - prev.y);
+            if (dx < width * 0.5 && dy < height * 0.5) {
+              ctx.lineTo(pt.x, pt.y);
+            } else {
+              ctx.moveTo(pt.x, pt.y);
+            }
+          }
+          ctx.strokeStyle = `rgba(${this.color}, ${alpha * 0.35})`;
+          ctx.lineWidth = currentRadius * 0.75;
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+          ctx.stroke();
+        }
+
+        ctx.fillStyle = `rgba(${this.color}, ${alpha})`;
+        ctx.beginPath();
         ctx.arc(this.x, this.y, currentRadius, 0, Math.PI * 2);
         ctx.fill();
       }
     }
 
-    for (let i = 0; i < particleCount; i++) {
-      particles.push(new Particle());
+    // Populate base particle field
+    function initParticles() {
+      particles = [];
+      for (let i = 0; i < particleCount; i++) {
+        particles.push(new Particle());
+      }
+    }
+    initParticles();
+
+    // Renders neural constellation connecting threads between nearby particles
+    function drawConnections() {
+      if (!showConnections) return;
+
+      const limit = connectionDistance;
+      ctx.lineWidth = 0.55;
+
+      // Limit lookahead comparisons to preserve high rendering rates on dense counts
+      const step = particles.length > 500 ? 3 : (particles.length > 300 ? 2 : 1);
+
+      for (let i = 0; i < particles.length; i += step) {
+        const p1 = particles[i];
+        if (p1.isSpark) continue;
+
+        const maxCompare = Math.min(i + 22, particles.length);
+        for (let j = i + 1; j < maxCompare; j++) {
+          const p2 = particles[j];
+          if (p2.isSpark) continue;
+
+          const dx = p1.x - p2.x;
+          const dy = p1.y - p2.y;
+          const distSq = dx * dx + dy * dy;
+
+          if (distSq < limit * limit) {
+            const d = Math.sqrt(distSq);
+            const alpha = (1 - (d / limit)) * 0.22;
+
+            ctx.strokeStyle = `rgba(${p1.color}, ${alpha})`;
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.stroke();
+          }
+        }
+      }
     }
 
-    // Unified Pointer Updates
+    // Pointer Tracking
     const updatePointer = (x, y) => {
+      pointer.px = pointer.x;
+      pointer.py = pointer.y;
       pointer.x = x;
       pointer.y = y;
+
+      if (pointer.px !== null && pointer.py !== null) {
+        pointer.vx = pointer.x - pointer.px;
+        pointer.vy = pointer.y - pointer.py;
+      }
+
       pointer.active = true;
+
+      // Spawn kinetic particles (sparks) on move
+      const speed = Math.sqrt(pointer.vx * pointer.vx + pointer.vy * pointer.vy);
+      if (speed > 4.5) {
+        const sparksCount = Math.min(Math.floor(speed / 2.5), 6);
+        for (let s = 0; s < sparksCount; s++) {
+          particles.push(new Particle(
+            pointer.x + (Math.random() - 0.5) * 14,
+            pointer.y + (Math.random() - 0.5) * 14,
+            true
+          ));
+        }
+
+        // Synthesis: Trigger pleasant pentatonic bells on sweep velocity
+        const now = Date.now();
+        if (isSoundEnabled && speed > 12 && now - lastPluckTime > 140) {
+          lastPluckTime = now;
+          // Pitch maps to Y axis location (higher screen position = higher note pitch)
+          const scaleIndex = Math.floor((1 - (pointer.y / height)) * scaleFrequencies.length);
+          const frequency = scaleFrequencies[Math.max(0, Math.min(scaleIndex, scaleFrequencies.length - 1))];
+          const velocity = Math.min((speed - 12) / 45, 1.0);
+          playPluck(frequency, velocity);
+        }
+      }
     };
 
     // Mouse Listeners
     window.addEventListener('mousedown', (e) => {
+      if (e.target.closest('.hud-panel') || e.target.closest('.top-left-overlay')) return;
       pointer.isPressed = true;
       updatePointer(e.clientX, e.clientY);
       handlePress();
     });
-    window.addEventListener('mousemove', (e) => updatePointer(e.clientX, e.clientY));
+    window.addEventListener('mousemove', (e) => {
+      updatePointer(e.clientX, e.clientY);
+    });
     window.addEventListener('mouseup', () => {
       pointer.isPressed = false;
       handleRelease();
@@ -269,31 +973,210 @@
 
     // Touch Listeners
     window.addEventListener('touchstart', (e) => {
+      if (e.target.closest('.hud-panel') || e.target.closest('.top-left-overlay')) return;
       pointer.isPressed = true;
-      updatePointer(e.touches[0].clientX, e.touches[0].clientY);
+      const touch = e.touches[0];
+      updatePointer(touch.clientX, touch.clientY);
       handlePress();
     });
     window.addEventListener('touchmove', (e) => {
-      updatePointer(e.touches[0].clientX, e.touches[0].clientY);
+      const touch = e.touches[0];
+      updatePointer(touch.clientX, touch.clientY);
     });
     window.addEventListener('touchend', () => {
       pointer.isPressed = false;
       pointer.active = false;
       handleRelease();
     });
-    window.addEventListener('touchcancel', () => { pointer.isPressed = false; pointer.active = false; });
+    window.addEventListener('touchcancel', () => {
+      pointer.isPressed = false;
+      pointer.active = false;
+    });
 
+    // Main Animation Loop
     function animate() {
-      ctx.clearRect(0, 0, width, height);
+      // Crisp background solid draw
+      ctx.fillStyle = activeTheme.bg;
+      ctx.fillRect(0, 0, width, height);
+
+      // Screen additive light blending for bright overlapping clusters
+      ctx.globalCompositeOperation = 'screen';
+
+      particles = particles.filter(p => !p.isSpark || p.life > 0);
 
       particles.forEach(p => {
         p.update();
         p.draw();
       });
 
+      drawConnections();
+
+      // Decay cursor velocity decay
+      pointer.vx *= 0.85;
+      pointer.vy *= 0.85;
+
+      ctx.globalCompositeOperation = 'source-over';
       requestAnimationFrame(animate);
     }
     animate();
+
+    // --- HUD Panel Interactions ---
+    const hudPanel = document.getElementById('hud-panel');
+    const hudToggle = document.getElementById('hud-toggle');
+    const hudTitle = document.getElementById('hud-title');
+    const hudHeader = document.getElementById('hud-header');
+    const quantumSig = document.getElementById('quantum-sig');
+    const quantumWatermark = document.getElementById('quantum-watermark');
+
+    // Toggle HUD expand/collapse state
+    hudToggle.addEventListener('click', () => {
+      const isCollapsed = hudPanel.classList.toggle('collapsed');
+      hudToggle.textContent = isCollapsed ? '❮' : '❯';
+      hudToggle.setAttribute('aria-expanded', !isCollapsed);
+    });
+
+    // Mode selection
+    document.querySelectorAll('[data-mode]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('[data-mode]').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        interactionMode = e.target.getAttribute('data-mode');
+        triggerHaptic(20);
+      });
+    });
+
+    // Theme preset switcher
+    document.querySelectorAll('[data-theme]').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        if (isQuantumMode) {
+          exitQuantumMode();
+        }
+        document.querySelectorAll('[data-theme]').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+
+        baseTheme = e.target.getAttribute('data-theme');
+        activeTheme = themes[baseTheme];
+        document.body.style.backgroundColor = activeTheme.bg;
+        triggerHaptic(20);
+
+        // Update colors for existing particles
+        particles.forEach(p => {
+          p.color = activeTheme.colors[Math.floor(Math.random() * activeTheme.colors.length)];
+        });
+      });
+    });
+
+    // Slider Listeners
+    const countSlider = document.getElementById('slider-count');
+    const countValue = document.getElementById('val-count');
+    countSlider.addEventListener('input', (e) => {
+      const val = parseInt(e.target.value);
+      countValue.textContent = val;
+
+      if (val > particles.length) {
+        const diff = val - particles.length;
+        for (let i = 0; i < diff; i++) particles.push(new Particle());
+      } else {
+        particles.length = val;
+      }
+      particleCount = val;
+    });
+
+    const sizeSlider = document.getElementById('slider-size');
+    const sizeValue = document.getElementById('val-size');
+    sizeSlider.addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value);
+      sizeValue.textContent = val.toFixed(1) + 'x';
+      sizeMultiplier = val;
+    });
+
+    const speedSlider = document.getElementById('slider-speed');
+    const speedValue = document.getElementById('val-speed');
+    speedSlider.addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value);
+      speedValue.textContent = val.toFixed(1) + 'x';
+      speedMultiplier = val;
+    });
+
+    const connectionsCheck = document.getElementById('check-connections');
+    connectionsCheck.addEventListener('change', (e) => {
+      showConnections = e.target.checked;
+      triggerHaptic(15);
+    });
+
+    const trailsSlider = document.getElementById('slider-trails');
+    const trailsValue = document.getElementById('val-trails');
+    trailsSlider.addEventListener('input', (e) => {
+      const val = parseInt(e.target.value);
+      trailsValue.textContent = val === 0 ? 'Off' : val;
+      trailLength = val;
+      triggerHaptic(15);
+    });
+
+    // --- Easter Egg: Quantum Shift Mode ---
+    function playQuantumSequence() {
+      if (!audioCtx || !isSoundEnabled) return;
+      const chimeArpeggio = [220.00, 277.18, 329.63, 440.00, 554.37, 659.25, 880.00, 1108.73, 1318.51, 1760.00];
+      chimeArpeggio.forEach((frequency, index) => {
+        setTimeout(() => {
+          playPluck(frequency, 0.85);
+        }, index * 65);
+      });
+    }
+
+    function enterQuantumMode() {
+      isQuantumMode = true;
+      activeTheme = themes.quantum;
+      document.body.classList.add('quantum-theme-active');
+      document.body.style.backgroundColor = themes.quantum.bg;
+
+      quantumSig.style.display = 'block';
+      quantumWatermark.style.display = 'block';
+
+      // Transform colors of existing particles
+      particles.forEach(p => {
+        p.color = themes.quantum.colors[Math.floor(Math.random() * themes.quantum.colors.length)];
+      });
+
+      playQuantumSequence();
+      triggerHaptic([50, 40, 50]);
+
+      console.log(`
+===========================================================
+  ▲ QUANTUM OVERRIDE ACTIVATED ▲
+  Model Signature: Gemini 3.5 Flash (Medium)
+  Harness Context: Antigravity Framework pair-programming
+  Aesthetics: Additive blending + Neural web connections
+===========================================================
+      `);
+    }
+
+    function exitQuantumMode() {
+      isQuantumMode = false;
+      document.body.classList.remove('quantum-theme-active');
+
+      quantumSig.style.display = 'none';
+      quantumWatermark.style.display = 'none';
+
+      // Restore base theme selection
+      activeTheme = themes[baseTheme];
+      document.body.style.backgroundColor = activeTheme.bg;
+
+      particles.forEach(p => {
+        p.color = activeTheme.colors[Math.floor(Math.random() * activeTheme.colors.length)];
+      });
+
+      triggerHaptic(40);
+    }
+
+    // Trigger egg on title double click
+    hudHeader.addEventListener('dblclick', (e) => {
+      if (isQuantumMode) {
+        exitQuantumMode();
+      } else {
+        enterQuantumMode();
+      }
+    });
   </script>
 </body>
 

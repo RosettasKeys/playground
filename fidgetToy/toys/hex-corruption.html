@@ -5,16 +5,67 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Hex Corruption | Fidget Toy Garden</title>
+  <meta name="description" content="An interactive retro memory grid glitch toy. Shear, melt, vortex, infect, and shatter data with satisfying sound design and multiple neon styles." />
+  
   <style>
     :root {
+      --font-mono: ui-monospace, SFMono-Regular, SF Pro Mono, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
       --bg-color: #030407;
-      --text-base: #2a3b2a;
-      --text-melt: #4d6d4d;
-      --text-dead: #161a16;
-      --ui-text: rgba(255, 255, 255, 0.5);
+      --text-base: #1a351a;
+      --text-accent: #39ff14;
+      --panel-bg: rgba(10, 15, 12, 0.82);
+      --panel-border: rgba(57, 255, 20, 0.18);
+      --ui-text: rgba(255, 255, 255, 0.55);
       --ui-text-hover: rgba(255, 255, 255, 1);
-      --ui-border: rgba(255, 60, 60, 0.4);
-      --ui-btn-text: rgba(255, 60, 60, 0.9);
+      --glow-shadow: 0 0 12px rgba(57, 255, 20, 0.35);
+      --selection-color: rgba(57, 255, 20, 0.2);
+    }
+
+    .theme-cyber-green {
+      --bg-color: #030407;
+      --text-base: #132413;
+      --text-accent: #39ff14;
+      --panel-bg: rgba(6, 12, 8, 0.85);
+      --panel-border: rgba(57, 255, 20, 0.2);
+      --glow-shadow: 0 0 15px rgba(57, 255, 20, 0.4);
+    }
+
+    .theme-neon-decay {
+      --bg-color: #08030d;
+      --text-base: #351445;
+      --text-accent: #ff007f;
+      --panel-bg: rgba(15, 6, 22, 0.85);
+      --panel-border: rgba(255, 0, 127, 0.2);
+      --glow-shadow: 0 0 15px rgba(255, 0, 127, 0.4);
+    }
+
+    .theme-solar-amber {
+      --bg-color: #0a0500;
+      --text-base: #402000;
+      --text-accent: #ff9100;
+      --panel-bg: rgba(20, 10, 0, 0.85);
+      --panel-border: rgba(255, 145, 0, 0.2);
+      --glow-shadow: 0 0 15px rgba(255, 145, 0, 0.4);
+    }
+
+    .theme-supernova {
+      --bg-color: #020215;
+      --text-base: #1a1a52;
+      --text-accent: #00d2ff;
+      --panel-bg: rgba(4, 4, 25, 0.85);
+      --panel-border: rgba(0, 210, 255, 0.2);
+      --glow-shadow: 0 0 15px rgba(0, 210, 255, 0.4);
+    }
+
+    .theme-paper-glitch {
+      --bg-color: #f5efff;
+      --text-base: #d2c5e5;
+      --text-accent: #6f2dbd;
+      --panel-bg: rgba(240, 232, 250, 0.88);
+      --panel-border: rgba(111, 45, 189, 0.22);
+      --glow-shadow: 0 0 8px rgba(111, 45, 189, 0.15);
+      --ui-text: rgba(28, 24, 40, 0.65);
+      --ui-text-hover: rgba(28, 24, 40, 1);
     }
 
     body,
@@ -25,120 +76,539 @@
       height: 100%;
       background-color: var(--bg-color);
       overflow: hidden;
-      font-family: system-ui, sans-serif;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       touch-action: none;
-      /* Prevents mobile scrolling and pull-to-refresh */
       user-select: none;
+      transition: background-color 0.4s ease;
     }
 
     canvas {
       display: block;
+      cursor: crosshair;
     }
 
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* Floating Navigation Controls */
     .toy-nav {
       position: absolute;
       top: 20px;
       left: 20px;
       z-index: 10;
       display: flex;
-      gap: 15px;
+      gap: 12px;
       align-items: center;
+      pointer-events: none;
     }
 
-    .back-link {
-      color: var(--ui-text);
-      text-decoration: none;
-      font-size: 0.9rem;
-      transition: color 0.3s ease;
-    }
-
-    .back-link:hover {
-      color: var(--ui-text-hover);
-    }
-
-    .reboot-btn {
-      background: none;
-      border: 1px solid var(--ui-border);
-      color: var(--ui-btn-text);
-      border-radius: 4px;
-      padding: 4px 12px;
-      font-size: 0.8rem;
+    .back-link,
+    .reboot-btn,
+    .settings-toggle,
+    .sound-toggle {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      color: var(--text-accent);
+      border-radius: 6px;
+      padding: 6px 14px;
+      font-size: 0.82rem;
       cursor: pointer;
       transition: all 0.3s ease;
-      font-family: monospace;
+      font-family: var(--font-mono);
       letter-spacing: 0.05em;
-    }
-
-    .reboot-btn:hover,
-    .reboot-btn:active {
-      background: rgba(255, 60, 60, 0.15);
-      color: #fff;
-      border-color: #ff3c3c;
-      box-shadow: 0 0 12px rgba(255, 60, 60, 0.4);
+      text-decoration: none;
+      pointer-events: auto;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
     }
 
     .sound-toggle {
-      background: none;
-      border: 1px solid var(--ui-border);
-      color: var(--ui-btn-text);
-      border-radius: 4px;
-      width: 28px;
-      height: 28px;
+      width: 32px;
+      height: 32px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1rem;
+      padding: 0;
+      font-size: 1.05rem;
+    }
+
+    .back-link:hover,
+    .reboot-btn:hover,
+    .settings-toggle:hover, .settings-toggle.active,
+    .sound-toggle:hover, .sound-toggle.active {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--text-accent);
+      box-shadow: var(--glow-shadow);
+      color: #fff;
+    }
+
+    /* Glassmorphic settings panel */
+    .settings-panel {
+      position: absolute;
+      top: 75px;
+      left: 20px;
+      width: 320px;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 10px;
+      padding: 18px;
+      color: var(--text-accent);
+      z-index: 100;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), var(--glow-shadow);
+      font-family: var(--font-mono);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .settings-panel.hidden {
+      opacity: 0;
+      transform: translateY(-10px);
+      pointer-events: none;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--panel-border);
+      padding-bottom: 10px;
+      margin-bottom: 15px;
+    }
+
+    .panel-header h2 {
+      font-size: 1.05rem;
+      margin: 0;
+      letter-spacing: 0.1em;
+      font-weight: bold;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: var(--ui-text);
+      font-size: 1.4rem;
       cursor: pointer;
-      transition: all 0.3s ease;
+      line-height: 1;
       padding: 0;
     }
 
-    .sound-toggle.active {
-      background: rgba(255, 60, 60, 0.15);
-      color: #fff;
-      border-color: #ff3c3c;
-      box-shadow: 0 0 12px rgba(255, 60, 60, 0.4);
+    .close-btn:hover {
+      color: var(--ui-text-hover);
     }
 
+    .panel-section {
+      margin-bottom: 18px;
+    }
+
+    .panel-section h3 {
+      font-size: 0.78rem;
+      margin: 0 0 10px 0;
+      color: var(--ui-text);
+      letter-spacing: 0.08em;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .mode-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .mode-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid var(--panel-border);
+      border-radius: 6px;
+      padding: 6px 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    .mode-card input {
+      display: none;
+    }
+
+    .mode-key {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      border: 1px solid var(--panel-border);
+      border-radius: 4px;
+      font-size: 0.7rem;
+      color: var(--ui-text);
+      background: rgba(0, 0, 0, 0.4);
+    }
+
+    .mode-info {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .mode-title {
+      font-size: 0.82rem;
+      font-weight: bold;
+      color: var(--text-accent);
+      letter-spacing: 0.05em;
+    }
+
+    .mode-desc {
+      font-size: 0.68rem;
+      color: var(--ui-text);
+    }
+
+    .mode-card:hover {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: var(--text-accent);
+    }
+
+    .mode-card.active {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--text-accent);
+      box-shadow: inset 0 0 6px rgba(255, 255, 255, 0.08);
+    }
+
+    .mode-card.active .mode-key {
+      border-color: var(--text-accent);
+      color: var(--text-accent);
+      background: rgba(57, 255, 20, 0.1);
+    }
+
+    .cyber-select {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--panel-border);
+      border-radius: 6px;
+      color: var(--text-accent);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      padding: 8px 10px;
+      cursor: pointer;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .cyber-select:hover,
+    .cyber-select:focus {
+      border-color: var(--text-accent);
+      background: rgba(0, 0, 0, 0.6);
+    }
+
+    .slider-control {
+      margin-bottom: 12px;
+    }
+
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      margin-bottom: 5px;
+      color: var(--ui-text);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .slider-val {
+      color: var(--text-accent);
+    }
+
+    .slider-control input[type="range"] {
+      width: 100%;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+      outline: none;
+      -webkit-appearance: none;
+    }
+
+    .slider-control input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--text-accent);
+      cursor: pointer;
+      box-shadow: 0 0 8px var(--text-accent);
+      transition: transform 0.1s ease;
+    }
+
+    .slider-control input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.25);
+    }
+
+    /* Bottom Info Status Bar */
     .toy-status {
       position: absolute;
       bottom: 20px;
-      left: 20px;
-      color: rgba(255, 255, 255, 0.4);
-      font-size: 0.85rem;
-      pointer-events: none;
+      left: 50%;
+      transform: translateX(-50%);
+      color: var(--ui-text);
+      font-size: 0.8rem;
+      font-family: var(--font-mono);
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      padding: 6px 16px;
+      border-radius: 20px;
+      pointer-events: auto;
+      cursor: pointer;
       z-index: 10;
+      backdrop-filter: blur(8px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+      white-space: nowrap;
     }
 
-    .toy-status p {
-      margin: 0;
+    .toy-status:hover {
+      border-color: var(--text-accent);
+      color: var(--ui-text-hover);
+      box-shadow: var(--glow-shadow);
     }
 
+    /* CRT screen overlay simulation */
     .crt-overlay {
       position: fixed;
       inset: 0;
       z-index: 5;
       pointer-events: none;
-      background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.3) 50%);
+      background: linear-gradient(to bottom, transparent 50%, rgba(0, 0, 0, 0.15) 50%);
       background-size: 100% 4px;
-      box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.85);
+      box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.7);
+    }
+
+    /* Fullscreen boot loading diagnostics */
+    .boot-loader {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      color: #39ff14;
+      z-index: 1000;
+      font-family: var(--font-mono);
+      padding: 40px;
+      font-size: 0.95rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    .boot-loader.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .boot-loader.theme-cyber-green { color: #39ff14; background: #010301; }
+    .boot-loader.theme-neon-decay { color: #ff007f; background: #030105; }
+    .boot-loader.theme-solar-amber { color: #ff9100; background: #040200; }
+    .boot-loader.theme-supernova { color: #00d2ff; background: #01010a; }
+    .boot-loader.theme-paper-glitch { color: #6f2dbd; background: #f5efff; }
+
+    .boot-content {
+      max-width: 800px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      margin-bottom: 20px;
+    }
+
+    .boot-cursor {
+      display: inline-block;
+      width: 8px;
+      height: 15px;
+      background: currentColor;
+      animation: blink 0.8s infinite;
+      vertical-align: middle;
+      margin-left: 4px;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    /* Mobile Responsive Styling */
+    @media (max-width: 480px) {
+      .settings-panel {
+        width: calc(100% - 32px);
+        left: 16px;
+        right: 16px;
+        top: 70px;
+        max-height: calc(100vh - 140px);
+        overflow-y: auto;
+      }
+      
+      .toy-nav {
+        left: 12px;
+        right: 12px;
+        top: 12px;
+        gap: 8px;
+        width: calc(100% - 24px);
+        justify-content: space-between;
+      }
+      
+      .back-link, .reboot-btn, .settings-toggle, .sound-toggle {
+        padding: 5px 10px;
+        font-size: 0.75rem;
+      }
+      
+      .toy-status {
+        bottom: 12px;
+        font-size: 0.72rem;
+        padding: 5px 12px;
+        width: calc(100% - 24px);
+        text-align: center;
+        border-radius: 8px;
+      }
     }
   </style>
 </head>
 
-<body>
+<body class="toy-page theme-cyber-green">
+
+  <h1 class="sr-only">Hex Corruption - Retro Memory Grid Glitch Fidget Toy</h1>
+
   <nav class="toy-nav" aria-label="Toy controls">
     <a class="back-link" href="../fidgetToy-index.html">← Back</a>
-    <button id="sound-toggle" class="sound-toggle" type="button" aria-label="Toggle sound"
-      aria-pressed="false">♪</button>
+    <button id="sound-toggle" class="sound-toggle" type="button" aria-label="Toggle sound" aria-pressed="false">♪</button>
+    <button id="settings-toggle" class="settings-toggle" type="button" aria-label="Configure deck">DECK CONFIG</button>
     <button id="reboot-btn" class="reboot-btn" type="button" aria-label="Reboot System">REBOOT</button>
   </nav>
 
+  <!-- Canvas elements -->
   <canvas id="glitch-canvas"></canvas>
   <div class="crt-overlay" aria-hidden="true"></div>
 
-  <div class="toy-status" aria-live="polite">
-    <p>Drag to shear · Linger to melt · Space to reboot</p>
+  <!-- Settings Configuration Panel -->
+  <div id="settings-panel" class="settings-panel hidden" aria-label="Deck Configuration Panel" role="dialog">
+    <div class="panel-header">
+      <h2>DECK CONFIG</h2>
+      <button id="close-settings" class="close-btn" aria-label="Close settings">&times;</button>
+    </div>
+    
+    <div class="panel-section">
+      <h3>CORRUPTION MODE</h3>
+      <div class="mode-grid">
+        <label class="mode-card active" data-mode="shred">
+          <input type="radio" name="mode" value="shred" checked>
+          <span class="mode-key">1</span>
+          <span class="mode-info">
+            <span class="mode-title">SHRED</span>
+            <span class="mode-desc">Kinetic Shear & wobble</span>
+          </span>
+        </label>
+        
+        <label class="mode-card" data-mode="melt">
+          <input type="radio" name="mode" value="melt">
+          <span class="mode-key">2</span>
+          <span class="mode-info">
+            <span class="mode-title">MELT</span>
+            <span class="mode-desc">Cascading Code Rain</span>
+          </span>
+        </label>
+        
+        <label class="mode-card" data-mode="vortex">
+          <input type="radio" name="mode" value="vortex">
+          <span class="mode-key">3</span>
+          <span class="mode-info">
+            <span class="mode-title">VORTEX</span>
+            <span class="mode-desc">Attract & Slingshot</span>
+          </span>
+        </label>
+        
+        <label class="mode-card" data-mode="infect">
+          <input type="radio" name="mode" value="infect">
+          <span class="mode-key">4</span>
+          <span class="mode-info">
+            <span class="mode-title">INFECT</span>
+            <span class="mode-desc">Organic Cellular Decay</span>
+          </span>
+        </label>
+        
+        <label class="mode-card" data-mode="shatter">
+          <input type="radio" name="mode" value="shatter">
+          <span class="mode-key">5</span>
+          <span class="mode-info">
+            <span class="mode-title">SHATTER</span>
+            <span class="mode-desc">Bit-Level Explosion</span>
+          </span>
+        </label>
+      </div>
+    </div>
+    
+    <div class="panel-section">
+      <h3>DECK THEME</h3>
+      <div class="theme-selector-wrapper">
+        <select id="theme-select" class="cyber-select" aria-label="Select color palette">
+          <option value="cyber-green">CYBER GREEN (DEFAULT)</option>
+          <option value="neon-decay">NEON DECAY (VAPOR)</option>
+          <option value="solar-amber">SOLAR AMBER (RETRO)</option>
+          <option value="supernova">SUPERNOVA (VIOLET)</option>
+          <option value="paper-glitch">PAPER GLITCH (LIGHT)</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="panel-section">
+      <h3>MATRIX PARAMS</h3>
+      <div class="slider-control">
+        <div class="slider-label">
+          <span>GRID RESOLUTION</span>
+          <span id="resolution-val" class="slider-val">Medium (22px)</span>
+        </div>
+        <input type="range" id="resolution-slider" min="14" max="36" step="2" value="22" aria-valuemin="14" aria-valuemax="36" aria-valuenow="22" />
+      </div>
+      
+      <div class="slider-control">
+        <div class="slider-label">
+          <span>CORRUPTION GAIN</span>
+          <span id="strength-val" class="slider-val">100%</span>
+        </div>
+        <input type="range" id="strength-slider" min="20" max="200" step="10" value="100" aria-valuemin="20" aria-valuemax="200" aria-valuenow="100" />
+      </div>
+      
+      <div class="slider-control">
+        <div class="slider-label">
+          <span>DRONE HUM VOL</span>
+          <span id="drone-val" class="slider-val">30%</span>
+        </div>
+        <input type="range" id="drone-slider" min="0" max="100" step="5" value="30" aria-valuemin="0" aria-valuemax="100" aria-valuenow="30" />
+      </div>
+      
+      <div class="slider-control">
+        <div class="slider-label">
+          <span>SFX CLICK VOL</span>
+          <span id="sfx-val" class="slider-val">50%</span>
+        </div>
+        <input type="range" id="sfx-slider" min="0" max="100" step="5" value="50" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom interactive status bar -->
+  <div class="toy-status" id="status-bar" aria-live="polite">
+    <span>Drag to corrupt · [1-5] for modes · Click for system test</span>
+  </div>
+
+  <!-- System diagnostics full boot overlay -->
+  <div id="boot-loader" class="boot-loader" aria-hidden="true">
+    <div class="boot-content" id="boot-log"></div>
+    <div class="boot-cursor"></div>
   </div>
 
   <script>
@@ -146,140 +616,696 @@
     const ctx = canvas.getContext('2d', { alpha: false });
     const rebootBtn = document.getElementById('reboot-btn');
     const soundBtn = document.getElementById('sound-toggle');
+    const settingsToggle = document.getElementById('settings-toggle');
+    const settingsPanel = document.getElementById('settings-panel');
+    const closeSettings = document.getElementById('close-settings');
+    const themeSelect = document.getElementById('theme-select');
+    const statusBar = document.getElementById('status-bar');
+    const bootLoader = document.getElementById('boot-loader');
+    const bootLog = document.getElementById('boot-log');
 
+    // Grid sizing
     let width, height, cols, rows;
-    const CELL_SIZE = 22; // Defines grid density
+    let CELL_SIZE = 22;
     let grid = [];
+    let pools = []; // Bottom ooze pools for Melt mode
+    const activeParticles = [];
+    let frameCount = 0;
+
+    // Fidget options
+    let mode = 'shred'; // shred, melt, vortex, infect, shatter
+    let activeTheme = 'cyber-green';
+    let glitchStrength = 100; // slider range 20 - 200
+    let droneVolSliderValue = 30;
+    let sfxVolSliderValue = 50;
 
     const HEX_CHARS = "0123456789ABCDEF";
     const getRandomHex = () => HEX_CHARS[Math.floor(Math.random() * 16)] + HEX_CHARS[Math.floor(Math.random() * 16)];
 
-    // Volatile Neon Palette
-    const GLITCH_COLORS = ["#ff0055", "#00ffff", "#39ff14", "#ffff00", "#ff00ff"];
+    // Neon Volatile Custom Theme Configurations
+    const THEMES = {
+      'cyber-green': {
+        bg: '#030407',
+        base: '#132413',
+        accent: '#39ff14',
+        melt: '#22bb22',
+        infect: '#ff3333',
+        dead: '#050a05',
+        glitchColors: ["#ff0055", "#00ffff", "#39ff14", "#ffff00", "#ff00ff"]
+      },
+      'neon-decay': {
+        bg: '#08030d',
+        base: '#351445',
+        accent: '#ff007f',
+        melt: '#00ffff',
+        infect: '#ffff00',
+        dead: '#0e0414',
+        glitchColors: ["#ff007f", "#00ffff", "#ffff00", "#ff00ff", "#ffffff"]
+      },
+      'solar-amber': {
+        bg: '#0a0500',
+        base: '#402000',
+        accent: '#ff9100',
+        melt: '#ffb300',
+        infect: '#ff3c00',
+        dead: '#140800',
+        glitchColors: ["#ff9100", "#ffd166", "#ff5500", "#ffea00", "#ffffff"]
+      },
+      'supernova': {
+        bg: '#020215',
+        base: '#1a1a52',
+        accent: '#00d2ff',
+        melt: '#00ffaa',
+        infect: '#7b2cbf',
+        dead: '#02020e',
+        glitchColors: ["#00d2ff", "#00ffaa", "#7b2cbf", "#ffffff", "#ff00bb"]
+      },
+      'paper-glitch': {
+        bg: '#f5efff',
+        base: '#d2c5e5',
+        accent: '#6f2dbd',
+        melt: '#3f37c9',
+        infect: '#f72585',
+        dead: '#eae3f2',
+        glitchColors: ["#6f2dbd", "#3f37c9", "#4cc9f0", "#f72585", "#1c1828"]
+      }
+    };
 
-    // Pointer tracking
+    // Keyboard & Click Cheat Code Trackers (Easter Egg)
+    let clickCount = 0;
+    let cheatCodeTriggered = false;
+    let keyBuffer = '';
+
+    // Pointer Tracking
     let ptr = { x: -1000, y: -1000, px: -1000, py: -1000, active: false };
 
-    // Audio Setup
+    // Audio Stack Variables
     let isSoundEnabled = false;
-    let audioCtx;
-    let noiseBuffer;
-    let lastTearTime = 0;
+    let audioCtx = null;
+    let masterGain = null;
+    let droneOsc1 = null;
+    let droneOsc2 = null;
+    let droneGain = null;
+    let droneFilter = null;
+    let sfxGain = null;
+    let noiseBuffer = null;
 
-    soundBtn.addEventListener('click', () => {
-      if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        // Generate 1 second of white noise for the tearing sound
-        const bufferSize = audioCtx.sampleRate;
-        noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-        const output = noiseBuffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) {
-          output[i] = Math.random() * 2 - 1;
-        }
+    // Initialize Audio stack procedurally
+    function initAudio() {
+      if (audioCtx) return;
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      
+      // Master Gain
+      masterGain = audioCtx.createGain();
+      masterGain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+      masterGain.connect(audioCtx.destination);
+      
+      // FX Gain Bus
+      sfxGain = audioCtx.createGain();
+      sfxGain.gain.setValueAtTime(sfxVolSliderValue / 100, audioCtx.currentTime);
+      sfxGain.connect(masterGain);
+      
+      // Ambient Drone Bus
+      droneGain = audioCtx.createGain();
+      droneGain.gain.setValueAtTime(0.001, audioCtx.currentTime);
+      
+      droneFilter = audioCtx.createBiquadFilter();
+      droneFilter.type = 'lowpass';
+      droneFilter.frequency.setValueAtTime(150, audioCtx.currentTime);
+      droneFilter.Q.setValueAtTime(4, audioCtx.currentTime);
+      
+      // Fat detuned analog-synth-like drone oscillators
+      droneOsc1 = audioCtx.createOscillator();
+      droneOsc1.type = 'sawtooth';
+      droneOsc1.frequency.setValueAtTime(55, audioCtx.currentTime); // A1
+      
+      droneOsc2 = audioCtx.createOscillator();
+      droneOsc2.type = 'triangle';
+      droneOsc2.frequency.setValueAtTime(55.4, audioCtx.currentTime); // Detuned chorus
+      
+      droneOsc1.connect(droneFilter);
+      droneOsc2.connect(droneFilter);
+      droneFilter.connect(droneGain);
+      droneGain.connect(masterGain);
+      
+      droneOsc1.start();
+      droneOsc2.start();
+      
+      // Compile 2 seconds of noise for procedural glitch static
+      const sampleRate = audioCtx.sampleRate;
+      noiseBuffer = audioCtx.createBuffer(1, sampleRate * 2, sampleRate);
+      const data = noiseBuffer.getChannelData(0);
+      for (let i = 0; i < noiseBuffer.length; i++) {
+        data[i] = Math.random() * 2 - 1;
       }
+      
+      // Gently ramp up drone volume initially
+      droneGain.gain.setTargetAtTime((droneVolSliderValue / 100) * 0.2, audioCtx.currentTime, 0.5);
+    }
 
-      isSoundEnabled = !isSoundEnabled;
-      soundBtn.classList.toggle('active', isSoundEnabled);
-      soundBtn.setAttribute('aria-pressed', isSoundEnabled);
-      soundBtn.textContent = isSoundEnabled ? "♫" : "♪";
-
-      if (isSoundEnabled && audioCtx.state === 'suspended') {
+    function resumeAudio() {
+      if (audioCtx && audioCtx.state === 'suspended') {
         audioCtx.resume();
       }
-    });
+    }
 
-    function playRebootSound() {
-      if (!isSoundEnabled || !audioCtx) return;
+    function updateDrone(speed) {
+      if (!audioCtx || !isSoundEnabled || !droneFilter) return;
       const now = audioCtx.currentTime;
+      // Cursor movements trigger sweeping lowpass filters and swell volume
+      const targetFilter = 150 + Math.min(speed * 12 * (glitchStrength / 100), 1200);
+      const targetVolume = Math.max(0.02, Math.min(speed * 0.015, 0.35)) * (droneVolSliderValue / 100);
+      
+      droneFilter.frequency.setTargetAtTime(targetFilter, now, 0.1);
+      droneGain.gain.setTargetAtTime(targetVolume, now, 0.15);
+      
+      // Add subtle speed-based pitch vibrato
+      droneOsc1.frequency.setTargetAtTime(55 + speed * 0.08, now, 0.25);
+      droneOsc2.frequency.setTargetAtTime(55.4 + speed * 0.1, now, 0.25);
+    }
+
+    // Sound FX Stack
+    function playGlitchTick(volFactor = 1.0) {
+      if (!audioCtx || !isSoundEnabled) return;
+      const now = audioCtx.currentTime;
+      
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       const filter = audioCtx.createBiquadFilter();
-
-      osc.type = 'square';
-      osc.frequency.setValueAtTime(120, now);
-      osc.frequency.exponentialRampToValueAtTime(20, now + 0.4); // Drops to sub-bass
-
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(1000, now);
-      filter.frequency.exponentialRampToValueAtTime(40, now + 0.4);
-
-      gain.gain.setValueAtTime(0.5, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5); // Fade out cleanly
-
+      
+      // Short click synthesizer node
+      osc.type = Math.random() > 0.4 ? 'triangle' : 'sine';
+      osc.frequency.setValueAtTime(1200 + Math.random() * 3200, now);
+      
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(2000 + Math.random() * 3000, now);
+      filter.Q.setValueAtTime(3, now);
+      
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(0.05 * (sfxVolSliderValue / 100) * volFactor, now + 0.001);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.006 + Math.random() * 0.012);
+      
       osc.connect(filter);
       filter.connect(gain);
-      gain.connect(audioCtx.destination);
-
+      gain.connect(sfxGain);
+      
       osc.start(now);
-      osc.stop(now + 0.6);
+      osc.stop(now + 0.04);
     }
 
-    function playTearSound(speed) {
-      if (!isSoundEnabled || !audioCtx) return;
+    function playDripSFX() {
+      if (!audioCtx || !isSoundEnabled) return;
       const now = audioCtx.currentTime;
-      if (now - lastTearTime < 0.04) return; // Limit firing rate so it sounds crackly, not muddy
-      lastTearTime = now;
-
-      const noiseSrc = audioCtx.createBufferSource();
-      noiseSrc.buffer = noiseBuffer;
-
-      const filter = audioCtx.createBiquadFilter();
-      filter.type = 'bandpass';
-      filter.frequency.value = 800 + Math.random() * 4000; // Randomize pitch slightly each grain
-      filter.Q.value = 1.0;
-
+      
+      const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
-      const vol = Math.min(speed / 100, 0.15); // Velocity directly translates to volume
-      gain.gain.setValueAtTime(0, now);
-      gain.gain.linearRampToValueAtTime(vol, now + 0.01);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
-
-      noiseSrc.connect(filter);
-      filter.connect(gain);
-      gain.connect(audioCtx.destination);
-
-      noiseSrc.start(now);
-      noiseSrc.stop(now + 0.07);
+      
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(1400 + Math.random() * 500, now);
+      osc.frequency.exponentialRampToValueAtTime(320 + Math.random() * 200, now + 0.07);
+      
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(0.07 * (sfxVolSliderValue / 100), now + 0.004);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.075);
+      
+      osc.connect(gain);
+      gain.connect(sfxGain);
+      
+      osc.start(now);
+      osc.stop(now + 0.09);
     }
 
-    function initGrid() {
+    let vortexNoiseNode = null;
+    let vortexFilterNode = null;
+    let vortexGainNode = null;
+
+    function startVortexSound() {
+      if (!audioCtx || !isSoundEnabled || vortexNoiseNode) return;
+      const now = audioCtx.currentTime;
+      
+      vortexNoiseNode = audioCtx.createBufferSource();
+      vortexNoiseNode.buffer = noiseBuffer;
+      vortexNoiseNode.loop = true;
+      
+      vortexFilterNode = audioCtx.createBiquadFilter();
+      vortexFilterNode.type = 'bandpass';
+      vortexFilterNode.frequency.setValueAtTime(160, now);
+      vortexFilterNode.Q.setValueAtTime(6, now);
+      
+      vortexGainNode = audioCtx.createGain();
+      vortexGainNode.gain.setValueAtTime(0.001, now);
+      vortexGainNode.gain.linearRampToValueAtTime(0.14 * (sfxVolSliderValue / 100), now + 0.25);
+      
+      vortexNoiseNode.connect(vortexFilterNode);
+      vortexFilterNode.connect(vortexGainNode);
+      vortexGainNode.connect(sfxGain);
+      
+      vortexNoiseNode.start(now);
+    }
+
+    function updateVortexSound(intensity) {
+      if (!audioCtx || !vortexFilterNode || !isSoundEnabled) return;
+      const now = audioCtx.currentTime;
+      const freq = 120 + Math.min(intensity * 15, 2000);
+      vortexFilterNode.frequency.setTargetAtTime(freq, now, 0.08);
+      const volume = Math.min(0.01 + intensity * 0.004, 0.22) * (sfxVolSliderValue / 100);
+      vortexGainNode.gain.setTargetAtTime(volume, now, 0.12);
+    }
+
+    function stopVortexSound() {
+      if (!vortexNoiseNode) return;
+      const now = audioCtx.currentTime;
+      try {
+        vortexGainNode.gain.cancelScheduledValues(now);
+        vortexGainNode.gain.setValueAtTime(vortexGainNode.gain.value, now);
+        vortexGainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+        const nodeToStop = vortexNoiseNode;
+        setTimeout(() => {
+          try { nodeToStop.stop(); } catch(e){}
+        }, 150);
+      } catch(e){}
+      vortexNoiseNode = null;
+      vortexFilterNode = null;
+      vortexGainNode = null;
+    }
+
+    function playShatterChime() {
+      if (!audioCtx || !isSoundEnabled) return;
+      const now = audioCtx.currentTime;
+      const notes = [440, 523.25, 659.25, 783.99, 880]; // Am7 Chime
+      const vol = sfxVolSliderValue / 100;
+      
+      notes.forEach((freq, idx) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + idx * 0.025);
+        
+        gain.gain.setValueAtTime(0.001, now + idx * 0.025);
+        gain.gain.linearRampToValueAtTime(0.045 * vol, now + idx * 0.025 + 0.008);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.025 + 0.35);
+        
+        osc.connect(gain);
+        gain.connect(sfxGain);
+        
+        osc.start(now + idx * 0.025);
+        osc.stop(now + idx * 0.025 + 0.4);
+      });
+    }
+
+    function playRebootSFX() {
+      if (!audioCtx || !isSoundEnabled) return;
+      const now = audioCtx.currentTime;
+      const vol = sfxVolSliderValue / 100;
+      
+      // Deep bass drop
+      const osc1 = audioCtx.createOscillator();
+      const filter1 = audioCtx.createBiquadFilter();
+      const gain1 = audioCtx.createGain();
+      
+      osc1.type = 'sawtooth';
+      osc1.frequency.setValueAtTime(110, now);
+      osc1.frequency.exponentialRampToValueAtTime(25, now + 0.45);
+      
+      filter1.type = 'lowpass';
+      filter1.frequency.setValueAtTime(450, now);
+      filter1.frequency.exponentialRampToValueAtTime(45, now + 0.45);
+      
+      gain1.gain.setValueAtTime(0.2 * vol, now);
+      gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+      
+      osc1.connect(filter1);
+      filter1.connect(gain1);
+      gain1.connect(sfxGain);
+      
+      osc1.start(now);
+      osc1.stop(now + 0.6);
+      
+      // Cyber sweep rise
+      const osc2 = audioCtx.createOscillator();
+      const gain2 = audioCtx.createGain();
+      
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(300, now + 0.18);
+      osc2.frequency.exponentialRampToValueAtTime(1800, now + 0.58);
+      
+      gain2.gain.setValueAtTime(0.001, now + 0.18);
+      gain2.gain.linearRampToValueAtTime(0.08 * vol, now + 0.22);
+      gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.58);
+      
+      osc2.connect(gain2);
+      gain2.connect(sfxGain);
+      
+      osc2.start(now + 0.18);
+      osc2.stop(now + 0.65);
+    }
+
+    // Grid Construction
+    function resizeGrid() {
       width = canvas.width = window.innerWidth;
       height = canvas.height = window.innerHeight;
       cols = Math.ceil(width / CELL_SIZE);
       rows = Math.ceil(height / CELL_SIZE);
-      grid = new Array(cols * rows);
-
-      for (let i = 0; i < cols * rows; i++) {
-        grid[i] = {
-          char: getRandomHex(),
-          state: 0, // 0: normal, 1: glitching, 2: melting, 3: dead
-          timer: 0,
-          shearX: 0,
-          offsetY: 0,
-          color: ''
-        };
+      
+      grid = [];
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          grid.push({
+            char: getRandomHex(),
+            baseChar: '',
+            state: 'normal', // normal, glitching, infected, dead
+            decayTimer: 0,
+            vx: 0, vy: 0,
+            x: 0, y: 0,
+            tx: 0, ty: 0,
+            color: '',
+            detached: false
+          });
+        }
       }
+      
+      // Cache home locations
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const idx = r * cols + c;
+          const cell = grid[idx];
+          cell.tx = c * CELL_SIZE + CELL_SIZE / 2;
+          cell.ty = r * CELL_SIZE + CELL_SIZE / 2;
+          cell.x = cell.tx;
+          cell.y = cell.ty;
+          cell.baseChar = cell.char;
+        }
+      }
+      
+      pools = new Array(cols).fill(0);
     }
 
-    window.addEventListener('resize', initGrid);
-    initGrid();
-
-    // System Reboot Trigger
-    function reboot() {
-      if (navigator.vibrate) navigator.vibrate([20, 40, 20]); // Haptic static stutter
-      playRebootSound();
-      initGrid();
+    window.addEventListener('resize', () => {
+      resizeGrid();
+      activeParticles.length = 0;
+    });
+    
+    // Core styling operations
+    function applyTheme(themeKey) {
+      activeTheme = themeKey;
+      
+      // Clean previous classes
+      document.body.className = 'toy-page';
+      document.body.classList.add(`theme-${themeKey}`);
+      
+      const t = THEMES[themeKey];
+      themeSelect.value = themeKey;
+      
+      bootLoader.className = 'boot-loader';
+      bootLoader.classList.add(`theme-${themeKey}`);
+      
+      grid.forEach(cell => {
+        if (cell.state === 'normal') {
+          cell.color = t.base;
+        }
+      });
     }
 
-    rebootBtn.addEventListener('click', reboot);
-    window.addEventListener('keydown', (e) => {
-      if (e.code === 'Space') {
-        e.preventDefault();
-        reboot();
+    // Cellular Automata Infection
+    function infectNeighbors(r, c) {
+      const dirs = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+      const t = THEMES[activeTheme];
+      
+      dirs.forEach(([dr, dc]) => {
+        const nr = r + dr;
+        const nc = c + dc;
+        if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
+          const idx = nr * cols + nc;
+          const cell = grid[idx];
+          if (cell && cell.state === 'normal' && !cell.detached) {
+            cell.state = 'infected';
+            cell.decayTimer = 90 + Math.random() * 60;
+            cell.color = t.infect;
+            cell.char = '█';
+          }
+        }
+      });
+    }
+
+    // Diagnostics Reboot
+    let isBooting = false;
+    
+    function triggerReboot() {
+      if (isBooting) return;
+      isBooting = true;
+      
+      if (navigator.vibrate) navigator.vibrate([30, 70, 30]);
+      playRebootSFX();
+      
+      bootLoader.classList.add('active');
+      bootLog.innerHTML = '';
+      stopVortexSound();
+      
+      const isEasterEgg = clickCount >= 5 || cheatCodeTriggered;
+      clickCount = 0;
+      cheatCodeTriggered = false;
+      
+      const lines = isEasterEgg ? [
+        ">> INITIATING ANTIGRAVITY COGNITIVE CORRECTION STACK",
+        ">> SECURITY HARNESS CHECKS... BYPASS OK",
+        ">> HOST SYSTEM: ANTIGRAVITY ENGINE (CLI 2.0)",
+        ">> FIRMWARE ARCHITECTURE: GOOGLE DEEPMIND AAC",
+        ">> PROCESSING CORE ENGINE SPECIFICATION...",
+        " ",
+        "    _   _  _ _____ ___ ___ ___   _  _  _ _____ _  _ ",
+        "   /_\\  |\\ |   |    |  | __ |__] /_\\ \\  /   |    \\_/ ",
+        "  /   \\ | \\|   |   _|_ |__] |  \\/   \\ \\/  _|_    |  ",
+        " ",
+        ">> COGNITIVE BRAIN: GEMINI 3.5 FLASH (MEDIUM)",
+        ">> INTEGRITY THREAD STATUS: ONLINE & COHESIVE",
+        ">> RE-BUILDING VOLATILE HEX MEMORY TABLES...",
+        ">> CLEARING BUFFER SHARDS: 100% PURIFIED",
+        ">> INJECTING ANTIGRAVITY DIRECTIVES...",
+        ">> SYSTEM RESTORED. ENJOY THE FIDGET EXPERIENCE."
+      ] : [
+        ">> COMPILING CORE DECK DIAGNOSTICS...",
+        ">> SECTOR ALLOCATION VERIFY: 0x00A0 - 0xFFF0",
+        ">> WARNING: HEAVY COHESIVE DESTRUCT DETECTED",
+        ">> RESETTING OSCILLATOR FREQ BUFFER... SUCCESS",
+        ">> DEFRAGGING CORRUPT DATA SEGMENTS...",
+        ">> SYSTEM RECOVERY SWEEP: [================] 100%",
+        ">> RELEASING KINETIC DISPLACEMENT TENSION...",
+        ">> DECK CONTROLLER INTEGRITY STATUS: SYSTEM ACTIVE"
+      ];
+      
+      let lineIdx = 0;
+      function printNextLine() {
+        if (lineIdx < lines.length) {
+          const div = document.createElement('div');
+          div.textContent = lines[lineIdx];
+          bootLog.appendChild(div);
+          bootLoader.scrollTop = bootLoader.scrollHeight;
+          lineIdx++;
+          setTimeout(printNextLine, isEasterEgg ? (lineIdx > 5 && lineIdx < 10 ? 30 : 70) : 40);
+        } else {
+          if (isEasterEgg) {
+            let countdown = 20;
+            const countdownDiv = document.createElement('div');
+            countdownDiv.style.marginTop = '15px';
+            countdownDiv.style.fontWeight = 'bold';
+            bootLog.appendChild(countdownDiv);
+            
+            function updateCountdown() {
+              if (countdown > 0) {
+                countdownDiv.textContent = `>> DECK LOCKED DURING COGNITIVE SYNC: ${countdown}s...`;
+                countdown--;
+                setTimeout(updateCountdown, 1000);
+              } else {
+                countdownDiv.textContent = `>> COGNITIVE SYNC COMPLETE. CLICK DECK OR PRESS ANY KEY TO RETURN...`;
+                bootLoader.onclick = closeBootLoader;
+                window.addEventListener('keydown', closeOnKey);
+              }
+            }
+            updateCountdown();
+            
+            function closeOnKey() {
+              window.removeEventListener('keydown', closeOnKey);
+              closeBootLoader();
+            }
+          } else {
+            setTimeout(closeBootLoader, 400);
+          }
+        }
+      }
+      
+      function closeBootLoader() {
+        bootLoader.onclick = null;
+        bootLoader.classList.remove('active');
+        isBooting = false;
+        resizeGrid();
+        activeParticles.length = 0;
+        playShatterChime();
+      }
+      
+      setTimeout(printNextLine, 100);
+    }
+
+    rebootBtn.addEventListener('click', triggerReboot);
+
+    // Deck configuration settings toggle
+    settingsToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isHidden = settingsPanel.classList.toggle('hidden');
+      settingsToggle.classList.toggle('active', !isHidden);
+    });
+
+    closeSettings.addEventListener('click', () => {
+      settingsPanel.classList.add('hidden');
+      settingsToggle.classList.remove('active');
+    });
+
+    window.addEventListener('click', (e) => {
+      if (!settingsPanel.contains(e.target) && e.target !== settingsToggle) {
+        settingsPanel.classList.add('hidden');
+        settingsToggle.classList.remove('active');
       }
     });
 
-    // Pointer Listeners
+    // Wire up sliders
+    const resSlider = document.getElementById('resolution-slider');
+    const resVal = document.getElementById('resolution-val');
+    resSlider.addEventListener('input', (e) => {
+      const val = parseInt(e.target.value);
+      CELL_SIZE = val;
+      resVal.textContent = val === 22 ? "Medium (22px)" : val < 22 ? `High (${val}px)` : `Low (${val}px)`;
+      resizeGrid();
+      activeParticles.length = 0;
+    });
+
+    const strengthSlider = document.getElementById('strength-slider');
+    const strengthVal = document.getElementById('strength-val');
+    strengthSlider.addEventListener('input', (e) => {
+      glitchStrength = parseInt(e.target.value);
+      strengthVal.textContent = `${glitchStrength}%`;
+    });
+
+    const droneSlider = document.getElementById('drone-slider');
+    const droneVal = document.getElementById('drone-val');
+    droneSlider.addEventListener('input', (e) => {
+      droneVolSliderValue = parseInt(e.target.value);
+      droneVal.textContent = `${droneVolSliderValue}%`;
+      if (audioCtx && isSoundEnabled) {
+        droneGain.gain.setTargetAtTime((droneVolSliderValue / 100) * 0.15, audioCtx.currentTime, 0.1);
+      }
+    });
+
+    const sfxSlider = document.getElementById('sfx-slider');
+    const sfxVal = document.getElementById('sfx-val');
+    sfxSlider.addEventListener('input', (e) => {
+      sfxVolSliderValue = parseInt(e.target.value);
+      sfxVal.textContent = `${sfxVolSliderValue}%`;
+      if (audioCtx && isSoundEnabled) {
+        sfxGain.gain.setValueAtTime(sfxVolSliderValue / 100, audioCtx.currentTime);
+      }
+    });
+
+    // Theme select dropdown
+    themeSelect.addEventListener('change', (e) => {
+      applyTheme(e.target.value);
+    });
+
+    // Mode Selector Controls
+    function setMode(newMode) {
+      mode = newMode;
+      document.querySelectorAll('.mode-card').forEach(card => {
+        const active = card.getAttribute('data-mode') === newMode;
+        card.classList.toggle('active', active);
+        card.querySelector('input').checked = active;
+      });
+      playGlitchTick(0.5);
+      if (newMode !== 'vortex') {
+        stopVortexSound();
+      }
+    }
+
+    document.querySelectorAll('.mode-card').forEach(card => {
+      card.addEventListener('click', () => {
+        setMode(card.getAttribute('data-mode'));
+      });
+    });
+
+    // Bottom status bar & keyboard listeners (Easter Egg)
+    statusBar.addEventListener('click', () => {
+      clickCount++;
+      if (clickCount >= 5) {
+        cheatCodeTriggered = true;
+        triggerReboot();
+      }
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (isBooting) return;
+      
+      // Shortcut checks
+      if (e.code === 'Space') {
+        e.preventDefault();
+        triggerReboot();
+        return;
+      }
+      
+      if (e.key >= '1' && e.key <= '5') {
+        const modes = ['shred', 'melt', 'vortex', 'infect', 'shatter'];
+        setMode(modes[parseInt(e.key) - 1]);
+        return;
+      }
+
+      // Cheat key tracking
+      keyBuffer += e.key.toLowerCase();
+      if (keyBuffer.length > 20) {
+        keyBuffer = keyBuffer.slice(-20);
+      }
+      
+      if (keyBuffer.includes('antigravity') || keyBuffer.includes('gemini')) {
+        cheatCodeTriggered = true;
+        keyBuffer = '';
+        triggerReboot();
+      }
+    });
+
+    // Sound toggle mechanism
+    soundBtn.addEventListener('click', () => {
+      isSoundEnabled = !isSoundEnabled;
+      soundBtn.classList.toggle('active', isSoundEnabled);
+      soundBtn.setAttribute('aria-pressed', isSoundEnabled);
+      soundBtn.textContent = isSoundEnabled ? "♫" : "♪";
+      
+      if (isSoundEnabled) {
+        initAudio();
+        resumeAudio();
+        playRebootSFX();
+      } else {
+        // Clean up node instances
+        if (droneOsc1) {
+          try {
+            droneOsc1.stop();
+            droneOsc2.stop();
+          } catch(e){}
+          droneOsc1 = null;
+          droneOsc2 = null;
+        }
+        stopVortexSound();
+        audioCtx = null;
+      }
+    });
+
+    // Helper: convert hex to rgba
+    function hexToRgba(hex, alpha) {
+      if (hex.startsWith('#')) {
+        let r = parseInt(hex.slice(1, 3), 16);
+        let g = parseInt(hex.slice(3, 5), 16);
+        let b = parseInt(hex.slice(5, 7), 16);
+        return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+      }
+      return hex;
+    }
+
+    // Pointer events handlers
     const updatePointer = (e) => {
       ptr.x = e.clientX ?? e.touches?.[0].clientX ?? ptr.x;
       ptr.y = e.clientY ?? e.touches?.[0].clientY ?? ptr.y;
@@ -288,41 +1314,83 @@
 
     window.addEventListener('pointermove', updatePointer);
     window.addEventListener('pointerdown', (e) => {
-      if (e.target === rebootBtn || e.target === soundBtn) return;
+      // Prevent pointer events on control UI cards
+      if (e.target.closest('.toy-nav') || e.target.closest('.settings-panel') || e.target.closest('.toy-status')) return;
       updatePointer(e);
+      initAudio();
+      resumeAudio();
     });
-    window.addEventListener('pointerup', () => ptr.active = false);
-    window.addEventListener('pointercancel', () => ptr.active = false);
+    window.addEventListener('pointerup', () => {
+      ptr.active = false;
+      if (mode === 'vortex') {
+        stopVortexSound();
+        playShatterChime();
+      }
+    });
+    window.addEventListener('pointercancel', () => {
+      ptr.active = false;
+      if (mode === 'vortex') {
+        stopVortexSound();
+      }
+    });
 
-    // Main Render Loop
+    // Main Draw & Animation Loop
     function animate() {
-      // Base space paint
-      ctx.fillStyle = '#030407';
+      const t = THEMES[activeTheme];
+      
+      // 1. Draw base console grid background
+      ctx.fillStyle = t.bg;
       ctx.fillRect(0, 0, width, height);
 
-      ctx.font = '13px monospace';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
+      // 2. Melt pools calculations
+      let drawPools = false;
+      for (let c = 0; c < cols; c++) {
+        if (pools[c] > 0) {
+          drawPools = true;
+          pools[c] -= 0.08; // gradual decay
+          if (pools[c] < 0) pools[c] = 0;
+        }
+      }
 
-      // Calculate real-time velocity for kinetic friction mapping
+      if (drawPools) {
+        ctx.fillStyle = t.melt;
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = t.melt;
+        for (let c = 0; c < cols; c++) {
+          if (pools[c] > 0) {
+            ctx.fillRect(c * CELL_SIZE, height - pools[c], CELL_SIZE, pools[c]);
+          }
+        }
+        ctx.shadowBlur = 0;
+      }
+
+      // 3. Pointer-induced kinetic friction
       const dx = ptr.x - ptr.px;
       const dy = ptr.y - ptr.py;
       const speed = Math.hypot(dx, dy);
 
+      updateDrone(speed);
+
       const isLingering = ptr.active && speed < 1.5;
       const isShearing = ptr.active && speed >= 1.5;
 
-      // Apply corruption logic to grid sectors
-      if (ptr.active && ptr.x >= 0 && ptr.y >= 0) {
-        if (isShearing) playTearSound(speed);
-
+      if (ptr.active && ptr.x >= 0 && ptr.y >= 0 && !isBooting) {
         const pCol = Math.floor(ptr.x / CELL_SIZE);
         const pRow = Math.floor(ptr.y / CELL_SIZE);
-        const effectRadius = Math.min(Math.max(Math.floor(speed / 4), 2), 7);
+        
+        // Dynamic influence field radius
+        const radius = Math.min(Math.max(Math.floor(speed / 4 * (glitchStrength / 100)), 2), 8);
 
-        for (let r = -effectRadius; r <= effectRadius; r++) {
-          for (let c = -effectRadius; c <= effectRadius; c++) {
-            if (r * r + c * c <= effectRadius * effectRadius) {
+        if (mode === 'vortex') {
+          startVortexSound();
+          let count = 0;
+          activeParticles.forEach(p => { if (p.type === 'vortex') count++; });
+          updateVortexSound(count);
+        }
+
+        for (let r = -radius; r <= radius; r++) {
+          for (let c = -radius; c <= radius; c++) {
+            if (r*r + c*c <= radius*radius) {
               const targetCol = pCol + c;
               const targetRow = pRow + r;
 
@@ -330,18 +1398,91 @@
                 const idx = targetRow * cols + targetCol;
                 const cell = grid[idx];
 
-                if (isShearing) {
-                  // High velocity: Volatile Glitch
-                  cell.state = 1;
-                  cell.timer = 15 + Math.random() * 40; // Volatility lifespan
-                  // Horizontal tear mapping
-                  cell.shearX += (dx * 0.5) + (Math.random() - 0.5) * speed * 0.8;
-                  cell.color = GLITCH_COLORS[Math.floor(Math.random() * GLITCH_COLORS.length)];
-                } else if (isLingering) {
-                  // Linger: Localized melting
-                  if (r * r + c * c <= 4 && cell.state !== 3 && cell.state !== 1) {
-                    cell.state = 2;
-                    cell.timer += 0.8; // Accumulate structural decay
+                if (cell) {
+                  if (mode === 'shred' && isShearing) {
+                    cell.state = 'glitching';
+                    cell.decayTimer = 20 + Math.random() * 30;
+                    cell.vx += dx * 0.42 * (glitchStrength / 100);
+                    cell.vy += dy * 0.12 * (glitchStrength / 100);
+                    cell.color = t.glitchColors[Math.floor(Math.random() * t.glitchColors.length)];
+
+                    if (Math.random() > 0.86) {
+                      playGlitchTick(Math.min(speed / 10, 1));
+                    }
+                  }
+                  else if (mode === 'melt' && !cell.detached && activeParticles.length < 800) {
+                    cell.detached = true;
+                    cell.state = 'melting';
+                    activeParticles.push({
+                      x: cell.x,
+                      y: cell.y,
+                      originCol: targetCol,
+                      originRow: targetRow,
+                      vx: (Math.random() - 0.5) * 1.5,
+                      vy: 1.5 + Math.random() * 3,
+                      char: cell.char,
+                      color: t.melt,
+                      type: 'melt',
+                      life: 1.0,
+                      trail: []
+                    });
+
+                    if (Math.random() > 0.95) {
+                      playDripSFX();
+                    }
+                  }
+                  else if (mode === 'vortex' && !cell.detached && activeParticles.length < 800) {
+                    cell.detached = true;
+                    cell.state = 'glitching';
+                    const angle = Math.atan2(cell.y - ptr.y, cell.x - ptr.x);
+                    activeParticles.push({
+                      x: cell.x,
+                      y: cell.y,
+                      originCol: targetCol,
+                      originRow: targetRow,
+                      vx: -Math.sin(angle) * (2.5 + Math.random() * 3),
+                      vy: Math.cos(angle) * (2.5 + Math.random() * 3),
+                      char: cell.char,
+                      color: t.accent,
+                      type: 'vortex',
+                      angle: angle,
+                      dist: Math.hypot(cell.x - ptr.x, cell.y - ptr.y)
+                    });
+                  }
+                  else if (mode === 'infect') {
+                    if (cell.state === 'normal') {
+                      cell.state = 'infected';
+                      cell.decayTimer = 110 + Math.random() * 70;
+                      cell.color = t.infect;
+                      cell.char = '█';
+                      if (Math.random() > 0.92) {
+                        playGlitchTick(0.35);
+                      }
+                    }
+                  }
+                  else if (mode === 'shatter' && !cell.detached && activeParticles.length < 800) {
+                    cell.detached = true;
+                    const angle = Math.random() * Math.PI * 2;
+                    const force = (3 + Math.random() * 5) * (glitchStrength / 100);
+                    activeParticles.push({
+                      x: cell.x,
+                      y: cell.y,
+                      originCol: targetCol,
+                      originRow: targetRow,
+                      vx: Math.cos(angle) * force + dx * 0.12,
+                      vy: Math.sin(angle) * force + dy * 0.12,
+                      char: Math.random() > 0.55 ? '1' : '0',
+                      color: t.glitchColors[Math.floor(Math.random() * t.glitchColors.length)],
+                      type: 'shatter',
+                      rotation: Math.random() * Math.PI * 2,
+                      rotSpeed: (Math.random() - 0.5) * 0.16,
+                      scale: 0.95 + Math.random() * 0.3,
+                      life: 1.0
+                    });
+
+                    if (Math.random() > 0.93) {
+                      playGlitchTick(0.65);
+                    }
                   }
                 }
               }
@@ -353,65 +1494,281 @@
       ptr.px = ptr.x;
       ptr.py = ptr.y;
 
-      // Fetch style properties lazily to allow dynamic theming if needed
-      const rootStyle = getComputedStyle(document.documentElement);
-      const baseColor = rootStyle.getPropertyValue('--text-base').trim() || '#2a3b2a';
-      const meltColor = rootStyle.getPropertyValue('--text-melt').trim() || '#4d6d4d';
-      const deadColor = rootStyle.getPropertyValue('--text-dead').trim() || '#161a16';
+      // 4. Render Grid Sectors (Batch drawing optimizations)
+      ctx.font = '13px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      const normalCells = [];
+      const infectedCells = [];
+      const simpleGlitchCells = [];
+      const aberrationCells = [];
 
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
-          const cell = grid[r * cols + c];
-          let drawX = c * CELL_SIZE + CELL_SIZE / 2;
-          let drawY = r * CELL_SIZE + CELL_SIZE / 2;
-          let text = cell.char;
-          let fill = baseColor;
+          const idx = r * cols + c;
+          const cell = grid[idx];
+          if (!cell || cell.detached) continue;
 
-          // Sector State Logic
-          if (cell.state === 1) {
-            // Glitching Frame
-            cell.timer--;
-            cell.shearX *= 0.85; // Natural friction pulling grid back
-            text = Math.random() > 0.4 ? getRandomHex() : cell.char;
-            fill = cell.color;
-            drawX += cell.shearX;
-
-            if (cell.timer <= 0) {
-              if (Math.random() > 0.4) {
-                cell.state = 3; // Hard crash (Dead Sector)
-                cell.char = getRandomHex();
-              } else {
-                cell.state = 0; // System Recovery
-                cell.shearX = 0;
-              }
+          if (cell.state === 'normal') {
+            if (Math.random() > 0.9995) {
+              cell.char = cell.baseChar;
             }
-          } else if (cell.state === 2) {
-            // Melting Frame
-            cell.offsetY += cell.timer * 0.15; // Gravity displacement
-            drawY += cell.offsetY;
-            fill = meltColor;
-            text = Math.random() > 0.85 ? getRandomHex() : cell.char;
-
-            // Disperse heat
-            cell.timer *= 0.92;
-            if (cell.timer < 0.1) {
-              cell.state = 3; // Cools into a permanent dead sector
-            }
-          } else if (cell.state === 3) {
-            // Dead Sector Frame
-            fill = deadColor;
-            drawY += cell.offsetY; // Lock in its fallen displacement
-            if (Math.random() > 0.995) text = getRandomHex(); // Micro-jitter
+            normalCells.push(cell);
           }
+          else if (cell.state === 'infected') {
+            if (frameCount % 8 === 0 && Math.random() > 0.94) {
+              infectNeighbors(r, c);
+            }
+            
+            cell.decayTimer--;
+            
+            if (cell.decayTimer < 25) {
+              cell.char = '░';
+              cell.color = t.dead;
+            } else if (cell.decayTimer < 50) {
+              cell.char = '▒';
+            } else if (cell.decayTimer < 75) {
+              cell.char = '▓';
+            }
 
-          ctx.fillStyle = fill;
-          ctx.fillText(text, drawX, drawY);
+            if (cell.decayTimer <= 0) {
+              cell.state = 'dead';
+              cell.char = ' ';
+            } else {
+              infectedCells.push(cell);
+            }
+          }
+          else if (cell.state === 'glitching') {
+            cell.x += cell.vx;
+            cell.y += cell.vy;
+            
+            cell.vx += (cell.tx - cell.x) * 0.08;
+            cell.vy += (cell.ty - cell.y) * 0.08;
+            cell.vx *= 0.82;
+            cell.vy *= 0.82;
+            
+            cell.decayTimer--;
+            if (cell.decayTimer <= 0) {
+              cell.state = 'normal';
+              cell.x = cell.tx;
+              cell.y = cell.ty;
+              cell.vx = 0;
+              cell.vy = 0;
+              normalCells.push(cell);
+              continue;
+            }
+
+            if (Math.random() > 0.84) {
+              cell.char = getRandomHex();
+            }
+
+            // Only aberration-render if offset displacement is significant
+            const offset = Math.abs(cell.x - cell.tx);
+            if (offset > 1.5) {
+              aberrationCells.push(cell);
+            } else {
+              simpleGlitchCells.push(cell);
+            }
+          }
         }
       }
 
+      // Pass 1: Draw Normal Cells (grouped fillStyle)
+      ctx.fillStyle = t.base;
+      for (let i = 0; i < normalCells.length; i++) {
+        const cell = normalCells[i];
+        ctx.fillText(cell.char, cell.x, cell.y);
+      }
+
+      // Pass 2: Draw Infected Cells
+      for (let i = 0; i < infectedCells.length; i++) {
+        const cell = infectedCells[i];
+        ctx.fillStyle = cell.color;
+        ctx.fillText(cell.char, cell.x, cell.y);
+      }
+
+      // Pass 3: Draw Simple Glitch Cells (no offset aberration)
+      for (let i = 0; i < simpleGlitchCells.length; i++) {
+        const cell = simpleGlitchCells[i];
+        ctx.fillStyle = cell.color;
+        ctx.fillText(cell.char, cell.x, cell.y);
+      }
+
+      // Pass 4: Draw Aberration Cells (requires grouped offsets to minimize state updates)
+      if (aberrationCells.length > 0) {
+        // Cyan offset
+        ctx.fillStyle = 'rgba(0, 255, 255, 0.6)';
+        for (let i = 0; i < aberrationCells.length; i++) {
+          const cell = aberrationCells[i];
+          ctx.fillText(cell.char, cell.x - 3, cell.y);
+        }
+
+        // Red offset
+        ctx.fillStyle = 'rgba(255, 0, 85, 0.6)';
+        for (let i = 0; i < aberrationCells.length; i++) {
+          const cell = aberrationCells[i];
+          ctx.fillText(cell.char, cell.x + 3, cell.y);
+        }
+
+        // Accent top pass
+        for (let i = 0; i < aberrationCells.length; i++) {
+          const cell = aberrationCells[i];
+          ctx.fillStyle = cell.color;
+          ctx.fillText(cell.char, cell.x, cell.y);
+        }
+      }
+
+      // 5. Update and render active kinetic particles
+      for (let i = activeParticles.length - 1; i >= 0; i--) {
+        const p = activeParticles[i];
+
+        if (p.type === 'melt') {
+          p.vy += 0.22;
+          p.vx *= 0.98;
+          p.x += p.vx;
+          p.y += p.vy;
+
+          p.trail.push({ x: p.x, y: p.y });
+          if (p.trail.length > 4) p.trail.shift();
+
+          p.trail.forEach((pos, tidx) => {
+            const alpha = (tidx / p.trail.length) * 0.3;
+            ctx.fillStyle = hexToRgba(p.color, alpha);
+            ctx.fillText(p.char, pos.x, pos.y);
+          });
+
+          if (p.y >= height) {
+            pools[p.originCol] = Math.min(height * 0.12, pools[p.originCol] + 12);
+            
+            const cellIdx = p.originRow * cols + p.originCol;
+            setTimeout(() => {
+              if (grid[cellIdx]) {
+                grid[cellIdx].detached = false;
+                grid[cellIdx].state = 'normal';
+              }
+            }, 1800 + Math.random() * 1800);
+
+            activeParticles.splice(i, 1);
+            continue;
+          }
+
+          ctx.fillStyle = p.color;
+          ctx.fillText(p.char, p.x, p.y);
+        }
+        
+        else if (p.type === 'vortex') {
+          if (ptr.active && mode === 'vortex') {
+            const dx = ptr.x - p.x;
+            const dy = ptr.y - p.y;
+            const dist = Math.hypot(dx, dy) || 1;
+
+            const gravity = 0.5 * (glitchStrength / 100);
+            const orbit = 1.7;
+
+            p.vx += (dx / dist) * gravity - (dy / dist) * orbit;
+            p.vy += (dy / dist) * gravity + (dx / dist) * orbit;
+
+            p.vx *= 0.95;
+            p.vy *= 0.95;
+
+            p.x += p.vx;
+            p.y += p.vy;
+
+            if (Math.random() > 0.85) p.char = getRandomHex();
+
+            ctx.fillStyle = p.color;
+            ctx.fillText(p.char, p.x, p.y);
+          } else {
+            p.type = 'vortex-flung';
+            const dx = p.x - ptr.x;
+            const dy = p.y - ptr.y;
+            const dist = Math.hypot(dx, dy) || 1;
+
+            const force = (5 + Math.random() * 7) * (glitchStrength / 100);
+            p.vx = (dx / dist) * force;
+            p.vy = (dy / dist) * force;
+            p.life = 1.0;
+            p.gravity = 0.04;
+            p.drag = 0.98;
+          }
+        }
+        
+        else if (p.type === 'vortex-flung') {
+          p.vy += p.gravity;
+          p.vx *= p.drag;
+          p.vy *= p.drag;
+          p.x += p.vx;
+          p.y += p.vy;
+          p.life -= 0.015;
+
+          if (p.life <= 0) {
+            const cellIdx = p.originRow * cols + p.originCol;
+            if (grid[cellIdx]) {
+              grid[cellIdx].detached = false;
+              grid[cellIdx].state = 'normal';
+            }
+            activeParticles.splice(i, 1);
+            continue;
+          }
+
+          ctx.fillStyle = hexToRgba(p.color, p.life);
+          ctx.fillText(p.char, p.x, p.y);
+        }
+        
+        else if (p.type === 'shatter') {
+          p.vy += 0.22;
+          p.vx *= 0.99;
+          p.x += p.vx;
+          p.y += p.vy;
+
+          p.rotation += p.rotSpeed;
+          p.life -= 0.014;
+
+          if (p.x < 0 || p.x > width) {
+            p.vx *= -0.7;
+            p.x = Math.max(0, Math.min(width, p.x));
+          }
+          if (p.y > height) {
+            p.vy *= -0.6;
+            p.vy -= 0.08;
+            p.y = height;
+          }
+
+          if (p.life <= 0) {
+            const cellIdx = p.originRow * cols + p.originCol;
+            if (grid[cellIdx]) {
+              grid[cellIdx].detached = false;
+              grid[cellIdx].state = 'normal';
+              grid[cellIdx].char = grid[cellIdx].baseChar;
+            }
+            activeParticles.splice(i, 1);
+            continue;
+          }
+
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.rotation);
+          ctx.scale(p.scale, p.scale);
+
+          ctx.fillStyle = hexToRgba(p.color, p.life);
+          ctx.fillText(p.char, 0, 0);
+          ctx.restore();
+        }
+      }
+
+      frameCount++;
       requestAnimationFrame(animate);
     }
 
+    // Initialization
+    resizeGrid();
+    
+    // Auto-detect theme of site-wide layout
+    const savedTheme = localStorage.getItem('ftg-theme') || 'cyber-green';
+    const initTheme = savedTheme === 'light' ? 'paper-glitch' : 'cyber-green';
+    applyTheme(initTheme);
+    
     animate();
   </script>
 </body>

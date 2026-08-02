@@ -8,346 +8,1133 @@
   <script src="../theme.js"></script>
   <link rel="stylesheet" href="../styles.css" />
   <style>
-    body.toy-page {
-      overflow: hidden;
-      background: #030407;
-    }
+    /* The garden's stylesheet already owns .toy-page, .toy-nav, .back-link,
+       .sound-toggle and .toy-status. Everything below is only what this toy
+       adds — the canvas and the specimen panel — all .fx- prefixed so it can
+       never collide with the shared sheet. */
 
     #fracture-canvas {
       display: block;
+      position: absolute;
+      inset: 0;
       width: 100vw;
       height: 100vh;
       touch-action: none;
       cursor: crosshair;
+      z-index: 1;
+    }
+
+    .fx-nav-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    /* Matches .sound-toggle's box so the nav reads as one set of controls. */
+    .fx-reset {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 42px;
+      min-height: 42px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 8px;
+      background: rgba(7, 8, 12, 0.62);
+      color: var(--text);
+      font: inherit;
+      font-weight: 750;
+      font-size: 1.05rem;
+      cursor: pointer;
+      backdrop-filter: blur(18px);
+      pointer-events: auto;
+    }
+
+    .fx-reset:hover {
+      border-color: rgba(54, 247, 255, 0.5);
+    }
+
+    /* ── Specimen panel ─────────────────────────────────────────── */
+    .fx-panel {
+      position: fixed;
+      top: 70px;
+      right: 16px;
+      z-index: 6;
+      width: 300px;
+      max-height: calc(100vh - 160px);
+      overflow-y: auto;
+      padding: 18px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: rgba(7, 8, 12, 0.66);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      box-shadow: var(--shadow);
+      transition: transform 0.42s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
+    }
+
+    [data-theme="light"] .fx-panel {
+      background: rgba(244, 240, 255, 0.86);
+    }
+
+    .fx-panel::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .fx-panel::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.14);
+      border-radius: 3px;
+    }
+
+    .fx-panel.is-collapsed {
+      transform: translateX(calc(100% + 26px));
+      opacity: 0.9;
+    }
+
+    .fx-panel-toggle {
+      position: absolute;
+      left: -52px;
+      top: 0;
+      width: 42px;
+      min-height: 42px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      border-radius: 8px;
+      background: rgba(7, 8, 12, 0.62);
+      color: var(--text);
+      font: inherit;
+      font-weight: 750;
+      cursor: pointer;
+      backdrop-filter: blur(18px);
+    }
+
+    .fx-panel-toggle:hover {
+      border-color: rgba(54, 247, 255, 0.5);
+    }
+
+    .fx-head {
+      margin-bottom: 16px;
+    }
+
+    .fx-title {
+      margin: 0;
+      font-size: 1.06rem;
+      font-weight: 750;
+      letter-spacing: 0.01em;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .fx-glyph {
+      color: var(--accent, var(--cyan));
+      font-size: 0.9rem;
+      opacity: 0.75;
+    }
+
+    .fx-sub {
+      margin: 4px 0 0;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .fx-group {
+      margin-bottom: 14px;
+    }
+
+    .fx-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .fx-val {
+      color: var(--accent, var(--cyan));
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.76rem;
+      font-weight: 700;
+    }
+
+    .fx-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 6px;
+    }
+
+    .fx-btn {
+      padding: 8px 6px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--muted);
+      font: inherit;
+      font-size: 0.82rem;
+      font-weight: 650;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+
+    .fx-btn:hover {
+      color: var(--text);
+      border-color: rgba(255, 255, 255, 0.28);
+    }
+
+    .fx-btn.is-on {
+      color: var(--text);
+      border-color: var(--accent, var(--cyan));
+      background: color-mix(in srgb, var(--accent, var(--cyan)) 18%, transparent);
+      box-shadow: 0 0 14px color-mix(in srgb, var(--accent, var(--cyan)) 22%, transparent);
+    }
+
+    .fx-panel input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 3px;
+      margin: 6px 0;
+      border-radius: 2px;
+      background: var(--line);
+      outline: none;
+    }
+
+    .fx-panel input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: var(--accent, var(--cyan));
+      cursor: pointer;
+      box-shadow: 0 0 8px color-mix(in srgb, var(--accent, var(--cyan)) 55%, transparent);
+    }
+
+    .fx-panel input[type="range"]::-moz-range-thumb {
+      width: 13px;
+      height: 13px;
+      border: none;
+      border-radius: 50%;
+      background: var(--accent, var(--cyan));
+      cursor: pointer;
+    }
+
+    .fx-check {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .fx-check input {
+      display: none;
+    }
+
+    .fx-box {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: none;
+      width: 15px;
+      height: 15px;
+      margin-right: 9px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.03);
+    }
+
+    .fx-check input:checked+.fx-box {
+      background: var(--accent, var(--cyan));
+      border-color: var(--accent, var(--cyan));
+    }
+
+    .fx-check input:checked+.fx-box::after {
+      content: '✓';
+      color: #05070c;
+      font-size: 0.64rem;
+      font-weight: 800;
+    }
+
+    .fx-rule {
+      height: 1px;
+      margin: 15px 0;
+      background: var(--line);
+    }
+
+    .fx-readout {
+      padding: 10px 11px;
+      border-radius: 7px;
+      border: 1px solid color-mix(in srgb, var(--accent, var(--cyan)) 26%, transparent);
+      background: color-mix(in srgb, var(--accent, var(--cyan)) 7%, transparent);
+      font-size: 0.75rem;
+      line-height: 1.5;
+      color: var(--muted);
+    }
+
+    .fx-readout b {
+      color: var(--accent, var(--cyan));
+      font-weight: 700;
+    }
+
+    @media (max-width: 860px) {
+      .fx-panel {
+        top: auto;
+        bottom: 78px;
+        right: 16px;
+        left: 16px;
+        width: auto;
+        max-height: 46vh;
+      }
+
+      .fx-panel.is-collapsed {
+        transform: translateY(calc(100% + 90px));
+      }
+
+      .fx-panel-toggle {
+        left: auto;
+        right: 0;
+        top: -52px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .fx-panel {
+        transition: none;
+      }
     }
   </style>
 </head>
 
 <body class="toy-page">
+  <!-- Hold past everything you've got and something comes up through the
+       glass to sign it for you. It flickers. It regrows what it loses,
+       which is the only promise this page makes.
+       Cut by Claude Opus 5, reworked through Claude Code.
+       Some signatures have to be waited out. -->
+
   <nav class="toy-nav" aria-label="Toy controls">
-    <a class="back-link" href="../fidgetToy-index.html">← Home</a>
+    <span class="fx-nav-group">
+      <a class="back-link" href="../fidgetToy-index.html">← Home</a>
+      <button class="fx-reset" id="reset-btn" type="button" aria-label="Reset surface" title="Reset surface">⟲</button>
+    </span>
     <button class="sound-toggle" type="button" aria-label="Toggle sound" aria-pressed="false">♪</button>
   </nav>
-  <canvas id="fracture-canvas" aria-label="Glass surface that fractures on hold and release"></canvas>
+
+  <canvas id="fracture-canvas" aria-label="A surface that fractures under pressure"></canvas>
+
+  <aside class="fx-panel" id="panel" aria-label="Specimen settings">
+    <button class="fx-panel-toggle" id="panel-toggle" type="button" aria-label="Collapse panel"
+      aria-expanded="true">❯</button>
+
+    <div class="fx-head">
+      <h2 class="fx-title">Pressure Fracture <span class="fx-glyph">◇</span></h2>
+      <p class="fx-sub" id="sub">Glass · Impact</p>
+    </div>
+
+    <section class="fx-group">
+      <div class="fx-label"><span>Material</span></div>
+      <div class="fx-grid">
+        <button class="fx-btn is-on" data-mat="glass">Glass</button>
+        <button class="fx-btn" data-mat="ice">Ice</button>
+        <button class="fx-btn" data-mat="metal">Metal</button>
+        <button class="fx-btn" data-mat="plastic">Plastic</button>
+      </div>
+    </section>
+
+    <section class="fx-group">
+      <div class="fx-label"><span>Load</span></div>
+      <div class="fx-grid">
+        <button class="fx-btn is-on" data-stress="impact">Impact</button>
+        <button class="fx-btn" data-stress="shear">Shear</button>
+        <button class="fx-btn" data-stress="thermal">Thermal</button>
+        <button class="fx-btn" data-stress="flex">Flex</button>
+      </div>
+    </section>
+
+    <div class="fx-rule"></div>
+
+    <section class="fx-group">
+      <div class="fx-label"><span>Applied Force</span><span class="fx-val" id="v-force">1.0×</span></div>
+      <input type="range" id="s-force" min="0.3" max="2.2" step="0.1" value="1" />
+    </section>
+
+    <section class="fx-group">
+      <div class="fx-label"><span>Branch Density</span><span class="fx-val" id="v-branch">1.0×</span></div>
+      <input type="range" id="s-branch" min="0" max="2.5" step="0.1" value="1" />
+    </section>
+
+    <section class="fx-group">
+      <div class="fx-label"><span>Propagation</span><span class="fx-val" id="v-speed">1.0×</span></div>
+      <input type="range" id="s-speed" min="0.3" max="2.4" step="0.1" value="1" />
+    </section>
+
+    <section class="fx-group">
+      <div class="fx-label"><span>Brittleness</span><span class="fx-val" id="v-brittle">Native</span></div>
+      <input type="range" id="s-brittle" min="-1" max="1" step="0.1" value="0" />
+    </section>
+
+    <section class="fx-group">
+      <div class="fx-label"><span>Persistence</span><span class="fx-val" id="v-life">6.0s</span></div>
+      <input type="range" id="s-life" min="1.5" max="30" step="0.5" value="6" />
+    </section>
+
+    <div class="fx-rule"></div>
+
+    <section class="fx-group">
+      <label class="fx-check"><input type="checkbox" id="c-debris" checked /><span class="fx-box"></span><span>Debris &
+          sparks</span></label>
+      <label class="fx-check"><input type="checkbox" id="c-field" checked /><span class="fx-box"></span><span>Load
+          field</span></label>
+      <label class="fx-check"><input type="checkbox" id="c-residue" checked /><span
+          class="fx-box"></span><span>Residue</span></label>
+      <label class="fx-check"><input type="checkbox" id="c-haptic" checked /><span
+          class="fx-box"></span><span>Haptics</span></label>
+    </section>
+
+    <div class="fx-readout" id="readout"></div>
+  </aside>
+
   <div class="toy-status">
     <p id="status-text">Hold to charge. Drag to aim. Release to shatter. The glass always heals.</p>
   </div>
+
   <script>
+    'use strict';
+
     const canvas = document.getElementById('fracture-canvas');
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { alpha: false });
+    const bg = document.createElement('canvas');
+    const bgx = bg.getContext('2d', { alpha: false });
+
     const statusEl = document.getElementById('status-text');
+    const readoutEl = document.getElementById('readout');
+    const subEl = document.getElementById('sub');
+    const panel = document.getElementById('panel');
 
-    let W, H;
-    let fractures = [];
-    let shockwaves = [];
-    let glassLines = [];
-    let dragTraces = [];
+    let W = 0, H = 0, DPR = 1;
 
-    let holdStart = null;
-    let pressX = 0, pressY = 0;   // fixed anchor — where the hold began, never moves
-    let liveX = 0, liveY = 0;     // follows the cursor while held, drives the lean
-    let dragPath = [];
-    let statusTimeout = null;
+    // ── Brand tokens ────────────────────────────────────────────────
+    // The crack palette was never arbitrary — it's the garden's own
+    // --cyan/--pink/--amber/--lime. Reading them keeps this toy on-brand
+    // and lets it follow the light-mode swap for free.
+    const TOK = { cyan: '#36f7ff', pink: '#ff4fd8', lime: '#b8ff5d', amber: '#ffd166' };
 
+    function readTokens() {
+      const cs = getComputedStyle(document.documentElement);
+      for (const k of Object.keys(TOK)) {
+        const v = cs.getPropertyValue('--' + k).trim();
+        if (v) TOK[k] = v;
+      }
+    }
+
+    // ── State ───────────────────────────────────────────────────────
+    let segs = [];        // continuous emission (ice / metal / plastic)
+    let fractures = [];   // glass bursts
+    let forks = [];
+    let shocks = [];
+    let traces = [];
+    let bits = [];
+    let marks = [];
+    let crazes = [];
+
+    let material = 'glass';
+    let stress = 'impact';
+    let rig = null;
+
+    let forceScale = 1, branchScale = 1, speedScale = 1, brittleBias = 0, persistence = 6000;
+    let showDebris = true, showField = true, showResidue = true, useHaptics = true;
+
+    // Every glass line is a glowing stroke, so concurrent bursts are the
+    // real frame budget — 6 at ~440 lines is the worst case worth allowing.
+    const MAX_SEGS = 620, MAX_FORKS = 46, MAX_BITS = 150, MAX_MARKS = 18, MAX_FRACTURES = 6;
     const MAX_HOLD = 2200;
 
-    // ── HELPERS ──────────────────────────────────────────────────────────
-    function angleDiff(a, b) {
-      return ((b - a + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
-    }
+    const rand = (a, b) => a + Math.random() * (b - a);
+    const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+    const smooth = (e0, e1, x) => { const t = clamp((x - e0) / (e1 - e0), 0, 1); return t * t * (3 - 2 * t); };
+    const angleDiff = (a, b) => ((b - a + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
+    const haptic = p => { if (useHaptics && navigator.vibrate) { try { navigator.vibrate(p); } catch (_) { } } };
 
-    // ── HAPTIC ───────────────────────────────────────────────────────────
-    function hapticPulse(ms = 5) {
-      if (navigator.vibrate) navigator.vibrate(ms);
-    }
+    // ── T-junction grid ─────────────────────────────────────────────
+    // Thermal cracking is defined by cracks that stop when they meet an
+    // older crack, square on. That needs a cheap "has anything been here"
+    // lookup, so every emitted endpoint stamps a coarse cell.
+    const CELL = 12;
+    let occupied = new Set();
+    const cellKey = (x, y) => ((x / CELL) | 0) + ',' + ((y / CELL) | 0);
+    const stamp = (x, y) => occupied.add(cellKey(x, y));
 
-    function hapticShatter(power) {
-      if (!navigator.vibrate) return;
-      if (power < 0.15) navigator.vibrate(8);
-      else if (power < 0.4) navigator.vibrate([10, 8, 15]);
-      else if (power < 0.7) navigator.vibrate([15, 5, 20, 8, 25]);
-      else navigator.vibrate([20, 5, 30, 8, 40, 5, 20]);
-    }
-
-    // ── SOUND ────────────────────────────────────────────────────────────
-    let audio = null;
-    let soundEnabled = false;
+    // ══════════════════════════════════════════════════════════════
+    // AUDIO
+    // ══════════════════════════════════════════════════════════════
+    let audio = null, soundOn = false, lastTick = 0;
     const soundToggle = document.querySelector('.sound-toggle');
 
     function makeAudio() {
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if (!AudioCtx) return null;
-      const ac = new AudioCtx();
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      const ac = new AC();
       const master = ac.createGain();
-      master.gain.value = 0.72;
+      master.gain.value = 0.62;
       master.connect(ac.destination);
-
       const fill = len => {
         const b = ac.createBuffer(1, Math.ceil(ac.sampleRate * len), ac.sampleRate);
         const d = b.getChannelData(0);
         for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
         return b;
       };
-      return {
-        ac, master,
-        noiseBuf: fill(0.72),
-        resBuf: fill(0.52),
-        crackBuf: fill(0.09), // short buffer reused for every crackle tick
-      };
+      const click = ac.createBuffer(1, Math.ceil(ac.sampleRate * 0.09), ac.sampleRate);
+      const cd = click.getChannelData(0);
+      for (let i = 0; i < cd.length; i++) cd[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ac.sampleRate * 0.014));
+      return { ac, master, noiseBuf: fill(0.72), resBuf: fill(0.52), crackBuf: click };
     }
 
     async function toggleSound() {
       if (!audio) audio = makeAudio();
       if (!audio) { setStatus('This browser does not support Web Audio.', 4000); return; }
       if (audio.ac.state === 'suspended') await audio.ac.resume();
-      soundEnabled = !soundEnabled;
-      soundToggle.setAttribute('aria-pressed', String(soundEnabled));
-      soundToggle.textContent = soundEnabled ? '♫' : '♪';
-      setStatus(soundEnabled ? 'Sound on.' : 'Sound off.', 3000);
+      soundOn = !soundOn;
+      soundToggle.setAttribute('aria-pressed', String(soundOn));
+      soundToggle.textContent = soundOn ? '♫' : '♪';
+      setStatus(soundOn ? 'Sound on.' : 'Sound off.', 2600);
     }
-
-    // Short icy crackle tick — reuses crackBuf, no per-call allocation.
-    function playCrackle(intensity = 0.3) {
-      if (!soundEnabled || !audio) return;
-      const { ac, master, crackBuf } = audio;
-      const now = ac.currentTime;
-
-      const src = ac.createBufferSource();
-      src.buffer = crackBuf;
-
-      const hp = ac.createBiquadFilter();
-      hp.type = 'highpass';
-      hp.frequency.value = 3200 + Math.random() * 2800;
-
-      const gain = ac.createGain();
-      const stopAt = now + 0.028 + intensity * 0.038;
-      gain.gain.setValueAtTime(0.0001, now);
-      gain.gain.exponentialRampToValueAtTime(0.14 + intensity * 0.18, now + 0.002);
-      gain.gain.exponentialRampToValueAtTime(0.0001, stopAt);
-
-      src.connect(hp);
-      hp.connect(gain);
-      gain.connect(master);
-      src.onended = () => { try { src.disconnect(); hp.disconnect(); gain.disconnect(); } catch (_) { } };
-      src.start(now);
-      src.stop(stopAt + 0.01);
-    }
-
-    // Full shatter: impact tink + noise burst + low body + settling crackle cascade.
-    function playShatter(power) {
-      if (!soundEnabled || !audio) return;
-      const { ac, master, noiseBuf, resBuf, crackBuf } = audio;
-      const now = ac.currentTime;
-
-      function autoClean(src, nodes, stopAt) {
-        src.onended = () => nodes.forEach(n => { try { n.disconnect(); } catch (_) { } });
-        src.start(now);
-        src.stop(stopAt);
-      }
-
-      // Layer 1: Impact tink
-      const tinkFreq = 2400 + power * 2600;
-      const tink = ac.createOscillator();
-      const tinkGain = ac.createGain();
-      tink.type = 'sine';
-      tink.frequency.setValueAtTime(tinkFreq, now);
-      tink.frequency.exponentialRampToValueAtTime(tinkFreq * 0.35, now + 0.09);
-      tinkGain.gain.setValueAtTime(0.28 + power * 0.38, now);
-      tinkGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.11);
-      tink.connect(tinkGain);
-      tinkGain.connect(master);
-      autoClean(tink, [tink, tinkGain], now + 0.15);
-
-      // Layer 2: Noise burst
-      const noise = ac.createBufferSource();
-      noise.buffer = noiseBuf;
-      const hiPass = ac.createBiquadFilter();
-      hiPass.type = 'highpass';
-      hiPass.frequency.value = 2800 - power * 1200;
-      const noiseGain = ac.createGain();
-      const noiseStop = now + 0.1 + power * 0.45;
-      noiseGain.gain.setValueAtTime(0.0001, now);
-      noiseGain.gain.exponentialRampToValueAtTime(0.45 + power * 0.4, now + 0.004);
-      noiseGain.gain.exponentialRampToValueAtTime(0.1001, noiseStop);
-      noise.connect(hiPass);
-      hiPass.connect(noiseGain);
-      noiseGain.connect(master);
-      autoClean(noise, [noise, hiPass, noiseGain], noiseStop + 0.05);
-
-      // Layer 3: Low resonance body
-      if (power > 0.25) {
-        const res = ac.createBufferSource();
-        res.buffer = resBuf;
-        const resFilt = ac.createBiquadFilter();
-        resFilt.type = 'bandpass';
-        resFilt.frequency.value = 900 + (1 - power) * 700;
-        resFilt.Q.value = 2.5;
-        const resGain = ac.createGain();
-        const resStop = now + 0.2 + power * 0.35;
-        resGain.gain.setValueAtTime(0.1001, now);
-        resGain.gain.exponentialRampToValueAtTime((power - 0.25) * 0.3, now + 0.018);
-        resGain.gain.exponentialRampToValueAtTime(0.1001, resStop);
-        res.connect(resFilt);
-        resFilt.connect(resGain);
-        resGain.connect(master);
-        autoClean(res, [res, resFilt, resGain], resStop + 0.05);
-      }
-
-      // Layer 4: Settling crackle cascade — ice-like aftershocks
-      const afterCount = 2 + Math.floor(power * 5);
-      for (let i = 0; i < afterCount; i++) {
-        const delay = 0.04 + Math.random() * 0.22 * power;
-        const cr = ac.createBufferSource();
-        cr.buffer = crackBuf;
-        const crHp = ac.createBiquadFilter();
-        crHp.type = 'highpass';
-        crHp.frequency.value = 2800 + Math.random() * 3500;
-        const crGain = ac.createGain();
-        const crStop = now + delay + 0.032;
-        crGain.gain.setValueAtTime(0.9001, now + delay);
-        crGain.gain.exponentialRampToValueAtTime(0.96 + Math.random() * 0.13, now + delay + 0.003);
-        crGain.gain.exponentialRampToValueAtTime(0.9001, crStop);
-        cr.connect(crHp);
-        crHp.connect(crGain);
-        crGain.connect(master);
-        cr.onended = () => { try { cr.disconnect(); crHp.disconnect(); crGain.disconnect(); } catch (_) { } };
-        cr.start(now + delay);
-        cr.stop(crStop + 0.01);
-      }
-    }
-
     soundToggle.addEventListener('click', toggleSound);
 
-    // ── GLASS TEXTURE ────────────────────────────────────────────────────
-    function buildGlass() {
-      glassLines = [];
+    // Takes the buffer's *name*, not the buffer. Passing `audio.noiseBuf`
+    // dereferences a null `audio` at the call site before this guard ever
+    // runs — and sound is off until someone asks for it.
+    function burst(bufName, type, freq, q, peak, dur, delay) {
+      if (!soundOn || !audio) return;
+      const { ac, master } = audio, t0 = ac.currentTime + (delay || 0);
+      const s = ac.createBufferSource(); s.buffer = audio[bufName];
+      const f = ac.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q;
+      const g = ac.createGain();
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(Math.max(0.0002, peak), t0 + 0.004);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      s.connect(f); f.connect(g); g.connect(master);
+      s.onended = () => { try { s.disconnect(); f.disconnect(); g.disconnect(); } catch (_) { } };
+      s.start(t0); s.stop(t0 + dur + 0.03);
+    }
+
+    function partial(type, freq, peak, dur, delay, bendTo) {
+      if (!soundOn || !audio) return;
+      const { ac, master } = audio, t0 = ac.currentTime + (delay || 0);
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.type = type; o.frequency.setValueAtTime(freq, t0);
+      if (bendTo) o.frequency.exponentialRampToValueAtTime(Math.max(20, bendTo), t0 + dur);
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(Math.max(0.0002, peak), t0 + 0.006);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      o.connect(g); g.connect(master);
+      o.onended = () => { try { o.disconnect(); g.disconnect(); } catch (_) { } };
+      o.start(t0); o.stop(t0 + dur + 0.03);
+    }
+
+    // One short icy tick, used while charging.
+    function playCrackle(intensity) {
+      if (!soundOn || !audio) return;
+      const i = intensity === undefined ? 0.3 : intensity;
+      const { ac, master, crackBuf } = audio, now = ac.currentTime;
+      const src = ac.createBufferSource(); src.buffer = crackBuf;
+      const hp = ac.createBiquadFilter();
+      hp.type = 'highpass'; hp.frequency.value = 3200 + Math.random() * 2800;
+      const g = ac.createGain();
+      const stopAt = now + 0.028 + i * 0.038;
+      g.gain.setValueAtTime(0.0001, now);
+      g.gain.exponentialRampToValueAtTime(0.14 + i * 0.18, now + 0.002);
+      g.gain.exponentialRampToValueAtTime(0.0001, stopAt);
+      src.connect(hp); hp.connect(g); g.connect(master);
+      src.onended = () => { try { src.disconnect(); hp.disconnect(); g.disconnect(); } catch (_) { } };
+      src.start(now); src.stop(stopAt + 0.01);
+    }
+
+    // The original four-layer shatter. Three envelopes are corrected here:
+    // the noise burst, the resonance body, and every crackle in the cascade
+    // used to bottom out around 0.1 — or, in the cascade's case, ride at
+    // 0.9 — instead of decaying to silence. That clicked on stop and let
+    // seven overlapping aftershocks pin the master. Same shape, now it
+    // actually decays.
+    function playShatter(power) {
+      if (!soundOn || !audio) return;
+      const { ac, master, noiseBuf, resBuf, crackBuf } = audio, now = ac.currentTime;
+      const auto = (src, nodes, stopAt) => {
+        src.onended = () => nodes.forEach(n => { try { n.disconnect(); } catch (_) { } });
+        src.start(now); src.stop(stopAt);
+      };
+
+      // 1 — impact tink
+      const tf = 2400 + power * 2600;
+      const tink = ac.createOscillator(), tg = ac.createGain();
+      tink.type = 'sine';
+      tink.frequency.setValueAtTime(tf, now);
+      tink.frequency.exponentialRampToValueAtTime(tf * 0.35, now + 0.09);
+      tg.gain.setValueAtTime(0.28 + power * 0.38, now);
+      tg.gain.exponentialRampToValueAtTime(0.0001, now + 0.11);
+      tink.connect(tg); tg.connect(master);
+      auto(tink, [tink, tg], now + 0.15);
+
+      // 2 — noise burst
+      const noise = ac.createBufferSource(); noise.buffer = noiseBuf;
+      const hp = ac.createBiquadFilter();
+      hp.type = 'highpass'; hp.frequency.value = 2800 - power * 1200;
+      const ng = ac.createGain();
+      const nStop = now + 0.1 + power * 0.45;
+      ng.gain.setValueAtTime(0.0001, now);
+      ng.gain.exponentialRampToValueAtTime(0.45 + power * 0.4, now + 0.004);
+      ng.gain.exponentialRampToValueAtTime(0.0001, nStop);
+      noise.connect(hp); hp.connect(ng); ng.connect(master);
+      auto(noise, [noise, hp, ng], nStop + 0.05);
+
+      // 3 — low resonance body
+      if (power > 0.25) {
+        const res = ac.createBufferSource(); res.buffer = resBuf;
+        const rf = ac.createBiquadFilter();
+        rf.type = 'bandpass'; rf.frequency.value = 900 + (1 - power) * 700; rf.Q.value = 2.5;
+        const rg = ac.createGain();
+        const rStop = now + 0.2 + power * 0.35;
+        rg.gain.setValueAtTime(0.0001, now);
+        rg.gain.exponentialRampToValueAtTime((power - 0.25) * 0.3, now + 0.018);
+        rg.gain.exponentialRampToValueAtTime(0.0001, rStop);
+        res.connect(rf); rf.connect(rg); rg.connect(master);
+        auto(res, [res, rf, rg], rStop + 0.05);
+      }
+
+      // 4 — settling crackle cascade
+      const after = 2 + Math.floor(power * 5);
+      for (let i = 0; i < after; i++) {
+        const delay = 0.04 + Math.random() * 0.22 * power;
+        const cr = ac.createBufferSource(); cr.buffer = crackBuf;
+        const chp = ac.createBiquadFilter();
+        chp.type = 'highpass'; chp.frequency.value = 2800 + Math.random() * 3500;
+        const cg = ac.createGain();
+        const cStop = now + delay + 0.032;
+        cg.gain.setValueAtTime(0.0001, now + delay);
+        cg.gain.exponentialRampToValueAtTime(0.16 + Math.random() * 0.09, now + delay + 0.003);
+        cg.gain.exponentialRampToValueAtTime(0.0001, cStop);
+        cr.connect(chp); chp.connect(cg); cg.connect(master);
+        cr.onended = () => { try { cr.disconnect(); chp.disconnect(); cg.disconnect(); } catch (_) { } };
+        cr.start(now + delay); cr.stop(cStop + 0.01);
+      }
+    }
+
+    const RATIOS = [1, 1.72, 2.44, 3.31, 4.13, 5.06];
+
+    const VOICE = {
+      glass: {
+        tick: i => playCrackle(i),
+        release: p => playShatter(clamp(p, 0.06, 1))
+      },
+      ice: {
+        tick: i => burst('crackBuf', 'bandpass', rand(1400, 4200), rand(3.5, 8), 0.05 + i * 0.1, 0.03 + Math.random() * 0.035),
+        release: p => {
+          partial('triangle', 150 + p * 90, 0.16 + p * 0.12, 0.6 + p * 0.35, 0, 55 + p * 20);
+          for (let i = 0; i < 2 + Math.floor(p * 3); i++) {
+            burst('crackBuf', 'bandpass', rand(1200, 3800), 6, 0.05, 0.05, 0.04 + i * rand(0.05, 0.11));
+          }
+        }
+      },
+      metal: {
+        tick: i => {
+          const base = rand(760, 1900), dec = rand(0.14, 0.4);
+          RATIOS.slice(0, 4).forEach((r, k) =>
+            partial('sine', base * r * rand(0.997, 1.003), (0.045 + i * 0.06) / (k + 1.5), dec * (1 - k * 0.13)));
+        },
+        // Two slightly detuned stacks, so the ring beats instead of sitting still.
+        release: p => {
+          const base = rand(190, 430), dec = 1.3 + p * 1.2;
+          RATIOS.forEach((r, k) => {
+            partial('sine', base * r * 0.999, (0.12 + p * 0.1) / (k + 1.4), dec * (1 - k * 0.11));
+            partial('sine', base * r * 1.0022, (0.09 + p * 0.08) / (k + 1.6), dec * (1 - k * 0.12));
+          });
+          burst('noiseBuf', 'bandpass', rand(1800, 3600), 6, 0.14 + p * 0.1, 0.16);
+        }
+      },
+      plastic: {
+        // Stick-slip: a sawtooth chopped into irregular steps.
+        tick: i => {
+          if (!soundOn || !audio) return;
+          const { ac, master } = audio, t0 = ac.currentTime;
+          const o = ac.createOscillator(), lp = ac.createBiquadFilter(), g = ac.createGain();
+          o.type = 'sawtooth'; o.frequency.setValueAtTime(rand(80, 165), t0);
+          lp.type = 'lowpass'; lp.frequency.value = rand(520, 1150); lp.Q.value = 1.2;
+          const dur = rand(0.07, 0.16), steps = 3 + Math.floor(Math.random() * 3);
+          g.gain.setValueAtTime(0.0001, t0);
+          for (let s = 0; s < steps; s++) {
+            const st = t0 + (dur / steps) * s;
+            g.gain.exponentialRampToValueAtTime(Math.max(0.0002, (0.04 + i * 0.07) * rand(0.4, 1)), st + 0.006);
+            g.gain.exponentialRampToValueAtTime(0.0006, st + dur / steps * 0.9);
+          }
+          o.connect(lp); lp.connect(g); g.connect(master);
+          o.onended = () => { try { o.disconnect(); lp.disconnect(); g.disconnect(); } catch (_) { } };
+          o.start(t0); o.stop(t0 + dur + 0.03);
+        },
+        release: p => {
+          partial('sine', 110 + p * 40, 0.16 + p * 0.12, 0.16, 0, 62);
+          burst('noiseBuf', 'lowpass', 900, 0.9, 0.16 + p * 0.14, 0.12);
+        }
+      }
+    };
+
+    function tick(i) {
+      if (!soundOn || !audio) return;
+      const now = performance.now();
+      const gap = MAT[material].tickGap * STRESS[stress].tickGap;
+      if (now - lastTick < gap + Math.random() * 40) return;
+      lastTick = now;
+      VOICE[material].tick(clamp(i, 0, 1) * STRESS[stress].loud);
+    }
+
+    function releaseSound(p) {
+      if (!soundOn || !audio) return;
+      VOICE[material].release(clamp(p, 0, 1.4) * STRESS[stress].loud);
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // MATERIALS + LOADS
+    // ══════════════════════════════════════════════════════════════
+    const MAT = {
+      glass: {
+        name: 'Glass', tok: 'cyan', tickGap: 90, native: 1,
+        blurb: 'Fully brittle. Charge it, aim it, let it go — the whole sheet answers at once, then heals.',
+        hint: 'Hold to charge. Drag to aim. Release to shatter. The glass always heals.',
+        bake: bakeGlass
+      },
+      ice: {
+        name: 'Ice', tok: 'cyan', tickGap: 80, native: 0.55,
+        blurb: 'Brittle sheet. A lead crack walks after the pressure track and opens a dark seam behind it.',
+        hint: 'Press and drag — the seam follows your hand. Hold still and it stars out.',
+        bake: bakeIce
+      },
+      metal: {
+        name: 'Metal', tok: 'amber', tickGap: 95, native: -0.45,
+        blurb: 'Ductile and heavy. Drag burnishes a groove, the groove necks, and only then does it tear.',
+        hint: 'Drag to burnish. Keep going — it necks before it tears, and it never shatters.',
+        bake: bakeMetal
+      },
+      plastic: {
+        name: 'Plastic', tok: 'lime', tickGap: 130, native: -1,
+        blurb: 'Ductile. It stretches and whitens under load instead of breaking, and the tip lags your hand.',
+        hint: 'Drag slowly. It stretches, whitens, and keeps every mark you make.',
+        bake: bakePlastic
+      }
+    };
+
+    // Loads change crack *geometry*, not just numbers — each owns an arm
+    // layout, a curl, and how fast the pattern reveals itself.
+    const STRESS = {
+      // `budget` caps a single glass burst. It's per-load on purpose: a
+      // shared cap would just truncate every pattern to the same size and
+      // quietly erase the difference between the loads.
+      impact: {
+        name: 'Impact', reveal: 120, curl: 0, wobble: 0.8, branch: 1.2, loud: 1, tickGap: 0.85,
+        budget: 440, arms: 1,
+        blurb: 'Sharp concentrated load — everything arrives at once, radiating from the contact point.'
+      },
+      shear: {
+        name: 'Shear', reveal: 260, curl: 0.5, wobble: 0.9, branch: 1.35, loud: 0.9, tickGap: 0.75,
+        budget: 360, arms: 0.85,
+        blurb: 'Sideways sliding load — arms gather into two opposed lobes and step sideways in échelon.'
+      },
+      thermal: {
+        name: 'Thermal', reveal: 1500, curl: 0.18, wobble: 2.2, branch: 0.75, loud: 0.6, tickGap: 1.9,
+        budget: 300, arms: 0.7,
+        blurb: 'Slow differential strain — cracks creep, meet older cracks square on, and tile the surface.'
+      },
+      flex: {
+        name: 'Flex', reveal: 720, curl: 1.5, wobble: 0.5, branch: 0.4, loud: 0.8, tickGap: 1.3,
+        budget: 240, arms: 0.55,
+        blurb: 'Bending load — long arcs sweep away from the neutral axis while the compression side resists.'
+      }
+    };
+
+    const brittle = () => clamp(MAT[material].native + brittleBias, -1, 1);
+    const accent = () => TOK[MAT[material].tok];
+
+    // Above 60% charge the original crossed from cyan to pink. Kept.
+    const hot = p => (p > 0.6 ? TOK.pink : TOK.cyan);
+
+    // ══════════════════════════════════════════════════════════════
+    // SURFACES — baked once per resize
+    // ══════════════════════════════════════════════════════════════
+    function resize() {
+      DPR = Math.min(1.5, window.devicePixelRatio || 1);
+      W = window.innerWidth; H = window.innerHeight;
+      canvas.width = Math.floor(W * DPR);
+      canvas.height = Math.floor(H * DPR);
+      canvas.style.width = W + 'px';
+      canvas.style.height = H + 'px';
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      bg.width = Math.floor(W * DPR);
+      bg.height = Math.floor(H * DPR);
+      bgx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      bake();
+    }
+
+    function bake() { MAT[material].bake(); }
+
+    // The original stroked this lattice every single frame. Identical
+    // pixels, baked once — which is what buys the glow its budget back.
+    function bakeGlass() {
+      bgx.fillStyle = '#030407';
+      bgx.fillRect(0, 0, W, H);
       const pts = [];
       const count = Math.floor((W * H) / 7000);
-      for (let i = 0; i < count; i++) {
-        pts.push([Math.random() * W, Math.random() * H]);
-      }
+      for (let i = 0; i < count; i++) pts.push([Math.random() * W, Math.random() * H]);
       for (let i = 0; i < 14; i++) {
-        pts.push([Math.random() * W, 0], [Math.random() * W, H],
-          [0, Math.random() * H], [W, Math.random() * H]);
+        pts.push([Math.random() * W, 0], [Math.random() * W, H], [0, Math.random() * H], [W, Math.random() * H]);
       }
       const maxD2 = 130 * 130;
+      bgx.save();
+      bgx.strokeStyle = 'rgba(54, 247, 255, 0.034)';
+      bgx.lineWidth = 0.4;
+      bgx.beginPath();
       for (let i = 0; i < pts.length; i++) {
         for (let j = i + 1; j < pts.length; j++) {
-          const dx = pts[i][0] - pts[j][0];
-          const dy = pts[i][1] - pts[j][1];
-          if (dx * dx + dy * dy < maxD2) glassLines.push([pts[i], pts[j]]);
+          const dx = pts[i][0] - pts[j][0], dy = pts[i][1] - pts[j][1];
+          if (dx * dx + dy * dy < maxD2) {
+            bgx.moveTo(pts[i][0], pts[i][1]);
+            bgx.lineTo(pts[j][0], pts[j][1]);
+          }
+        }
+      }
+      bgx.stroke();
+      bgx.restore();
+    }
+
+    function bakeIce() {
+      const g = bgx.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, '#dfeff7'); g.addColorStop(0.18, '#a8c8da');
+      g.addColorStop(0.32, '#b7d7e6'); g.addColorStop(1, '#e5f4fa');
+      bgx.fillStyle = g; bgx.fillRect(0, 0, W, H);
+      const sun = bgx.createRadialGradient(W * .72, H * .16, 4, W * .72, H * .16, Math.max(W, H) * .55);
+      sun.addColorStop(0, 'rgba(255,255,245,.9)');
+      sun.addColorStop(.18, 'rgba(255,255,255,.26)');
+      sun.addColorStop(1, 'rgba(255,255,255,0)');
+      bgx.fillStyle = sun; bgx.fillRect(0, 0, W, H);
+      bgx.save(); bgx.globalCompositeOperation = 'screen';
+      for (let i = 0; i < Math.floor(W * H / 22000); i++) {
+        bgx.save();
+        bgx.translate(rand(-40, W + 40), rand(H * .18, H + 80));
+        bgx.rotate(rand(-.3, .3));
+        bgx.beginPath(); bgx.ellipse(0, 0, rand(18, 140), rand(4, 34), 0, 0, 6.2832);
+        bgx.fillStyle = 'rgba(255,255,255,' + rand(.025, .09).toFixed(3) + ')';
+        bgx.fill(); bgx.restore();
+      }
+      bgx.restore(); bgx.save(); bgx.lineCap = 'round';
+      for (let i = 0; i < Math.floor(W * H / 9500); i++) {
+        const y = rand(H * .18, H * 1.04), pp = smooth(H * .15, H, y), len = rand(18, 170) * pp;
+        const a = rand(-.18, .18) + (Math.random() < .55 ? 0 : 1.5708), x = rand(-60, W + 60);
+        bgx.beginPath(); bgx.moveTo(x, y); bgx.lineTo(x + Math.cos(a) * len, y + Math.sin(a) * len);
+        bgx.strokeStyle = 'rgba(255,255,255,' + (rand(.035, .13) * pp).toFixed(3) + ')';
+        bgx.lineWidth = rand(.35, 1.1); bgx.stroke();
+      }
+      bgx.restore();
+    }
+
+    function bakeMetal() {
+      const g = bgx.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, '#6e767e'); g.addColorStop(.34, '#c8cfd6'); g.addColorStop(.52, '#9aa2aa');
+      g.addColorStop(.78, '#cdd4da'); g.addColorStop(1, '#71797f');
+      bgx.fillStyle = g; bgx.fillRect(0, 0, W, H);
+      for (let i = 0; i < Math.floor(H * 2.4); i++) {
+        const y = rand(0, H), a = rand(.015, .07), white = Math.random() < .5;
+        bgx.beginPath();
+        bgx.moveTo(rand(-80, W * .4), y);
+        bgx.lineTo(rand(W * .6, W + 80), y + rand(-1.2, 1.2));
+        bgx.strokeStyle = (white ? 'rgba(255,255,255,' : 'rgba(40,48,56,') + a.toFixed(3) + ')';
+        bgx.lineWidth = rand(.4, 1.5); bgx.stroke();
+      }
+      const s = bgx.createLinearGradient(0, H * .24, 0, H * .52);
+      s.addColorStop(0, 'rgba(255,255,255,0)');
+      s.addColorStop(.5, 'rgba(255,255,255,.14)');
+      s.addColorStop(1, 'rgba(255,255,255,0)');
+      bgx.fillStyle = s; bgx.fillRect(0, 0, W, H);
+    }
+
+    function bakePlastic() {
+      const g = bgx.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, '#9aa3ad'); g.addColorStop(.5, '#c3cad2'); g.addColorStop(1, '#98a1ab');
+      bgx.fillStyle = g; bgx.fillRect(0, 0, W, H);
+      for (let i = 0; i < Math.floor(W * H / 900); i++) {
+        const v = Math.random() < .5 ? 255 : 0;
+        bgx.fillStyle = 'rgba(' + v + ',' + v + ',' + v + ',' + rand(.008, .035).toFixed(3) + ')';
+        bgx.fillRect(rand(0, W), rand(0, H), rand(1, 2.4), rand(1, 2.4));
+      }
+      for (let i = 0; i < 8; i++) {
+        const y = rand(0, H);
+        bgx.beginPath(); bgx.moveTo(0, y); bgx.lineTo(W, y + rand(-16, 16));
+        bgx.strokeStyle = 'rgba(255,255,255,' + rand(.03, .07).toFixed(3) + ')';
+        bgx.lineWidth = rand(1, 3); bgx.stroke();
+      }
+      const v = bgx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * .25, W / 2, H / 2, Math.max(W, H) * .75);
+      v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(20,26,32,.26)');
+      bgx.fillStyle = v; bgx.fillRect(0, 0, W, H);
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // EMITTERS
+    // ══════════════════════════════════════════════════════════════
+    function addSeg(x1, y1, x2, y2, w, kind, mat) {
+      segs.push({
+        x1, y1, x2, y2, w, kind, mat: mat || material,
+        born: performance.now(),
+        life: persistence * (kind === 'hair' ? 0.85 : 1),
+        angle: Math.atan2(y2 - y1, x2 - x1),
+        // Tied to width, not random. A per-segment random offset makes the
+        // ridge lips scallop in and out and the seam reads as a string of
+        // beads instead of one crack.
+        ridge: Math.max(1.1, w * 0.5)
+      });
+      stamp(x2, y2);
+      // The seam (and metal's tear) is the spine of its mode; the hairline
+      // branches are decoration around it. When the buffer fills, drop
+      // decoration first — evicting oldest-first would eat the spine and
+      // leave a cloud of orphaned branches behind.
+      while (segs.length > MAX_SEGS) {
+        let i = 0;
+        for (let j = 0; j < segs.length; j++) {
+          if (segs[j].kind !== 'seam' && segs[j].kind !== 'tear') { i = j; break; }
+        }
+        segs.splice(i, 1);
+      }
+    }
+
+    function addBits(x, y, angle, p, kind) {
+      if (!showDebris || kind === 'none' || bits.length >= MAX_BITS) return;
+      const n = kind === 'spark' ? 3 : 2;
+      for (let i = 0; i < n; i++) {
+        const side = Math.random() < .5 ? -1 : 1;
+        const a = angle + side * 1.5708 + rand(-.6, .6);
+        const s = rand(.3, 2.2) * (1 + p);
+        let color, gravity, life, size;
+        if (kind === 'spark') { color = Math.random() < .5 ? '255,190,90' : '255,240,190'; gravity = .16; life = rand(280, 700); size = rand(.6, 1.7); }
+        else if (kind === 'glint') { color = '215,255,250'; gravity = .05; life = rand(300, 800); size = rand(.5, 1.6); }
+        else { color = '255,255,255'; gravity = 0; life = rand(600, 1300); size = rand(.7, 2.3); }
+        bits.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, size, color, gravity, life, born: performance.now() });
+      }
+    }
+
+    function addMark(x, y, type) {
+      if (!showResidue) return null;
+      const m = { x, y, type, r: 8, target: 0, born: performance.now(), life: persistence * 1.2 };
+      marks.push(m);
+      if (marks.length > MAX_MARKS) marks.shift();
+      return m;
+    }
+
+    // Signed distance from a point to the neutral axis through (axis.x, axis.y).
+    function sideOf(x, y, axis) {
+      const dx = x - axis.x, dy = y - axis.y;
+      return -Math.sin(axis.a) * dx + Math.cos(axis.a) * dy;
+    }
+
+    // ── Fork: a running crack tip, used by every non-glass rig ──────
+    class Fork {
+      constructor(x, y, angle, p, force, mat, lenScale, opts) {
+        opts = opts || {};
+        this.x = x; this.y = y; this.lx = x; this.ly = y;
+        this.angle = angle; this.force = force; this.p = p; this.mat = mat;
+        const br = brittle();
+        const base = br > .5 ? rand(60, 210) : rand(30, 120);
+        this.remaining = base * (.55 + p) * lenScale * clamp(0.5 + branchScale * 0.5, .3, 2);
+        this.speed = (br > .5 ? rand(6, 14) : rand(2.2, 6.2)) * (.7 + p * .45) * speedScale;
+        this.born = performance.now();
+        this.lenScale = lenScale;
+        this.curlDir = opts.curlDir || (Math.random() < .5 ? -1 : 1);
+        this.axis = opts.axis || null;
+        this.own = new Set();      // cells this fork laid itself
+        this.travelled = 0;
+      }
+
+      update() {
+        if (this.remaining <= 0) return;
+        const br = brittle();
+        const sx = STRESS[stress];
+        const pull = br > .5 ? .02 : .08 + this.p * .06;
+        this.angle += angleDiff(this.angle, this.force) * pull +
+          (br > .5 ? rand(-.05, .05) : rand(-.16, .16)) * sx.wobble;
+
+        // Flex: bend away from the neutral axis, harder the further out.
+        if (this.axis) {
+          const s = sideOf(this.x, this.y, this.axis);
+          this.angle += Math.sign(s) * sx.curl * 0.014 * clamp(Math.abs(s) / 140, 0.2, 1.6);
+        } else if (sx.curl) {
+          this.angle += this.curlDir * sx.curl * 0.009;
+        }
+
+        const step = Math.min(this.remaining, this.speed * rand(.65, 1.3));
+        const nx = this.x + Math.cos(this.angle) * step;
+        const ny = this.y + Math.sin(this.angle) * step;
+
+        // Thermal: run into an older crack and stop square against it.
+        if (stress === 'thermal' && this.travelled > CELL * 2) {
+          const k = cellKey(nx, ny);
+          if (occupied.has(k) && !this.own.has(k)) {
+            this.angle += (Math.random() < .5 ? 1 : -1) * 1.5708;
+            this.remaining = 0;
+            addSeg(this.lx, this.ly,
+              this.x + Math.cos(this.angle) * CELL * 0.6,
+              this.y + Math.sin(this.angle) * CELL * 0.6,
+              .6 + this.p * 1.2, 'hair', this.mat);
+            return;
+          }
+        }
+
+        this.x = nx; this.y = ny;
+        this.remaining -= step;
+        this.travelled += step;
+        this.own.add(cellKey(this.x, this.y));
+
+        const kind = this.mat === 'plastic' ? 'whiten' : this.mat === 'metal' ? 'groove' : 'hair';
+        const w = this.mat === 'plastic' ? 1.4 + this.p * 1.4 : .6 + this.p * 1.5;
+        addSeg(this.lx, this.ly, this.x, this.y, w, kind, this.mat);
+
+        if (br > .5 && Math.random() < .05 * branchScale * sx.branch && this.remaining > 20 && forks.length < MAX_FORKS) {
+          forks.push(new Fork(this.x, this.y, this.angle + (Math.random() < .5 ? -1 : 1) * rand(.3, .7),
+            this.p * .8, this.force, this.mat, this.lenScale * .7, { axis: this.axis, curlDir: this.curlDir }));
+        }
+        this.lx = this.x; this.ly = this.y;
+      }
+
+      get dead() { return this.remaining <= 0 || performance.now() - this.born > 3200; }
+    }
+
+    // Branch emission — this is where the load type picks its geometry.
+    function emitBranches(x, y, angle, p, mat, axis) {
+      const sx = STRESS[stress];
+      const chance = sx.branch * branchScale;
+
+      if (stress === 'shear') {
+        // En échelon — short arms stepped along one flank, all leaning the
+        // same way. Reads as sliding rather than bursting.
+        const n = Math.random() < chance ? 2 : 1;
+        for (let i = 0; i < n; i++) {
+          if (forks.length >= MAX_FORKS) break;
+          const off = (i + 1) * rand(6, 13);
+          forks.push(new Fork(
+            x - Math.sin(angle) * off, y + Math.cos(angle) * off,
+            angle + rand(0.52, 0.78), p, angle, mat, 0.72, { axis }));
+        }
+      } else if (stress === 'thermal') {
+        if (Math.random() < chance * 0.7 && forks.length < MAX_FORKS) {
+          const side = Math.random() < .5 ? -1 : 1;
+          forks.push(new Fork(x, y, angle + side * rand(1.2, 1.7), p, angle, mat, 0.9, { axis }));
+        }
+      } else if (stress === 'flex') {
+        if (Math.random() < chance * 0.6 && forks.length < MAX_FORKS) {
+          const side = Math.random() < .5 ? -1 : 1;
+          forks.push(new Fork(x, y, angle + side * rand(.18, .5), p, angle, mat, 1.5, { axis, curlDir: side }));
+        }
+      } else {
+        const n = Math.random() < chance ? 2 : 1;
+        for (let i = 0; i < n; i++) {
+          if (forks.length >= MAX_FORKS) break;
+          const side = Math.random() < .5 ? -1 : 1;
+          forks.push(new Fork(x, y, angle + side * rand(.42, 1.22), p, angle, mat, 1, { axis }));
         }
       }
     }
 
-    function drawGlass() {
-      ctx.save();
-      ctx.strokeStyle = 'rgba(54, 247, 255, 0.034)';
-      ctx.lineWidth = 0.4;
-      ctx.shadowBlur = 0;
-      for (const [a, b] of glassLines) {
-        ctx.beginPath();
-        ctx.moveTo(a[0], a[1]);
-        ctx.lineTo(b[0], b[1]);
-        ctx.stroke();
-      }
-      ctx.restore();
-    }
-
-    // ── DRAG TRACE ───────────────────────────────────────────────────────
-    // Glowing path left by a drag, fades over time like a stress scar.
-    class DragTrace {
-      constructor(path, power) {
-        this.path = path.map(p => ({ x: p.x, y: p.y }));
-        this.power = power;
-        this.born = performance.now();
-        this.lifetime = 1400 + power * 2800;
-      }
-
-      draw(now) {
-        if (this.path.length < 2) return;
-        const t = (now - this.born) / this.lifetime;
-        if (t >= 1) return;
-        const alpha = Math.max(0, 1 - t) * 0.6;
-        const color = this.power > 0.6 ? '#ff4fd8' : '#36f7ff';
-        ctx.save();
-        ctx.globalAlpha = alpha;
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 1.2;
-        ctx.shadowColor = color;
-        ctx.shadowBlur = 10;
-        ctx.lineJoin = 'round';
-        ctx.lineCap = 'round';
-        ctx.beginPath();
-        ctx.moveTo(this.path[0].x, this.path[0].y);
-        for (const p of this.path) ctx.lineTo(p.x, p.y);
-        ctx.stroke();
-        ctx.restore();
-      }
-
-      get dead() { return performance.now() - this.born > this.lifetime; }
-    }
-
-    // ── FRACTURE ─────────────────────────────────────────────────────────
-    // biasAngle: direction to cluster arms toward (null = radial)
-    // biasMagnitude: 0–1, how strongly to pull arms toward the bias direction
+    // ══════════════════════════════════════════════════════════════
+    // GLASS — Fracture / Shockwave / DragTrace
+    // ══════════════════════════════════════════════════════════════
     class Fracture {
-      constructor(x, y, power, biasAngle = null, biasMagnitude = 0) {
-        this.x = x;
-        this.y = y;
-        this.power = power;
-        this.biasAngle = biasAngle;
-        this.biasMagnitude = biasMagnitude;
+      constructor(x, y, power, biasAngle, biasMag, axis) {
+        this.x = x; this.y = y; this.power = power;
+        this.biasAngle = biasAngle; this.biasMag = biasMag;
+        this.axis = axis;
         this.lines = [];
         this.born = performance.now();
-        this.lifetime = 2500 + power * 6500;
+        this.lifetime = (2500 + power * 6500) * (persistence / 6000);
+        this.reveal = STRESS[stress].reveal;
         this._generate();
       }
 
       _generate() {
-        const armCount = Math.floor(4 + this.power * 12);
-        const maxReach = 55 + this.power * Math.min(W, H) * 0.62;
+        const sx = STRESS[stress];
+        const br = brittle();
+        const armCount = Math.max(3, Math.floor((4 + this.power * 12) * sx.arms * clamp(0.35 + branchScale * 0.65, 0.25, 2)));
+        const maxReach = (55 + this.power * Math.min(W, H) * 0.62) * (0.6 + (br + 1) * 0.35);
+        const ax = this.biasAngle !== null ? this.biasAngle : 0;
+
         for (let i = 0; i < armCount; i++) {
           let angle = (Math.PI * 2 / armCount) * i + (Math.random() - 0.5) * 1.3;
-          if (this.biasAngle !== null && this.biasMagnitude > 0) {
-            const forward = this.biasAngle;
-            const backward = this.biasAngle + Math.PI;
-            const dForward = Math.abs(angleDiff(angle, forward));
-            const dBackward = Math.abs(angleDiff(angle, backward));
-            const isForward = dForward < dBackward;
+          let ox = this.x, oy = this.y;
+
+          if (this.biasAngle !== null && this.biasMag > 0) {
+            // Gather arms toward the drag axis. Forward arms get a strong
+            // pull, backward a softer one, so the fracture visibly reaches
+            // the way you dragged.
+            const forward = this.biasAngle, backward = this.biasAngle + Math.PI;
+            const isForward = Math.abs(angleDiff(angle, forward)) < Math.abs(angleDiff(angle, backward));
             const target = isForward ? forward : backward;
-            // Forward arms get a strong pull; backward arms get a softer one
-            // so the fracture visibly reaches in the drag direction.
-            const strength = isForward ? 1.88 : 2.38;
-            angle -= angleDiff(angle, target) * this.biasMagnitude * strength;
+            angle -= angleDiff(angle, target) * this.biasMag * (isForward ? 1.88 : 2.38);
           }
-          this._arm(this.x, this.y, angle, maxReach * (0.45 + Math.random() * 0.55), 0);
+
+          // Shear pinches the star into two opposed lobes and offsets each
+          // arm's start along the flank — en échelon at full scale.
+          if (stress === 'shear') {
+            const isFwd = Math.abs(angleDiff(angle, ax)) < Math.abs(angleDiff(angle, ax + Math.PI));
+            angle = (isFwd ? ax : ax + Math.PI) + (Math.random() - 0.5) * 0.9 + 0.42;
+            const off = (i - armCount / 2) * rand(5, 11);
+            ox = this.x - Math.sin(ax) * off;
+            oy = this.y + Math.cos(ax) * off;
+          }
+
+          this._arm(ox, oy, angle, maxReach * (0.45 + Math.random() * 0.55), 0, sx);
         }
       }
 
-      _arm(x, y, angle, remaining, depth) {
-        if (remaining < 5 || depth > 5) return;
+      _arm(x, y, angle, remaining, depth, sx) {
+        if (remaining < 5 || depth > 5 || this.lines.length >= sx.budget) return;
         const segLen = Math.min(remaining, 12 + Math.random() * 32);
-        const a = angle + (Math.random() - 0.5) * 0.55;
+        let a = angle + (Math.random() - 0.5) * 0.55 * sx.wobble;
+
+        if (this.axis) {
+          const s = sideOf(x, y, this.axis);
+          a += Math.sign(s) * sx.curl * 0.06 * clamp(Math.abs(s) / 200, 0.15, 1.4);
+        }
+
         const x2 = x + Math.cos(a) * segLen;
         const y2 = y + Math.sin(a) * segLen;
 
-        const color = depth === 0 ? (Math.random() > 0.5 ? '#36f7ff' : '#ff4fd8')
-          : depth === 1 ? (Math.random() > 0.5 ? '#36f7ff' : '#ffd166')
-            : (Math.random() > 0.5 ? '#b8ff5d' : '#ffd166');
+        // Thermal tiles the sheet: an arm that reaches an older crack stops
+        // there, leaving polygonal cells behind.
+        if (stress === 'thermal' && depth > 0 && occupied.has(cellKey(x2, y2))) {
+          this.lines.push({ x1: x, y1: y, x2, y2, depth, color: this._color(depth) });
+          return;
+        }
+        occupied.add(cellKey(x2, y2));
 
-        this.lines.push({ x1: x, y1: y, x2, y2, depth, color });
-        this._arm(x2, y2, a, remaining - segLen, depth);
+        this.lines.push({ x1: x, y1: y, x2, y2, depth, color: this._color(depth) });
+        this._arm(x2, y2, a, remaining - segLen, depth, sx);
 
-        if (depth < 4 && remaining > 28 && Math.random() < 0.64 - depth * 0.12) {
+        const branchChance = (0.64 - depth * 0.12) * sx.branch * clamp(branchScale, 0.2, 2);
+        if (depth < 4 && remaining > 28 && Math.random() < branchChance) {
           const sign = Math.random() > 0.5 ? 1 : -1;
           this._arm(x2, y2, a + sign * (0.32 + Math.random() * 0.78),
-            remaining * (0.22 + Math.random() * 0.42), depth + 1);
+            remaining * (0.22 + Math.random() * 0.42), depth + 1, sx);
         }
       }
 
+      _color(depth) {
+        return depth === 0 ? (Math.random() > 0.5 ? TOK.cyan : TOK.pink)
+          : depth === 1 ? (Math.random() > 0.5 ? TOK.cyan : TOK.amber)
+            : (Math.random() > 0.5 ? TOK.lime : TOK.amber);
+      }
+
       _alpha(now) {
-        const age = now - this.born;
+        const age = Math.max(0, now - this.born);
         if (age < 120) return age / 120;
         const rem = this.lifetime - age;
         if (rem < 1800) return Math.max(0, rem / 1800);
@@ -357,9 +1144,13 @@
       draw(now) {
         const a = this._alpha(now);
         if (a <= 0) return;
+        // Impact lands all at once; thermal creeps into being.
+        const shown = this.reveal <= 130 ? this.lines.length
+          : Math.ceil(this.lines.length * clamp((now - this.born) / this.reveal, 0, 1));
         ctx.save();
         ctx.globalAlpha = a;
-        for (const l of this.lines) {
+        for (let i = 0; i < shown; i++) {
+          const l = this.lines[i];
           ctx.beginPath();
           ctx.moveTo(l.x1, l.y1);
           ctx.lineTo(l.x2, l.y2);
@@ -375,7 +1166,6 @@
       get dead() { return performance.now() - this.born > this.lifetime; }
     }
 
-    // ── SHOCKWAVE ────────────────────────────────────────────────────────
     class Shockwave {
       constructor(x, y, power) {
         this.x = x; this.y = y; this.power = power;
@@ -383,14 +1173,13 @@
         this.lifetime = 550 + power * 280;
       }
       draw(now) {
-        const t = (now - this.born) / this.lifetime;
-        if (t < 0 || t >= 1) return;
-        const r = (70 + this.power * 130) * t;
-        const color = this.power > 0.6 ? '#ff4fd8' : '#36f7ff';
+        const t = Math.max(0, now - this.born) / this.lifetime;
+        if (t >= 1) return;
+        const color = hot(this.power);
         ctx.save();
         ctx.globalAlpha = (1 - t) * 0.85;
         ctx.beginPath();
-        ctx.arc(this.x, this.y, r, 0, Math.PI * 2);
+        ctx.arc(this.x, this.y, (70 + this.power * 130) * t, 0, Math.PI * 2);
         ctx.strokeStyle = color;
         ctx.lineWidth = Math.max(0.5, 2.5 - t * 2);
         ctx.shadowColor = color;
@@ -401,182 +1190,1044 @@
       get dead() { return performance.now() - this.born > this.lifetime; }
     }
 
-    // ── CHARGE INDICATOR ─────────────────────────────────────────────────
-    function drawCharge(now) {
-      if (holdStart === null) return;
-      const elapsed = now - holdStart;
-      const power = Math.min(1, elapsed / MAX_HOLD);
-      const color = power > 0.6 ? '#ff4fd8' : '#36f7ff';
-
-      // Rings stay anchored at the press point — this is where the crack
-      // will actually originate, regardless of where the cursor wanders.
-      ctx.save();
-      for (let i = 0; i < 3; i++) {
-        const phase = ((now / 270) + i / 3) % 1;
-        const r = 7 + power * 48 * phase;
-        ctx.beginPath();
-        ctx.arc(pressX, pressY, r, 0, Math.PI * 2);
+    class DragTrace {
+      constructor(path, power) {
+        this.path = path.map(p => ({ x: p.x, y: p.y }));
+        this.power = power;
+        this.born = performance.now();
+        this.lifetime = 1400 + power * 2800;
+      }
+      draw(now) {
+        if (this.path.length < 2) return;
+        const t = Math.max(0, now - this.born) / this.lifetime;
+        if (t >= 1) return;
+        const color = hot(this.power);
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, 1 - t) * 0.6;
         ctx.strokeStyle = color;
-        ctx.lineWidth = 1.5;
+        ctx.lineWidth = 1.2;
         ctx.shadowColor = color;
-        ctx.shadowBlur = 18;
-        ctx.globalAlpha = (1 - phase) * 0.88 * Math.min(1, elapsed / 120);
+        ctx.shadowBlur = 10;
+        ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(this.path[0].x, this.path[0].y);
+        for (const p of this.path) ctx.lineTo(p.x, p.y);
         ctx.stroke();
+        ctx.restore();
       }
-      ctx.globalAlpha = 1;
-      ctx.beginPath();
-      ctx.arc(pressX, pressY, 3 + power * 2.5, 0, Math.PI * 2);
-      ctx.fillStyle = '#ffffff';
-      ctx.shadowColor = color;
-      ctx.shadowBlur = 28;
-      ctx.fill();
-      ctx.restore();
+      get dead() { return performance.now() - this.born > this.lifetime; }
     }
 
-    // Faint dashed line from the anchor to the live cursor while charging —
-    // a preview of the lean the fracture will take if you release now.
-    function drawAimLine(now) {
-      if (holdStart === null) return;
-      const dx = liveX - pressX, dy = liveY - pressY;
-      const dist = Math.sqrt(dx * dx + dy * dy);
-      if (dist < 14) return; // ignore sub-pixel jitter, not an intentional drag
+    // ══════════════════════════════════════════════════════════════
+    // THE CRAZE
+    // The toy already answers full charge with "That's everything you've
+    // got." This is what happens when you don't take that for an answer.
+    // ══════════════════════════════════════════════════════════════
+    const CRAZE_TEXT = 'fractured by claude opus 5';
+    const CRAZE_WAIT = 6000;   // held past MAX_HOLD
+    let crazePoints = null;
 
-      const power = Math.min(1, (now - holdStart) / MAX_HOLD);
-      const color = power > 0.6 ? '#ff4fd8' : '#36f7ff';
+    // ── The flickering salamander ──────────────────────────────────
+    // Traced from salamander2.svg. A salamander regrows what it loses,
+    // which is the only promise this toy makes — so it gets to be the one
+    // thing that surfaces when you refuse to let go.
+    // Body rects are walked as outlines, never filled: filled, a 47-unit
+    // body samples into a solid slab of cracks; as outlines it reads as
+    // cracks in the glass that happen to be shaped like an animal.
+    const SAL = {
+      w: 68, h: 40.5,
+      body: [
+        [10.53, 19.84, 47.72, 13.53], [18.6, 31.71, 6.17, 7.83], [42.58, 32.18, 6.36, 8.31],
+        [55.32, 17.46, 7.72, 5.96], [0.19, 24.69, 14.82, 2.99], [0, 14.86, 15.13, 11.75],
+        [59.94, 15.02, 7.05, 5.88], [63.21, 10.66, 4.7, 6.8], [61.62, 0, 3.69, 3.69],
+        [64.05, 5.62, 3.95, 6.13], [63.38, 1.76, 3.69, 5.54]
+      ],
+      spots: [
+        [19.65, 20.98, 3.27, 4.62], [21.19, 33.42, 1.51, 2.43], [43.8, 35.78, 1.51, 2.43],
+        [29.25, 25.28, 2.77, 4.28], [37.38, 19.95, 3.19, 5.29], [44.92, 22.76, 1.59, 5.79],
+        [49.01, 20.74, 4.11, 2.27], [62.12, 15.95, 1.01, 1.93], [65.7, 12.33, 0.84, 2.1],
+        [65.15, 3.46, 1.01, 1.85], [56.89, 19.47, 2.1, 2.43]
+      ],
+      eyes: [[4.54, 18.47], [10.88, 18.42]]
+    };
 
-      ctx.save();
-      ctx.strokeStyle = color;
-      ctx.lineWidth = 1.3;
-      ctx.shadowColor = color;
-      ctx.shadowBlur = 10;
-      ctx.setLineDash([5, 7]);
-      ctx.globalAlpha = 0.5;
-      ctx.beginPath();
-      ctx.moveTo(pressX, pressY);
-      ctx.lineTo(liveX, liveY);
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      ctx.globalAlpha = 0.85;
-      ctx.beginPath();
-      ctx.arc(liveX, liveY, 3, 0, Math.PI * 2);
-      ctx.fillStyle = color;
-      ctx.fill();
-      ctx.restore();
+    // Stepped random hold, not a sine — the source SVG jumps between a dim
+    // and a bright band rather than breathing, and that jumpiness is the
+    // whole character of the thing.
+    function flicker(g, now) {
+      const step = Math.floor(now * 0.0017 * (1 + (g % 3) * 0.35) + g * 0.41);
+      const h = Math.sin(step * 12.9898 + g * 78.233) * 43758.5453;
+      const v = h - Math.floor(h);
+      return v < 0.5 ? 0.2 + v * 0.4 : 0.76 + (v - 0.5) * 0.48;
     }
 
-    // ── STATUS ───────────────────────────────────────────────────────────
-    function setStatus(text, revertMs) {
-      statusEl.textContent = text;
-      if (statusTimeout) clearTimeout(statusTimeout);
-      if (revertMs) {
-        statusTimeout = setTimeout(() => {
-          statusEl.textContent = 'Hold to charge. Drag to aim. Release to shatter. The glass always heals.';
-        }, revertMs);
+    function salamanderSegments(ox, oy, s) {
+      const out = [];
+      const jit = () => rand(-0.9, 0.9);
+
+      // The blocks overlap. Drawing every rect's full perimeter leaves the
+      // seams where they meet, and the animal comes out looking like a
+      // wireframe of boxes — so any edge running through the inside of
+      // another block is dropped and only the union's silhouette survives.
+      const buried = (px, py) => {
+        for (const [x, y, w, h] of SAL.body) {
+          if (px > x + 0.4 && px < x + w - 0.4 && py > y + 0.4 && py < y + h - 0.4) return true;
+        }
+        return false;
+      };
+
+      // Walked in unit space so the interior test stays scale-independent.
+      const edge = (ux1, uy1, ux2, uy2) => {
+        const n = Math.max(1, Math.round(Math.hypot(ux2 - ux1, uy2 - uy1) * s / 4));
+        for (let i = 0; i < n; i++) {
+          const t0 = i / n, t1 = (i + 0.82) / n, tm = (t0 + t1) * 0.5;
+          if (buried(ux1 + (ux2 - ux1) * tm, uy1 + (uy2 - uy1) * tm)) continue;
+          if (Math.random() < 0.14) continue;   // gaps, so it crazes rather than outlines
+          out.push({
+            x1: ox + (ux1 + (ux2 - ux1) * t0) * s + jit(), y1: oy + (uy1 + (uy2 - uy1) * t0) * s + jit(),
+            x2: ox + (ux1 + (ux2 - ux1) * t1) * s + jit(), y2: oy + (uy1 + (uy2 - uy1) * t1) * s + jit(),
+            spot: false, g: -1
+          });
+        }
+      };
+      for (const [x, y, w, h] of SAL.body) {
+        edge(x, y, x + w, y);
+        edge(x + w, y, x + w, y + h);
+        edge(x + w, y + h, x, y + h);
+        edge(x, y + h, x, y);
+      }
+      SAL.spots.forEach(([x, y, w, h], g) => {
+        const X = ox + x * s, Y = oy + y * s, Wd = w * s, Ht = h * s;
+        const rows = Math.max(2, Math.round(Ht / 3));
+        for (let r = 0; r < rows; r++) {
+          const yy = Y + (r + 0.5) * (Ht / rows);
+          out.push({ x1: X + jit(), y1: yy + jit(), x2: X + Wd + jit(), y2: yy + jit(), spot: true, g });
+        }
+      });
+      // Eyes are the one round thing on an animal made of right angles, so
+      // they get a broken ring rather than the spots' flat hatching.
+      SAL.eyes.forEach(([x, y], i) => {
+        const X = ox + x * s, Y = oy + y * s, r = 2.1 * s;
+        const g = SAL.spots.length + i;
+        for (let k = 0; k < 7; k++) {
+          const a0 = (6.2832 / 7) * k, a1 = a0 + 0.62;
+          out.push({
+            x1: X + Math.cos(a0) * r, y1: Y + Math.sin(a0) * r,
+            x2: X + Math.cos(a1) * r, y2: Y + Math.sin(a1) * r,
+            spot: true, g
+          });
+        }
+        out.push({ x1: X - r * 0.22, y1: Y, x2: X + r * 0.22, y2: Y, spot: true, g });
+      });
+      return out;
+    }
+
+    // Sample the phrase into points once, then wire each to a jittered
+    // neighbour so the words are built out of the same hairline cracks
+    // as everything else on the sheet.
+    function crazeSample() {
+      if (crazePoints) return crazePoints;
+      const off = document.createElement('canvas');
+      const octx = off.getContext('2d');
+      const font = '700 44px Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif';
+      octx.font = font;
+      const w = Math.ceil(octx.measureText(CRAZE_TEXT).width) + 20;
+      const h = 64;
+      off.width = w; off.height = h;
+      octx.font = font;
+      octx.fillStyle = '#fff';
+      octx.textBaseline = 'middle';
+      octx.fillText(CRAZE_TEXT, 10, h / 2);
+      const data = octx.getImageData(0, 0, w, h).data;
+      const pts = [];
+      // 3px sampling is the legibility floor — at 4 the words stop reading.
+      for (let y = 0; y < h; y += 3) {
+        for (let x = 0; x < w; x += 3) {
+          if (data[(y * w + x) * 4 + 3] > 128) pts.push([x - w / 2, y - h / 2]);
+        }
+      }
+      crazePoints = { pts, w, h };
+      return crazePoints;
+    }
+
+    function startCraze(x, y) {
+      const { pts, w, h } = crazeSample();
+      const scale = clamp(Math.min(W, H) / 620, 0.45, 1.2);
+
+      // The creature sits above its own signature. Sized off the text so the
+      // pair always reads as one mark rather than two unrelated drawings.
+      const salW = Math.min(w * 0.62, 340) * scale;
+      const s = salW / SAL.w;
+      const salH = SAL.h * s;
+      const gap = 14 * scale;
+      const textW = w * scale, textH = h * scale;
+      const totalH = salH + gap + textH;
+
+      const halfW = Math.max(salW, textW) * 0.5;
+      const cx = clamp(x, halfW + 14, Math.max(halfW + 14, W - halfW - 14));
+      const cy = clamp(y, totalH * 0.5 + 14, Math.max(totalH * 0.5 + 14, H - totalH * 0.5 - 14));
+
+      const top = cy - totalH * 0.5;
+      const textMid = top + salH + gap + textH * 0.5;
+
+      // Order matters: outline, then spots, then the name. `shown` walks the
+      // array, so the creature surfaces and lights up before it signs.
+      const segments = salamanderSegments(cx - salW * 0.5, top, s);
+      for (const [px, py] of pts) {
+        segments.push({
+          x1: cx + (px + rand(-1.1, 1.1)) * scale, y1: textMid + (py + rand(-1.1, 1.1)) * scale,
+          x2: cx + (px + rand(1.6, 3.4)) * scale, y2: textMid + (py + rand(-1.3, 1.3)) * scale,
+          spot: false, g: -1
+        });
+      }
+
+      // Spot groups are bucketed once, not re-scanned every frame.
+      const groups = new Map();
+      segments.forEach((seg, i) => {
+        seg.i = i;
+        if (!seg.spot) return;
+        if (!groups.has(seg.g)) groups.set(seg.g, []);
+        groups.get(seg.g).push(seg);
+      });
+
+      crazes.push({ segments, groups, born: performance.now(), grow: 2100, hold: 2800, heal: 2400 });
+      for (let i = 0; i < 11; i++) setTimeout(() => playCrackle(0.16), i * 95 + Math.random() * 60);
+      haptic([6, 40, 6, 40, 10]);
+      setStatus('A flickering salamander, signing the glass.', 7000);
+    }
+
+    function drawCrazes(now) {
+      for (let i = crazes.length - 1; i >= 0; i--) {
+        const c = crazes[i];
+        const age = now - c.born;
+        if (age > c.grow + c.hold + c.heal) { crazes.splice(i, 1); continue; }
+        const shown = Math.ceil(c.segments.length * clamp(age / c.grow, 0, 1));
+        const a = age < c.grow + c.hold ? 1 : 1 - (age - c.grow - c.hold) / c.heal;
+
+        ctx.save();
+        ctx.lineCap = 'round';
+        ctx.shadowBlur = 7;
+
+        // Outline and lettering — the crack-coloured half.
+        ctx.globalAlpha = a * 0.85;
+        ctx.strokeStyle = TOK.cyan;
+        ctx.shadowColor = TOK.cyan;
+        ctx.lineWidth = 0.85;
+        ctx.beginPath();
+        for (let s = 0; s < shown; s++) {
+          const g = c.segments[s];
+          if (g.spot) continue;
+          ctx.moveTo(g.x1, g.y1);
+          ctx.lineTo(g.x2, g.y2);
+        }
+        ctx.stroke();
+
+        // Spots and eyes — amber, each group on its own flicker.
+        ctx.strokeStyle = TOK.amber;
+        ctx.shadowColor = TOK.amber;
+        ctx.lineWidth = 1.15;
+        for (const [g, list] of c.groups) {
+          ctx.globalAlpha = a * flicker(g, now);
+          ctx.beginPath();
+          let any = false;
+          for (const seg of list) {
+            if (seg.i >= shown) continue;
+            ctx.moveTo(seg.x1, seg.y1);
+            ctx.lineTo(seg.x2, seg.y2);
+            any = true;
+          }
+          if (any) ctx.stroke();
+        }
+        ctx.restore();
       }
     }
 
-    // ── LOOP ─────────────────────────────────────────────────────────────
-    function loop(now) {
-      ctx.fillStyle = '#030407';
-      ctx.fillRect(0, 0, W, H);
-      drawGlass();
+    // ══════════════════════════════════════════════════════════════
+    // RIGS — one interaction verb per material
+    // ══════════════════════════════════════════════════════════════
 
-      fractures = fractures.filter(f => !f.dead);
-      shockwaves = shockwaves.filter(s => !s.dead);
-      dragTraces = dragTraces.filter(d => !d.dead);
+    function hapticShatter(power) {
+      if (power < 0.15) haptic(8);
+      else if (power < 0.4) haptic([10, 8, 15]);
+      else if (power < 0.7) haptic([15, 5, 20, 8, 25]);
+      else haptic([20, 5, 30, 8, 40, 5, 20]);
+    }
 
-      for (const d of dragTraces) d.draw(now);
-      for (const s of shockwaves) s.draw(now);
-      for (const f of fractures) f.draw(now);
-      drawCharge(now);
-      drawAimLine(now);
+    // ── Glass: anchor, charge, aim, detonate ───────────────────────
+    class ChargeRig {
+      constructor(x, y) {
+        this.ax = x; this.ay = y;      // anchor — set once, never moves
+        this.lx = x; this.ly = y;      // live cursor
+        this.born = performance.now();
+        this.path = [{ x, y }];
+        this.lastTick = 0;
+        this.crazed = false;
+        this.axis = stress === 'flex' ? { x, y, a: rand(0, Math.PI) } : null;
+      }
 
-      if (holdStart !== null) {
-        const power = Math.min(1, (now - holdStart) / MAX_HOLD);
-        if (power >= 1) setStatus("That's everything you've got.");
-        else if (power > 0.5) setStatus('Hold longer. Go harder.');
+      get power() {
+        return clamp((performance.now() - this.born) / MAX_HOLD, 0, 1) * clamp(forceScale, 0.3, 1.6);
+      }
+
+      onMove(x, y) {
+        const dx = x - this.lx, dy = y - this.ly;
+        if (dx * dx + dy * dy < 1) return;   // ignore sub-pixel jitter
+        this.lx = x; this.ly = y;
+        this.path.push({ x, y });
+        if (this.path.length > 400) this.path.shift();
+      }
+
+      update(now) {
+        const p = this.power;
+        if (now - this.lastTick > 260 - p * 150) {
+          this.lastTick = now;
+          if (p > 0.08) playCrackle(p * 0.5);
+        }
+        if (!this.crazed && now - this.born > MAX_HOLD + CRAZE_WAIT) {
+          this.crazed = true;
+          startCraze(this.ax, this.ay);
+          return;
+        }
+        if (this.crazed) return;
+        const t = (now - this.born) / MAX_HOLD;
+        if (t >= 1) setStatus("That's everything you've got.");
+        else if (t > 0.5) setStatus('Hold longer. Go harder.');
         else setStatus('Building pressure…');
       }
 
+      drawOverlay(now) {
+        if (this.crazed) return;
+        const p = this.power;
+        const color = hot(p);
+        const el = now - this.born;
+
+        // Rings stay on the anchor — that's where the crack will actually
+        // start, regardless of where the cursor has wandered.
+        ctx.save();
+        for (let i = 0; i < 3; i++) {
+          const phase = ((now / 270) + i / 3) % 1;
+          ctx.beginPath();
+          ctx.arc(this.ax, this.ay, 7 + p * 48 * phase, 0, Math.PI * 2);
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 1.5;
+          ctx.shadowColor = color;
+          ctx.shadowBlur = 18;
+          ctx.globalAlpha = (1 - phase) * 0.88 * Math.min(1, el / 120);
+          ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+        ctx.beginPath();
+        ctx.arc(this.ax, this.ay, 3 + p * 2.5, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 28;
+        ctx.fill();
+        ctx.restore();
+
+        // Flex shows its neutral axis — the line the arcs bend away from.
+        if (this.axis && showField) {
+          const L = Math.max(W, H);
+          ctx.save();
+          ctx.globalAlpha = 0.22;
+          ctx.strokeStyle = color;
+          ctx.setLineDash([2, 9]);
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(this.ax - Math.cos(this.axis.a) * L, this.ay - Math.sin(this.axis.a) * L);
+          ctx.lineTo(this.ax + Math.cos(this.axis.a) * L, this.ay + Math.sin(this.axis.a) * L);
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.restore();
+        }
+
+        // Aim line — a preview of the lean you'd get by letting go now.
+        const dx = this.lx - this.ax, dy = this.ly - this.ay;
+        if (Math.hypot(dx, dy) < 14) return;
+        ctx.save();
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 1.3;
+        ctx.shadowColor = color;
+        ctx.shadowBlur = 10;
+        ctx.setLineDash([5, 7]);
+        ctx.globalAlpha = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(this.ax, this.ay);
+        ctx.lineTo(this.lx, this.ly);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.globalAlpha = 0.85;
+        ctx.beginPath();
+        ctx.arc(this.lx, this.ly, 3, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+        ctx.restore();
+      }
+
+      onRelease() {
+        if (this.crazed) return;   // the charge went into writing, not breaking
+        const p = Math.max(0.06, this.power);
+
+        // Bias is straight-line displacement from the anchor, not summed
+        // path length — so a shaky hand while charging can't fake a pull.
+        const dx = this.lx - this.ax, dy = this.ly - this.ay;
+        const dist = Math.hypot(dx, dy);
+        let biasAngle = null, biasMag = 0;
+        if (dist > 16) {
+          biasAngle = Math.atan2(dy, dx);
+          biasMag = Math.min(1, dist / 200);
+        }
+
+        if (this.path.length > 1) traces.push(new DragTrace(this.path, p));
+        fractures.push(new Fracture(this.ax, this.ay, p, biasAngle, biasMag, this.axis));
+        if (fractures.length > MAX_FRACTURES) fractures.splice(0, fractures.length - MAX_FRACTURES);
+        shocks.push(new Shockwave(this.ax, this.ay, p));
+        for (let i = 0; i < Math.floor(4 + p * 10); i++) addBits(this.ax, this.ay, rand(0, 6.28), p, 'glint');
+        playShatter(p);
+        hapticShatter(p);
+        setStatus('The glass always heals.', 5000);
+      }
+    }
+
+    // ── Shared base for the three continuous rigs ──────────────────
+    class WalkRig {
+      constructor(x, y) {
+        this.ax = x; this.ay = y;
+        this.tx = x; this.ty = y;
+        this.hx = x; this.hy = y;
+        this.lastX = x; this.lastY = y;
+        this.vx = 0; this.vy = 0;
+        this.born = performance.now();
+        this.dist = 0; this.lastFork = 0; this.force = 0;
+        this.curlDir = Math.random() < .5 ? -1 : 1;
+        this.axis = stress === 'flex' ? { x, y, a: rand(0, Math.PI) } : null;
+      }
+
+      onMove(x, y) { this.tx = x; this.ty = y; }
+
+      pressure(now) {
+        const age = clamp((now - this.born) / 1500, 0, 1);
+        const drag = clamp(this.dist / 700, 0, 0.9);
+        return clamp((age * 0.7 + drag) * forceScale, 0.06, 1.9);
+      }
+
+      // Advances the crack head. Subclasses decide what gets laid down.
+      step(now, stiffness) {
+        const sx = STRESS[stress];
+        const p = this.pressure(now);
+        const k = (0.065 + p * 0.045) * stiffness;
+        this.vx += (this.tx - this.hx) * k;
+        this.vy += (this.ty - this.hy) * k;
+        this.vx *= 0.64; this.vy *= 0.64;
+
+        const wob = Math.sin(now * 0.018 + this.dist * 0.03) * (0.12 + p * 0.1) * sx.wobble;
+        let curl;
+        if (this.axis) {
+          const s = sideOf(this.hx, this.hy, this.axis);
+          curl = Math.sign(s) * sx.curl * 0.011 * clamp(Math.abs(s) / 160, 0.2, 1.5);
+        } else {
+          curl = this.curlDir * sx.curl * 0.011;
+        }
+        const angle = Math.atan2(this.vy, this.vx) + wob + curl;
+        const spd = clamp(Math.hypot(this.vx, this.vy), 0, 22 + p * 22) * speedScale;
+
+        if (spd > 0.06) {
+          this.hx += Math.cos(angle) * spd;
+          this.hy += Math.sin(angle) * spd;
+          this.force = angle;
+        }
+        return { p, angle, moved: Math.hypot(this.hx - this.lastX, this.hy - this.lastY) };
+      }
+
+      maybeBranch(p, angle, mat, gapBase) {
+        const sx = STRESS[stress];
+        const gap = Math.max(12, (gapBase * (sx.reveal > 700 ? 1.5 : 1)) / clamp(branchScale, 0.15, 2.5) - p * 12);
+        if (this.dist - this.lastFork > gap) {
+          this.lastFork = this.dist;
+          emitBranches(this.hx, this.hy, angle, p, mat, this.axis);
+          tick(p);
+          haptic(4);
+        }
+      }
+
+      drawOverlay(now) {
+        if (!showField) return;
+        drawLoadField(this.ax, this.ay, this.hx, this.hy, this.pressure(now), now, this.axis);
+      }
+    }
+
+    // ── Ice: a seam that walks after your hand ─────────────────────
+    class SeamRig extends WalkRig {
+      constructor(x, y) {
+        super(x, y);
+        this.lastHold = this.born;
+        this.webSegs = 0;      // the web is bounded — see growWeb
+        this.seeds = [];
+        for (let i = 0; i < 9; i++) {
+          this.seeds.push({
+            angle: (6.2832 / 9) * i + rand(-.24, .24), len: 0,
+            target: rand(24, 140), speed: rand(.26, .9), x, y, depth: 0
+          });
+        }
+        // Impact answers instantly at the contact point.
+        if (stress === 'impact') {
+          const spokes = Math.round(7 * clamp(branchScale, 0.2, 2));
+          for (let i = 0; i < spokes; i++) {
+            if (forks.length >= MAX_FORKS) break;
+            const a = (6.2832 / spokes) * i + rand(-.2, .2);
+            forks.push(new Fork(x, y, a, 0.5, a, 'ice', 0.9, { axis: this.axis }));
+          }
+          haptic(14);
+        }
+      }
+
+      update(now) {
+        const { p, angle, moved } = this.step(now, 1);
+        if (moved > 5) {
+          this.dist += moved;
+          addSeg(this.lastX, this.lastY, this.hx, this.hy, 1.2 + p * 6.6, 'seam', 'ice');
+          if (Math.random() < 0.4) addBits(this.hx, this.hy, angle, p, 'snow');
+          this.maybeBranch(p, angle, 'ice', 46);
+          this.lastX = this.hx; this.lastY = this.hy;
+        }
+        // The web is for holding still, so ask the honest question: is the
+        // pointer still near where it went down? Testing the crack head
+        // instead let a slow drag keep the web growing forever.
+        const holding = Math.hypot(this.tx - this.ax, this.ty - this.ay) < 42;
+        if (holding || now - this.born < 520) this.growWeb(now, p);
+      }
+
+      // Bounded on purpose: segs evicts oldest-first at MAX_SEGS, so an
+      // unbounded web would flush the seam it's supposed to accompany.
+      growWeb(now, p) {
+        if (now - this.lastHold < 30 || this.webSegs > 240) return;
+        this.lastHold = now;
+        for (const s of this.seeds) {
+          if (s.len > s.target * p) continue;
+          const ox = s.x, oy = s.y;
+          const kink = Math.sin(now * .004 + s.angle * 7) * .09 + rand(-.07, .07);
+          const step = s.speed * (2.2 + p * 3.6) * speedScale;
+          s.angle += kink * .08; s.len += step;
+          s.x += Math.cos(s.angle + kink) * step;
+          s.y += Math.sin(s.angle + kink) * step;
+          addSeg(ox, oy, s.x, s.y, .7 + p * 1.4, 'hair', 'ice');
+          this.webSegs++;
+          if (s.depth < 2 && Math.random() < .04 * branchScale && s.len > 20 && this.seeds.length < 26) {
+            this.seeds.push({
+              angle: s.angle + (Math.random() < .5 ? -1 : 1) * rand(.55, 1.05), len: 0,
+              target: s.target * rand(.22, .52), speed: s.speed * rand(.55, .9),
+              x: s.x, y: s.y, depth: s.depth + 1
+            });
+          }
+        }
+      }
+
+      onRelease() {
+        const p = this.pressure(performance.now());
+        if (this.dist < 28) {
+          for (let i = 0; i < 12; i++) {
+            if (forks.length >= MAX_FORKS) break;
+            const a = (6.2832 / 12) * i + rand(-.18, .18);
+            forks.push(new Fork(this.ax, this.ay, a, p * .85, a, 'ice', .75, { axis: this.axis }));
+          }
+          setStatus('Force stayed central — the sheet answered with a star.', 5000);
+        } else {
+          for (let i = 0; i < 5; i++) {
+            if (forks.length >= MAX_FORKS) break;
+            const side = Math.random() < .5 ? -1 : 1;
+            forks.push(new Fork(this.hx, this.hy, this.force + side * rand(.25, 1.1), p, this.force, 'ice', 1, { axis: this.axis }));
+          }
+          setStatus('The lead crack walked out and left a seam behind it.', 5000);
+        }
+        releaseSound(p);
+        haptic(p > .8 ? [18, 30, 22] : 14);
+      }
+    }
+
+    // ── Metal: burnish, neck, tear. Never shatters. ────────────────
+    class BurnishRig extends WalkRig {
+      constructor(x, y) {
+        super(x, y);
+        this.strain = 0;
+        this.torn = false;
+        this.mark = addMark(x, y, 'dent');
+      }
+
+      update(now) {
+        const { p, angle, moved } = this.step(now, 0.95);
+        if (moved > 5) {
+          this.dist += moved;
+          // Strain climbs with worked distance, and the groove necks as it
+          // climbs — thinner and brighter, not wider.
+          this.strain = clamp(this.strain + moved * 0.0016 * (0.5 + p) * forceScale, 0, 1.35);
+          const neck = 1 - clamp(this.strain, 0, 1) * 0.55;
+          addSeg(this.lastX, this.lastY, this.hx, this.hy,
+            (1.2 + p * 6.2) * neck, this.strain > 0.6 ? 'neck' : 'groove', 'metal');
+          if (Math.random() < 0.24 + this.strain * 0.3) addBits(this.hx, this.hy, angle, p, 'spark');
+
+          if (!this.torn && this.strain >= 1) {
+            this.torn = true;
+            this.tear(angle, p);
+          }
+          if (this.torn) this.maybeBranch(p, angle, 'metal', 96);
+          else if (Math.random() < 0.25) tick(p * 0.6);
+          this.lastX = this.hx; this.lastY = this.hy;
+        }
+        if (this.mark && Math.hypot(this.tx - this.hx, this.ty - this.hy) < 26) {
+          this.mark.target = 34 * p;
+        }
+      }
+
+      // Jagged lips zig-zagging off the groove line.
+      tear(angle, p) {
+        const nx = -Math.sin(angle), ny = Math.cos(angle);
+        const amp = 3 + p * 7;
+        let px = this.lastX, py = this.lastY;
+        for (let i = 1; i <= 5; i++) {
+          const t = i / 5, side = i % 2 === 0 ? 1 : -1;
+          const mx = this.lastX + (this.hx - this.lastX) * t + nx * amp * side;
+          const my = this.lastY + (this.hy - this.lastY) * t + ny * amp * side;
+          addSeg(px, py, mx, my, 1.4 + p * 2.2, 'tear', 'metal');
+          px = mx; py = my;
+        }
+        for (let i = 0; i < 16; i++) addBits(this.hx, this.hy, rand(0, 6.28), p, 'spark');
+        releaseSound(clamp(p, 0.2, 1));   // guarded: audio may be null
+        haptic([22, 18, 34]);
+        setStatus('It necked, then tore. Metal gives before it breaks.', 5200);
+      }
+
+      onRelease() {
+        const p = this.pressure(performance.now());
+        if (this.torn) {
+          setStatus('Metal absorbed the load, tore where it was thinnest, and rang as it settled.', 5000);
+        } else {
+          partial('sine', 90 + p * 30, 0.1 + p * 0.08, 0.2, 0, 52);
+          setStatus('Burnished, not broken. The groove stays.', 4600);
+        }
+        haptic(12);
+      }
+    }
+
+    // ── Plastic: lags, whitens, blisters. Never breaks. ────────────
+    class CreepRig extends WalkRig {
+      constructor(x, y) {
+        super(x, y);
+        this.mark = addMark(x, y, 'blister');
+      }
+
+      update(now) {
+        // Very low stiffness — the tip visibly trails your hand.
+        const { p, moved } = this.step(now, 0.3);
+        if (moved > 8) {
+          this.dist += moved;
+          if (p > 0.22) {
+            addSeg(this.lastX, this.lastY, this.hx, this.hy, (1.2 + p * 6.6) * 1.35, 'whiten', 'plastic');
+          }
+          if (this.dist - this.lastFork > 95 / clamp(branchScale, 0.15, 2.5)) {
+            this.lastFork = this.dist;
+            tick(p);
+          }
+          this.lastX = this.hx; this.lastY = this.hy;
+        }
+        if (this.mark && Math.hypot(this.tx - this.hx, this.ty - this.hy) < 26) {
+          this.mark.target = 46 * p;
+          if (Math.random() < 0.06) tick(p * 0.6);
+        }
+      }
+
+      drawOverlay(now) {
+        super.drawOverlay(now);
+        if (!showField) return;
+        // The elastic tether — proof the material is holding you back.
+        ctx.save();
+        ctx.globalAlpha = 0.3;
+        ctx.strokeStyle = TOK.lime;
+        ctx.lineWidth = 1;
+        ctx.setLineDash([3, 5]);
+        ctx.beginPath();
+        ctx.moveTo(this.hx, this.hy);
+        ctx.lineTo(this.tx, this.ty);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
+      }
+
+      onRelease() {
+        const p = this.pressure(performance.now());
+        if (this.mark) this.mark.target = this.mark.r * 0.86;
+        releaseSound(p);
+        setStatus('Plastic yielded and kept it. The whitening stays; nothing shattered.', 5000);
+        haptic(10);
+      }
+    }
+
+    const RIGS = { glass: ChargeRig, ice: SeamRig, metal: BurnishRig, plastic: CreepRig };
+
+    // ══════════════════════════════════════════════════════════════
+    // RENDER
+    // ══════════════════════════════════════════════════════════════
+    // Segments are stroked as continuous runs, not one at a time. Stroking
+    // each segment separately under a globalAlpha makes every overlapping
+    // round cap compound with its neighbour, and the seam comes out banded
+    // like a rope instead of reading as one crack.
+    function segAlpha(c, now) {
+      const age = now - c.born;
+      return smooth(0, 90, age) * (1 - smooth(c.life - 1300, c.life, age));
+    }
+
+    // Centreline of a run, optionally pushed sideways by `off`.
+    function tracePath(run, off) {
+      ctx.beginPath();
+      const f = run[0];
+      if (off) {
+        ctx.moveTo(f.x1 - Math.sin(f.angle) * off, f.y1 + Math.cos(f.angle) * off);
+        for (const s of run) ctx.lineTo(s.x2 - Math.sin(s.angle) * off, s.y2 + Math.cos(s.angle) * off);
+      } else {
+        ctx.moveTo(f.x1, f.y1);
+        for (const s of run) ctx.lineTo(s.x2, s.y2);
+      }
+    }
+
+    const runWidth = run => {
+      let w = 0;
+      for (const s of run) w += s.w;
+      return w / run.length;
+    };
+
+    function drawSegs(now) {
+      let i = 0;
+      while (i < segs.length) {
+        const c = segs[i];
+        // Gather the longest contiguous run of the same material and kind.
+        let j = i + 1;
+        while (j < segs.length) {
+          const n = segs[j], p = segs[j - 1];
+          if (n.mat !== c.mat || n.kind !== c.kind) break;
+          if (Math.abs(n.x1 - p.x2) > 0.01 || Math.abs(n.y1 - p.y2) > 0.01) break;
+          j++;
+        }
+        const run = segs.slice(i, j);
+        i = j;
+        let a = 0;
+        for (const s of run) a += segAlpha(s, now);
+        a /= run.length;
+        if (a <= 0.002) continue;
+        if (c.mat === 'ice') c.kind === 'seam' ? iceSeam(run, a) : iceHair(run, a);
+        else if (c.mat === 'plastic') plasticSeg(run, a);
+        else metalSeg(run, a);
+      }
+    }
+
+    function iceSeam(run, a) {
+      const w = runWidth(run), ridge = Math.max(1.1, w * 0.5);
+      ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.globalAlpha = a;
+      // A tight crush halo. Much wider than this and the seam stops reading
+      // as a crack in a sheet and starts looking like a painted stroke.
+      tracePath(run, 0);
+      ctx.strokeStyle = 'rgba(235,253,255,.4)'; ctx.lineWidth = w * 2.5; ctx.stroke();
+      ctx.strokeStyle = 'rgba(91,178,205,.5)'; ctx.lineWidth = Math.max(1, w * 0.5);
+      tracePath(run, ridge); ctx.stroke();
+      tracePath(run, -ridge); ctx.stroke();
+      tracePath(run, 0);
+      ctx.strokeStyle = 'rgba(2,15,23,.85)'; ctx.lineWidth = Math.max(1.5, w * 1.5); ctx.stroke();
+      tracePath(run, 0);
+      ctx.strokeStyle = 'rgba(36,170,205,.7)'; ctx.lineWidth = Math.max(.75, w * .45); ctx.stroke();
+      ctx.restore();
+    }
+
+    function iceHair(run, a) {
+      const w = runWidth(run);
+      ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      ctx.globalAlpha = a * .88;
+      tracePath(run, 0);
+      ctx.strokeStyle = 'rgba(8,52,72,.55)'; ctx.lineWidth = Math.max(.5, w); ctx.stroke();
+      ctx.globalAlpha = a * .7;
+      tracePath(run, 0.7);
+      ctx.strokeStyle = 'rgba(245,255,255,.45)'; ctx.lineWidth = Math.max(.4, w * .4); ctx.stroke();
+      ctx.restore();
+    }
+
+    function plasticSeg(run, a) {
+      const w = runWidth(run);
+      ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+      ctx.globalAlpha = a * .22;
+      tracePath(run, 0);
+      ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = w * 5.2; ctx.stroke();
+      ctx.globalAlpha = a * .45;
+      tracePath(run, 0);
+      ctx.strokeStyle = 'rgba(255,255,255,.95)'; ctx.lineWidth = w * 2.4; ctx.stroke();
+      ctx.globalAlpha = a * .9;
+      tracePath(run, 0);
+      ctx.strokeStyle = 'rgba(252,253,255,.95)'; ctx.lineWidth = Math.max(1, w * .9); ctx.stroke();
+      ctx.restore();
+    }
+
+    function metalSeg(run, a) {
+      const w = runWidth(run), off = Math.max(.8, w * .5), kind = run[0].kind;
+      ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.globalAlpha = a;
+      tracePath(run, 0);
+      ctx.strokeStyle = 'rgba(58,66,74,.72)'; ctx.lineWidth = Math.max(1.4, w * 1.8); ctx.stroke();
+      tracePath(run, -off);
+      ctx.strokeStyle = 'rgba(255,255,255,.78)'; ctx.lineWidth = Math.max(.6, w * .55); ctx.stroke();
+      tracePath(run, off);
+      ctx.strokeStyle = 'rgba(26,32,38,.5)'; ctx.lineWidth = Math.max(.5, w * .45); ctx.stroke();
+      // A necking groove goes bright and thin just before it lets go.
+      if (kind === 'neck') {
+        ctx.globalAlpha = a * .9;
+        tracePath(run, 0);
+        ctx.strokeStyle = 'rgba(255,240,205,.85)'; ctx.lineWidth = Math.max(.5, w * .5); ctx.stroke();
+      }
+      if (kind === 'tear') {
+        ctx.globalAlpha = a * .95;
+        tracePath(run, 0);
+        ctx.strokeStyle = 'rgba(12,16,20,.9)'; ctx.lineWidth = Math.max(1, w * 1.1); ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawMarks(now) {
+      for (let i = marks.length - 1; i >= 0; i--) {
+        const m = marks[i], age = now - m.born;
+        if (age > m.life) { marks.splice(i, 1); continue; }
+        m.r += (m.target - m.r) * .08;
+        if (m.r < 1) continue;
+        const a = 1 - smooth(m.life - 1500, m.life, age);
+        ctx.save(); ctx.globalAlpha = a;
+        if (m.type === 'blister') {
+          const g = ctx.createRadialGradient(m.x, m.y, 1, m.x, m.y, m.r);
+          g.addColorStop(0, 'rgba(255,255,255,.55)');
+          g.addColorStop(.6, 'rgba(255,255,255,.22)');
+          g.addColorStop(1, 'rgba(255,255,255,0)');
+          ctx.fillStyle = g; ctx.beginPath(); ctx.arc(m.x, m.y, m.r, 0, 6.2832); ctx.fill();
+        } else {
+          const g = ctx.createRadialGradient(m.x - m.r * .3, m.y - m.r * .3, 1, m.x, m.y, m.r);
+          g.addColorStop(0, 'rgba(255,255,255,.34)');
+          g.addColorStop(.45, 'rgba(90,100,110,.3)');
+          g.addColorStop(1, 'rgba(20,26,32,0)');
+          ctx.fillStyle = g; ctx.beginPath(); ctx.arc(m.x, m.y, m.r, 0, 6.2832); ctx.fill();
+          ctx.strokeStyle = 'rgba(30,36,42,.3)'; ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.arc(m.x, m.y, m.r * .82, 0, 6.2832); ctx.stroke();
+        }
+        ctx.restore();
+      }
+    }
+
+    function drawLoadField(ax, ay, hx, hy, p, now, axis) {
+      const dx = hx - ax, dy = hy - ay, dist = Math.hypot(dx, dy);
+      const tone = accent();
+      ctx.save();
+      for (let i = 0; i < 3; i++) {
+        const ph = ((now / 1350) + i / 3) % 1;
+        ctx.beginPath();
+        ctx.arc(ax, ay, 18 + ph * (42 + p * 68 + dist * .12), 0, 6.2832);
+        ctx.strokeStyle = tone;
+        ctx.globalAlpha = (1 - ph) * .32;
+        ctx.lineWidth = 1.3;
+        ctx.stroke();
+      }
+      if (dist > 8) {
+        ctx.globalAlpha = 0.32;
+        ctx.beginPath();
+        ctx.moveTo(ax, ay);
+        const sag = Math.sin(now * .012) * Math.min(18, dist * .06);
+        ctx.quadraticCurveTo((ax + hx) / 2 - dy / dist * sag, (ay + hy) / 2 + dx / dist * sag, hx, hy);
+        ctx.strokeStyle = tone; ctx.lineWidth = 1.2 + p;
+        ctx.setLineDash([9, 10]); ctx.stroke(); ctx.setLineDash([]);
+      }
+      if (axis) {
+        const L = Math.max(W, H);
+        ctx.globalAlpha = 0.2;
+        ctx.setLineDash([2, 9]);
+        ctx.beginPath();
+        ctx.moveTo(axis.x - Math.cos(axis.a) * L, axis.y - Math.sin(axis.a) * L);
+        ctx.lineTo(axis.x + Math.cos(axis.a) * L, axis.y + Math.sin(axis.a) * L);
+        ctx.strokeStyle = tone; ctx.lineWidth = 1; ctx.stroke();
+        ctx.setLineDash([]);
+      }
+      ctx.globalAlpha = 0.8;
+      ctx.beginPath();
+      ctx.arc(hx, hy, (5 + p * 6) * (1 + Math.sin(now * .018) * .14), 0, 6.2832);
+      ctx.strokeStyle = tone; ctx.lineWidth = 1.2; ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawBits(now) {
+      ctx.save();
+      for (let i = bits.length - 1; i >= 0; i--) {
+        const p = bits[i], age = now - p.born;
+        if (age > p.life) { bits.splice(i, 1); continue; }
+        p.x += p.vx; p.y += p.vy; p.vx *= .972; p.vy = p.vy * .972 + p.gravity;
+        ctx.globalAlpha = (1 - age / p.life) * .85;
+        ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, 6.2832);
+        ctx.fillStyle = 'rgba(' + p.color + ',.9)'; ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    // ══════════════════════════════════════════════════════════════
+    // UI
+    // ══════════════════════════════════════════════════════════════
+    let statusTimer = null;
+    function setStatus(text, revert) {
+      statusEl.textContent = text;
+      clearTimeout(statusTimer);
+      if (revert) statusTimer = setTimeout(defaultStatus, revert);
+    }
+    function defaultStatus() { statusEl.textContent = MAT[material].hint; }
+
+    function applyTheme() {
+      const m = MAT[material];
+      panel.style.setProperty('--accent', TOK[m.tok]);
+      subEl.textContent = m.name + ' · ' + STRESS[stress].name;
+      readoutEl.innerHTML = '<b>' + m.name + ' · ' + STRESS[stress].name + '</b><br />' +
+        m.blurb + ' ' + STRESS[stress].blurb;
+      defaultStatus();
+    }
+
+    function clearSurface() {
+      segs = []; fractures = []; forks = []; shocks = []; traces = []; bits = []; marks = []; crazes = [];
+      occupied = new Set();
+      rig = null;
+    }
+
+    function setMaterial(mat) {
+      if (!MAT[mat] || mat === material) return;
+      material = mat;
+      document.querySelectorAll('[data-mat]').forEach(b => b.classList.toggle('is-on', b.dataset.mat === mat));
+      clearSurface(); bake(); applyTheme();
+      haptic(14);
+    }
+
+    function setStress(st) {
+      if (!STRESS[st] || st === stress) return;
+      stress = st;
+      document.querySelectorAll('[data-stress]').forEach(b => b.classList.toggle('is-on', b.dataset.stress === st));
+      applyTheme();
+      haptic(10);
+    }
+
+    document.querySelectorAll('[data-mat]').forEach(b => b.addEventListener('click', () => setMaterial(b.dataset.mat)));
+    document.querySelectorAll('[data-stress]').forEach(b => b.addEventListener('click', () => setStress(b.dataset.stress)));
+
+    const panelToggle = document.getElementById('panel-toggle');
+    panelToggle.addEventListener('click', () => {
+      const c = panel.classList.toggle('is-collapsed');
+      panelToggle.textContent = c ? '❮' : '❯';
+      panelToggle.setAttribute('aria-expanded', String(!c));
+    });
+
+    const bind = (id, outId, fmt, apply) => {
+      const el = document.getElementById(id), out = document.getElementById(outId);
+      el.addEventListener('input', e => {
+        const v = parseFloat(e.target.value);
+        out.textContent = fmt(v);
+        apply(v);
+      });
+    };
+    bind('s-force', 'v-force', v => v.toFixed(1) + '×', v => forceScale = v);
+    bind('s-branch', 'v-branch', v => v === 0 ? 'None' : v.toFixed(1) + '×', v => branchScale = v);
+    bind('s-speed', 'v-speed', v => v.toFixed(1) + '×', v => speedScale = v);
+    bind('s-brittle', 'v-brittle',
+      v => v < -0.05 ? 'Ductile ' + v.toFixed(1) : v > 0.05 ? 'Brittle +' + v.toFixed(1) : 'Native',
+      v => brittleBias = v);
+    bind('s-life', 'v-life', v => v.toFixed(1) + 's', v => persistence = v * 1000);
+
+    document.getElementById('c-debris').addEventListener('change', e => { showDebris = e.target.checked; });
+    document.getElementById('c-field').addEventListener('change', e => { showField = e.target.checked; });
+    document.getElementById('c-residue').addEventListener('change', e => { showResidue = e.target.checked; });
+    document.getElementById('c-haptic').addEventListener('change', e => { useHaptics = e.target.checked; });
+
+    document.getElementById('reset-btn').addEventListener('click', () => {
+      clearSurface();
+      setStatus('Surface reset.', 2600);
+      haptic([10, 20, 10]);
+    });
+
+    window.addEventListener('keydown', e => {
+      if (e.target.tagName === 'INPUT') return;
+      const k = e.key.toLowerCase();
+      if (k === '1') setMaterial('glass');
+      else if (k === '2') setMaterial('ice');
+      else if (k === '3') setMaterial('metal');
+      else if (k === '4') setMaterial('plastic');
+      else if (k === 'q') setStress('impact');
+      else if (k === 'w') setStress('shear');
+      else if (k === 'e') setStress('thermal');
+      else if (k === 'r') setStress('flex');
+      else if (k === 'm') soundToggle.click();
+      else if (k === 'h') panelToggle.click();
+      else if (k === 'x') document.getElementById('reset-btn').click();
+    });
+
+    // ── Pointer ────────────────────────────────────────────────────
+    const pos = e => {
+      const r = canvas.getBoundingClientRect();
+      return { x: e.clientX - r.left, y: e.clientY - r.top };
+    };
+
+    canvas.addEventListener('pointerdown', e => {
+      canvas.setPointerCapture(e.pointerId);
+      const p = pos(e);
+      rig = new RIGS[material](p.x, p.y);
+      if (material !== 'glass') tick(0.3);
+      clearTimeout(statusTimer);
+    });
+    canvas.addEventListener('pointermove', e => { if (rig) { const p = pos(e); rig.onMove(p.x, p.y); } });
+    const endPtr = () => { if (!rig) return; rig.onRelease(); rig = null; };
+    canvas.addEventListener('pointerup', endPtr);
+    canvas.addEventListener('pointercancel', endPtr);
+
+    // ══════════════════════════════════════════════════════════════
+    // Deliberately ignores the rAF timestamp. That timestamp is the frame's
+    // start time, but everything here stamps `born` with performance.now()
+    // from inside an event handler — which runs *after* the frame started.
+    // Mixing the two makes age briefly negative, and anything that guards on
+    // `t < 0` (the shockwave) or ramps from zero (the fracture) silently
+    // skips a frame. One clock for everyone.
+    function loop() {
+      // Re-armed first, not last: if anything below ever throws, the toy
+      // should stutter and recover rather than freeze for good.
       requestAnimationFrame(loop);
-    }
+      const now = performance.now();
+      ctx.drawImage(bg, 0, 0, bg.width, bg.height, 0, 0, W, H);
 
-    // ── INPUT ────────────────────────────────────────────────────────────
-    function getPos(e) {
-      if (e.touches && e.touches.length) {
-        return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+      if (rig) rig.update(now);
+      for (let i = forks.length - 1; i >= 0; i--) {
+        forks[i].update();
+        if (forks[i].dead) forks.splice(i, 1);
       }
-      return { x: e.clientX, y: e.clientY };
+      if (segs.length) segs = segs.filter(c => now - c.born < c.life);
+      fractures = fractures.filter(f => !f.dead);
+      shocks = shocks.filter(s => !s.dead);
+      traces = traces.filter(t => !t.dead);
+
+      drawMarks(now);
+      drawSegs(now);
+      for (const t of traces) t.draw(now);
+      for (const s of shocks) s.draw(now);
+      for (const f of fractures) f.draw(now);
+      drawCrazes(now);
+      drawBits(now);
+      if (rig) rig.drawOverlay(now);
     }
 
-    function startPress(e) {
-      const { x, y } = getPos(e);
-      holdStart = performance.now();
-      pressX = x; pressY = y;   // anchor set once, stays put until release
-      liveX = x; liveY = y;
-      dragPath = [{ x, y }];
-      if (statusTimeout) clearTimeout(statusTimeout);
-    }
-
-    function onDragMove(e) {
-      if (holdStart === null) return;
-      const { x, y } = getPos(e);
-      const dx = x - liveX, dy = y - liveY;
-      if (dx * dx + dy * dy < 1) return; // skip sub-pixel jitter
-      liveX = x; liveY = y;
-      dragPath.push({ x, y });
-    }
-
-    function endPress() {
-      if (holdStart === null) return;
-      const power = Math.min(1, (performance.now() - holdStart) / MAX_HOLD);
-
-      // Bias = straight-line lean from the original press point to wherever
-      // the cursor ended up. Displacement, not summed path wiggle — so
-      // shaky-hand jitter while charging doesn't fake a strong directional pull.
-      const dx = liveX - pressX, dy = liveY - pressY;
-      const dragDist = Math.sqrt(dx * dx + dy * dy);
-      let biasAngle = null, biasMagnitude = 0;
-      // Epicenter is always the original click point — drag only bends arm angles.
-      const originX = pressX, originY = pressY;
-      if (dragDist > 16) {
-        biasAngle = Math.atan2(dy, dx);
-        biasMagnitude = Math.min(1, dragDist / 200);
-      }
-
-      // Preserve the drag path as a glowing trace before clearing
-      if (dragPath.length > 1) {
-        dragTraces.push(new DragTrace(dragPath, power));
-      }
-
-      fractures.push(new Fracture(originX, originY, Math.max(0.06, power), biasAngle, biasMagnitude));
-      shockwaves.push(new Shockwave(originX, originY, power));
-      playShatter(Math.max(0.06, power));
-      hapticShatter(Math.max(0.06, power));
-
-      holdStart = null;
-      dragPath = [];
-      setStatus('The glass always heals.', 5000);
-    }
-
-    canvas.addEventListener('mousedown', startPress);
-    canvas.addEventListener('mousemove', onDragMove);
-    window.addEventListener('mouseup', endPress);
-    canvas.addEventListener('touchstart', e => { e.preventDefault(); startPress(e); }, { passive: false });
-    canvas.addEventListener('touchmove', e => { e.preventDefault(); onDragMove(e); }, { passive: false });
-    canvas.addEventListener('touchend', e => { e.preventDefault(); endPress(e); }, { passive: false });
-
-    // ── INIT ─────────────────────────────────────────────────────────────
-    function resize() {
-      W = canvas.width = window.innerWidth;
-      H = canvas.height = window.innerHeight;
-      buildGlass();
-    }
+    // ── Init ───────────────────────────────────────────────────────
+    new MutationObserver(() => { readTokens(); applyTheme(); })
+      .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
     window.addEventListener('resize', resize);
+    readTokens();
     resize();
+    applyTheme();
     requestAnimationFrame(loop);
+
+    console.log(
+      '%c◇ Pressure Fracture%c\n' +
+      'Four materials, four loads, one surface that always heals.\n' +
+      'Built by Claude Opus 5, via Claude Code.\n' +
+      "Hold glass past everything you've got — a flickering salamander signs its own work.",
+      'color:#36f7ff;font-weight:700;font-size:13px',
+      'color:#a9b0c0;font-size:11px'
+    );
   </script>
 </body>
 

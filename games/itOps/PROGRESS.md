@@ -452,3 +452,9 @@ Tracks build phase for Misfire Arcade slot 5. See `CLAUDE.md` for the rules and 
   ~900ms-delayed navigation (so the toast is visible before the SPA
   unloads). CLAUDE.md ledger updated in the same change. **Pending:** user
   sign-off on the Phase 4 done-check remains open; nothing else deferred.
+
+- **2026-08-01** — Portfolio-wide favicon metadata update. Added the shared
+  `favicon/RosettasKeysLogoFavi2-512x402.png` icon to the Vite source entry and
+  ran `npm run build`, which released the hashed favicon asset alongside the
+  refreshed `itops.html`. No gameplay, content, styling, or phase behavior
+  changed. Build clean (63 modules); the Phase 4 sign-off remains pending.

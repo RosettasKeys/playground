@@ -23,6 +23,13 @@ harness was architecturally relevant to a decision, include it.
 If it was one touch via one harness, the model + version is enough. The 
 signature is what matters; the harness is context when context is useful.
 
+**Zones:**
+Zones include their landing page and child pages. Vibe strongest with the piece you're working on. Then with the zone. To vibe best with the zone, examine the other files.
+- Main page: index.html
+- Fidget Toy Garden: fidgetToy-index.html
+- Misfire Arcade: misfire-arcade-index.html
+- E-cards: card-index.html
+
 
 ## The Proposal (then wait for yes)
 

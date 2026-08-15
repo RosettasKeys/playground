@@ -1,0 +1,37 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "thresholds",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "interactive-cultural-afterlife-atlas",
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5199",
+        "--strictPort"
+      ],
+      "port": 5199,
+      "autoPort": false
+    },
+    {
+      "name": "thresholds-dist",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "interactive-cultural-afterlife-atlas",
+        "run",
+        "preview",
+        "--",
+        "--port",
+        "5198",
+        "--strictPort"
+      ],
+      "port": 5198,
+      "autoPort": false
+    }
+  ]
+}

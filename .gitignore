@@ -1,0 +1,38 @@
+# Rosetta's Garden of Keys — repo hygiene
+#
+# Most of this portfolio is hand-written HTML with no build step, so there is
+# very little to ignore.  The exception is seasonal/, which carries a Vite
+# project: its node_modules is ~93 MB and must never reach GitHub, while its
+# built single-file page must, because Pages has no build step of its own.
+
+# dependencies
+node_modules/
+
+# build caches and tooling scratch
+.vite/
+.tmp.driveupload/
+*.tsbuildinfo
+
+# NOTE: dist/ is deliberately NOT ignored.  seasonal/.../dist/thresholds-index.html
+# is the deployable — without it the atlas is dead on GitHub Pages.
+
+# local machine-specific Claude Code settings (launch.json is shared on purpose)
+.claude/settings.local.json
+
+# logs
+*.log
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS and editor cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*~
+
+# secrets — nothing in this repo should ever need them, but belt and braces
+.env
+.env.*
+!.env.example

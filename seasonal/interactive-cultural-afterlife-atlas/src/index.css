@@ -1,0 +1,284 @@
+@import "tailwindcss";
+
+:root {
+  --ink-900: #07090c;
+  --ink-800: #0b0e13;
+  --ink-700: #11151c;
+  --ink-600: #171c25;
+  --ink-500: #202733;
+  --line: #2a3240;
+  --paper: #e6dcc7;
+  --brass: #c9a227;
+  --ember: #e8944a;
+  --candle: #ffc178;
+  --moon: #b8c6d9;
+  --verdigris: #4e8a80;
+  --bone: #d8d2c4;
+
+  /* mode accent, overwritten per mode */
+  --accent: #e8a557;
+  --accent-soft: #6b4a2a;
+  --field: #0a0c11;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--ink-900);
+  color: #cfd6e0;
+  font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+  font-feature-settings: "ss01", "cv05";
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+.font-display {
+  font-family: "Spectral", ui-serif, Georgia, serif;
+}
+.font-mono2 {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+::selection {
+  background: rgba(232, 165, 87, 0.28);
+}
+
+/* ---------- scrollbars ---------- */
+.scroll-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #2a3240 transparent;
+}
+.scroll-thin::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.scroll-thin::-webkit-scrollbar-thumb {
+  background: #2a3240;
+  border-radius: 99px;
+}
+.scroll-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ---------- stage node transitions ---------- */
+.node {
+  transition:
+    transform 900ms cubic-bezier(0.22, 0.61, 0.24, 1),
+    opacity 620ms ease;
+  will-change: transform, opacity;
+}
+.node-inner {
+  transition:
+    transform 700ms cubic-bezier(0.22, 0.61, 0.24, 1),
+    opacity 500ms ease;
+}
+.stage-dragging .node {
+  transition: opacity 300ms ease;
+}
+.field-layer {
+  transition:
+    opacity 700ms ease,
+    transform 900ms cubic-bezier(0.22, 0.61, 0.24, 1);
+}
+
+.label-fade {
+  transition:
+    opacity 400ms ease,
+    transform 400ms ease;
+}
+
+/* ---------- ambience ---------- */
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes drift {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+@keyframes sweep {
+  0% {
+    transform: translateX(-30%);
+    opacity: 0;
+  }
+  40% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: translateX(130%);
+    opacity: 0;
+  }
+}
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-fade-up {
+  animation: fadeUp 420ms cubic-bezier(0.22, 0.61, 0.24, 1) both;
+}
+.breathe {
+  animation: breathe 5.5s ease-in-out infinite;
+}
+
+/* ---------- epistemic textures ---------- */
+.tex-living {
+  border-color: rgba(232, 165, 87, 0.45);
+  background:
+    linear-gradient(180deg, rgba(232, 165, 87, 0.07), rgba(0, 0, 0, 0)) ,
+    rgba(15, 19, 26, 0.7);
+}
+.tex-historical {
+  border-color: rgba(200, 178, 138, 0.3);
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      rgba(214, 196, 156, 0.045) 0 2px,
+      rgba(0, 0, 0, 0) 2px 7px
+    ),
+    rgba(17, 20, 26, 0.75);
+}
+.tex-reconstructed {
+  border-style: dashed;
+  border-color: rgba(184, 198, 217, 0.28);
+  background: rgba(14, 18, 24, 0.6);
+}
+.tex-folklore {
+  border-color: rgba(120, 160, 152, 0.32);
+  background:
+    radial-gradient(
+      circle at 12% 0%,
+      rgba(78, 138, 128, 0.14),
+      rgba(0, 0, 0, 0) 60%
+    ),
+    rgba(13, 18, 22, 0.72);
+}
+.tex-report {
+  border-color: rgba(184, 198, 217, 0.22);
+  background:
+    linear-gradient(
+      to bottom,
+      rgba(184, 198, 217, 0.06) 0px,
+      rgba(184, 198, 217, 0.06) 1px,
+      rgba(0, 0, 0, 0) 1px,
+      rgba(0, 0, 0, 0) 22px
+    ),
+    rgba(12, 15, 20, 0.75);
+}
+.tex-contested {
+  border-color: rgba(150, 150, 160, 0.18);
+  background: rgba(12, 14, 18, 0.5);
+  box-shadow: inset 0 0 26px rgba(0, 0, 0, 0.5);
+}
+
+.grain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.28;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  z-index: 60;
+}
+
+.vignette {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 50;
+  background: radial-gradient(
+    ellipse at 50% 45%,
+    rgba(0, 0, 0, 0) 40%,
+    rgba(0, 0, 0, 0.55) 100%
+  );
+}
+
+.hairline {
+  background-image: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.14) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  height: 1px;
+}
+
+.smallcaps {
+  font-variant: small-caps;
+  letter-spacing: 0.14em;
+}
+
+.mode-btn {
+  transition:
+    color 300ms ease,
+    background 300ms ease,
+    letter-spacing 400ms ease;
+}
+
+/* ---------- lantern mode folds ---------- */
+.fold > summary::-webkit-details-marker {
+  display: none;
+}
+.fold > summary::before {
+  content: "+";
+  display: inline-block;
+  width: 1em;
+  color: #6b7688;
+}
+.fold[open] > summary::before {
+  content: "–";
+}
+
+/* ---------- the far side ---------- */
+@keyframes hauntEyes {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.haunt-eyes {
+  animation: hauntEyes 260ms ease-out both;
+}
+
+@keyframes hauntLunge {
+  from {
+    transform: scale(0.1);
+    opacity: 0.8;
+  }
+  to {
+    transform: scale(3.6);
+    opacity: 1;
+  }
+}
+.haunt-lunge {
+  animation: hauntLunge 260ms cubic-bezier(0.6, 0, 0.9, 0.35) both;
+  transform-origin: 50% 50%;
+}

@@ -700,6 +700,14 @@ export const RECORDS_A: Record[] = [
     remembrance: { cluster: "offering", role: "Prescribed food and water offerings to three generations" },
     calendar: { start: 259, end: 274, label: "Bhadrapada dark fortnight (Sept–Oct)", drift: "lunar", theme: "ancestors" },
     tags: ["shraddha", "rice", "crows", "pilgrimage"],
+    sources: [
+      {
+        work: "sayers-2015",
+        supports:
+          "Śrāddha as it developed out of the Vedic offerings — pinda for three ascending generations, tarpana, and the textual basis the record points to in the Dharmaśāstra.",
+      },
+    ],
+    verified: { checked: "2026-08-14", claims: 6, status: "clean" },
   },
   {
     id: "manikarnika",
@@ -722,6 +730,14 @@ export const RECORDS_A: Record[] = [
     remembrance: { cluster: "mourning", role: "Cremation as release, performed by the family" },
     veil: { depth: "passage", role: "A place where the passage out is believed to be shortest" },
     tags: ["cremation", "river", "release"],
+    sources: [
+      {
+        work: "eck-1982",
+        supports:
+          "Kashi as the place where people travel in order to die, the belief that dying there releases one from rebirth, and the working city organised around it — the wood, the priests, the Dom attendants.",
+      },
+    ],
+    verified: { checked: "2026-08-14", claims: 5, status: "clean" },
   },
   {
     id: "yama",
@@ -759,6 +775,14 @@ export const RECORDS_A: Record[] = [
         "A shift from host to magistrate over roughly two millennia, tracking wider changes in ideas of moral accounting.",
     },
     tags: ["deity", "dogs", "path"],
+    sources: [
+      {
+        work: "rigveda",
+        supports:
+          "Hymn 10.14, which sends the dead past the two four-eyed, broad-nosed dogs of Yama, sons of Saramā, and which makes Yama the first mortal to find the road rather than a judge of those who take it.",
+      },
+    ],
+    verified: { checked: "2026-08-14", claims: 6, status: "clean" },
   },
   {
     id: "bhuta-kola",
@@ -816,8 +840,8 @@ export const RECORDS_A: Record[] = [
         { name: "चुड़ैल churel", lang: "Hindi / Urdu" },
         { name: "petni", lang: "Bengali (related figure)" },
       ],
-      earliest: "Recorded in 19th-century district gazetteers; oral tradition considerably older",
-      earliestYear: 1830,
+      earliest: "Recorded by William Crooke, 1896; oral tradition considerably older",
+      earliestYear: 1896,
       range: "Northern India, Pakistan, Bangladesh, Nepal; diaspora communities",
       traits: ["Feet reversed at the ankle", "Haunts wells and lonely roads", "Targets male relatives of her household"],
       variants: ["Petni (Bengal)", "Dayan (Rajasthan, distinct but often conflated)"],
@@ -825,6 +849,14 @@ export const RECORDS_A: Record[] = [
         "A moral figure as much as a frightening one: her existence is an accusation against the living.",
     },
     tags: ["childbirth", "roads", "obligation"],
+    sources: [
+      {
+        work: "crooke-1896",
+        supports:
+          "The churel as Crooke found her in northern India: the reversed feet, the haunting of wells and lonely roads, and the burial precautions — iron nails driven to lay her, thorns, the body taken out feet first.",
+      },
+    ],
+    verified: { checked: "2026-08-14", claims: 5, status: "amended" },
   },
 
   // ───────────────────────────────── SOUTHEAST ASIA
@@ -1031,6 +1063,14 @@ export const RECORDS_A: Record[] = [
     threads: ["water", "thresholds", "descent"],
     veil: { depth: "passage", role: "A judged crossing between worlds" },
     tags: ["bridge", "judgement", "conscience"],
+    sources: [
+      {
+        work: "boyce-zoroastrians",
+        supports:
+          "The soul's three days beside the body, the crossing at the fourth dawn, the daēnā met at the bridge as the shape of one's own life, and the bridge that broadens or narrows to a blade.",
+      },
+    ],
+    verified: { checked: "2026-08-14", claims: 5, status: "clean" },
   },
   {
     id: "dakhma-sagdid",
@@ -1046,12 +1086,20 @@ export const RECORDS_A: Record[] = [
       "A dog is brought to look at the body; exposure on a tower then keeps death from polluting earth, fire or water.",
     body: [
       "Sagdīd, 'the sight of the dog', is performed shortly after death — a four-eyed dog, one with markings above the eyes, is preferred. Corpses are then carried by nasasalars to a dakhma, a circular tower open to the sky, where vultures reduce them within hours.",
-      "The system depends on vultures. The collapse of South Asian vulture populations after the 1990s, caused by the veterinary drug diclofenac, has forced Parsi communities into painful debates over solar concentrators, aviaries and burial.",
+      "The system depends on vultures. South Asian vulture populations fell by more than ninety-five per cent from the early 1990s; the cause was traced in 2004 to diclofenac, an anti-inflammatory given to cattle and fatal to any vulture that feeds on the carcass. The collapse has forced Parsi communities into painful debates over solar concentrators, aviaries and burial.",
     ],
     note: "A functioning religious practice currently under ecological strain, with active disagreement inside the community.",
     threads: ["animals", "thresholds"],
     remembrance: { cluster: "mourning", role: "Disposal of the body without polluting the elements" },
     tags: ["dogs", "vultures", "purity"],
+    sources: [
+      {
+        work: "oaks-2004",
+        supports:
+          "The vulture collapse the practice depends on: Gyps populations down more than ninety-five per cent from the early 1990s, traced to diclofenac residues in cattle carcasses causing renal failure and visceral gout in birds that fed on them.",
+      },
+    ],
+    verified: { checked: "2026-08-14", claims: 5, status: "amended" },
   },
   {
     id: "jinn",
@@ -1066,7 +1114,7 @@ export const RECORDS_A: Record[] = [
     summary:
       "Beings created from smokeless fire, with free will and communities of their own, associated with thresholds and empty places.",
     body: [
-      "In Islamic theology jinn are a distinct order of creation, morally accountable like humans: some believe, some do not. They are not the dead, and they are not demons by definition. Sūrat al-Jinn addresses them directly.",
+      "In Islamic theology jinn are a distinct order of creation, morally accountable like humans: some believe, some do not. They are not the dead, and they are not demons by definition. Sūrat al-Jinn does not address them — it reports their own words on overhearing the Qur'an and believing it. The sura that speaks to jinn and humankind together is al-Raḥmān, which is also where the smokeless flame is named.",
       "Popular custom across the Muslim world associates them with ruins, deserts, bathhouses, wells and thresholds, and prescribes courtesies — a spoken bismillah before pouring hot water, not sitting in doorways at dusk.",
     ],
     note: "This is an article of faith for many Muslims. It is included here as belief about unseen beings, not as folklore about monsters.",
@@ -1089,6 +1137,19 @@ export const RECORDS_A: Record[] = [
         "A pre-Islamic Arabian concept given theological structure by the Qur'an, then locally elaborated from West Africa to Indonesia.",
     },
     tags: ["unseen", "thresholds", "belief"],
+    sources: [
+      {
+        work: "quran",
+        supports:
+          "Sūrat al-Raḥmān, which addresses jinn and humankind together and names the smokeless flame they are made from; and Sūrat al-Jinn, which reports the jinn's own account of hearing the Qur'an rather than addressing them.",
+      },
+      {
+        work: "elzein-2009",
+        supports:
+          "Jinn as a distinct order of creation with free will and moral accountability — neither the dead nor demons by definition — and the local elaboration of that idea across the Muslim world.",
+      },
+    ],
+    verified: { checked: "2026-08-14", claims: 5, status: "amended" },
   },
   {
     id: "inanna-descent",
@@ -1127,7 +1188,7 @@ export const RECORDS_A: Record[] = [
   {
     id: "arbaeen",
     title: "Arba'een",
-    subtitle: "A walk that becomes the largest gathering on earth",
+    subtitle: "A walk that becomes the largest annual gathering on earth",
     plain: "Millions of people walk together to Karbala, to mourn someone who was killed in the year 680.",
     culture: "Shi'a Muslim",
     place: { name: "Karbala", country: "Iraq", lat: 32.61, lng: 44.02 },
@@ -1138,6 +1199,7 @@ export const RECORDS_A: Record[] = [
       "Forty days after Ashura, millions walk to Karbala to mourn a death that occurred in 680 CE.",
     body: [
       "Pilgrims walk for days along routes lined with mawakib — free rest stations offering food, foot massage and sleeping space, run by volunteers. Black is worn; elegies are recited; the mourning is deliberately public and collective.",
+      "Around twenty million make the walk — roughly ten times the Hajj. The Kumbh Mela draws more, but not every year, which is what makes the superlative here a narrow one.",
       "Forty days is a widely used mourning interval across the region, marked in Shi'a, Orthodox Christian and many Middle Eastern and Balkan customs alike.",
     ],
     note: "A major act of contemporary religious devotion. Included as a living mourning tradition at very large scale.",
@@ -1145,6 +1207,14 @@ export const RECORDS_A: Record[] = [
     remembrance: { cluster: "mourning", role: "Collective public mourning renewed annually" },
     calendar: { start: 250, end: 253, label: "20 Safar (moves through the solar year)", drift: "lunar", theme: "remembrance" },
     tags: ["pilgrimage", "mourning", "forty days"],
+    sources: [
+      {
+        work: "arbaeen-religions-2020",
+        supports:
+          "The scale — around twenty million walking — and the mawakib that make it possible, from interviews with pilgrims across the 2014 and 2019 observances.",
+      },
+    ],
+    verified: { checked: "2026-08-14", claims: 5, status: "amended" },
   },
 
   // ───────────────────────────────── AFRICA
@@ -1168,6 +1238,14 @@ export const RECORDS_A: Record[] = [
     threads: ["descent", "thresholds"],
     veil: { depth: "otherworld", role: "Judgement as a weighing, with annihilation as the risk" },
     tags: ["judgement", "papyrus", "maat"],
+    sources: [
+      {
+        work: "book-of-the-dead",
+        supports:
+          "Spell 125 itself: the negative confession, the heart weighed against Ma'at's feather, Thoth recording, and Ammit waiting — annihilation rather than punishment. The blanks left for a buyer's name are visible in the surviving papyri.",
+      },
+    ],
+    verified: { checked: "2026-08-14", claims: 6, status: "clean" },
   },
   {
     id: "anubis",
@@ -1184,6 +1262,7 @@ export const RECORDS_A: Record[] = [
     body: [
       "Anubis presides over mummification, guards the tomb and steadies the scales at the weighing. Priests wore jackal masks during embalming. The Anubieion at Saqqara held vast catacombs of votive dog and jackal mummies — around eight million animals.",
       "The choice of animal is usually read as apotropaic: the creature most likely to disturb a shallow desert grave was made its guardian.",
+      "Which creature, exactly, is unsettled. Egyptology has called it a jackal for two centuries, but the North African canid that name pointed at was shown in 2011 not to be a golden jackal at all, and was reclassified in 2015 as the African golden wolf. Some Egyptologists argue the Anubis animal was never one species but an idealised canid. The god is older than the taxonomy and has outlasted two versions of it.",
     ],
     threads: ["animals", "descent"],
     veil: { depth: "passage", role: "Guardian and guide at the boundary of the necropolis" },
@@ -1202,6 +1281,14 @@ export const RECORDS_A: Record[] = [
         "Chief god of the dead in the Old Kingdom, later subordinated to Osiris while keeping the practical work of embalming and guarding.",
     },
     tags: ["jackal", "embalming", "necropolis"],
+    sources: [
+      {
+        work: "rueness-2011",
+        supports:
+          "That the North African canid long called a golden jackal is neither a golden jackal nor endemic to Egypt — the finding that led to its 2015 reclassification as the African golden wolf, and to the wobble under the word 'jackal' in every account of Anubis.",
+      },
+    ],
+    verified: { checked: "2026-08-14", claims: 6, status: "amended" },
   },
   {
     id: "famadihana",
@@ -1223,6 +1310,14 @@ export const RECORDS_A: Record[] = [
     remembrance: { cluster: "grave", role: "Periodic reopening and re-clothing of the ancestors" },
     calendar: { start: 213, end: 274, label: "Dry season, roughly August–October", drift: "variable", theme: "remembrance" },
     tags: ["tombs", "silk", "dancing"],
+    sources: [
+      {
+        work: "bloch-1971",
+        supports:
+          "The razana and the tomb as the organising fact of Merina kinship — which is why reopening it is a family event rather than a morbid one, and why the expense is the point.",
+      },
+    ],
+    verified: { checked: "2026-08-14", claims: 5, status: "clean" },
   },
   {
     id: "egungun",
@@ -1246,6 +1341,14 @@ export const RECORDS_A: Record[] = [
     veil: { depth: "threshold", role: "The dead moving among the living, in daylight, by invitation" },
     calendar: { start: 152, end: 213, label: "Annual festivals, commonly June–August", drift: "variable", theme: "ancestors" },
     tags: ["masquerade", "textile", "lineage"],
+    sources: [
+      {
+        work: "drewal-1978",
+        supports:
+          "Egúngún as a classified institution rather than a single figure, the layered cloth built up over years, and the rule that the masker is neither touched nor recognised.",
+      },
+    ],
+    verified: { checked: "2026-08-14", claims: 5, status: "clean" },
   },
   {
     id: "abiku",
@@ -1294,12 +1397,20 @@ export const RECORDS_A: Record[] = [
     summary:
       "A fisherman is buried in a carved fish; a cocoa farmer in a cocoa pod; a pilot in an aeroplane.",
     body: [
-      "The workshops of Teshie and Nungua trace the form to Ata Owoo and his apprentice Seth Kane Kwei around the 1950s, developing out of carved palanquins used by chiefs. Abebuu adekai means 'proverb boxes' — each coffin is a statement about the person.",
+      "The form is older than the story usually told about it. Figurative palanquins were carried by Ga chiefs in Accra by 1930, and Ataa Oko was building figurative coffins by 1945 — before Seth Kane Kwei, who is widely credited outside Ghana with inventing them around the 1950s. Kane Kwei's actual achievement was to take a chiefly form and make it available to everybody. Abebuu adekai means 'proverb boxes' — each coffin is a statement about the person.",
       "Funerals among the Ga are large, expensive and public; the coffin is displayed, photographed and discussed. Examples now sit in museum collections, which the workshops regard as a sideline to the actual burials.",
     ],
     threads: ["return"],
     remembrance: { cluster: "object", role: "A commissioned object that states who the person was" },
     tags: ["coffins", "craft", "proverb"],
+    sources: [
+      {
+        work: "tschumi-2014",
+        supports:
+          "The field research that dismantled the standard origin story: figurative palanquins carried by Ga chiefs in Accra by 1930, Ataa Oko building figurative coffins by 1945, and Kane Kwei's real contribution as the man who opened a chiefly form to everyone.",
+      },
+    ],
+    verified: { checked: "2026-08-14", claims: 5, status: "amended" },
   },
   {
     id: "tokoloshe",
@@ -1327,7 +1438,8 @@ export const RECORDS_A: Record[] = [
         { name: "utikoloshe", lang: "isiZulu / isiXhosa" },
         { name: "hili", lang: "isiXhosa, a related figure" },
       ],
-      earliest: "Recorded in 19th-century missionary and ethnographic accounts",
+      earliest:
+        "Recorded in 19th-century missionary and ethnographic accounts; no single first attestation has been established, and the year below is an approximate position, not a citation",
       earliestYear: 1850,
       range: "South Africa, Lesotho, Eswatini, Zimbabwe",
       traits: ["Short and hairy", "Associated with rivers and reeds", "Sent rather than self-directed", "Cannot reach a raised bed"],
@@ -1335,6 +1447,14 @@ export const RECORDS_A: Record[] = [
         "Once a water-being of regional lore, increasingly framed within witchcraft accusation in the colonial and post-colonial periods.",
     },
     tags: ["witchcraft", "night", "protection"],
+    sources: [
+      {
+        work: "ashforth-2005",
+        supports:
+          "The tokoloshe as an instrument of witchcraft rather than a free-standing monster, and the record's warning that this belief has real consequences — accusation falling on the envied, the disliked and the outsider, and rising with economic stress.",
+      },
+    ],
+    verified: { checked: "2026-08-14", claims: 4, status: "flagged" },
   },
   {
     id: "dama",
@@ -1416,6 +1536,22 @@ export const RECORDS_A: Record[] = [
     threads: ["return", "thresholds"],
     remembrance: { cluster: "mourning", role: "Community-wide obligations following a death" },
     tags: ["mourning", "naming", "protocol"],
+    sources: [
+      // Both sources are published protocols, addressed to outsiders, about how
+      // to behave.  Nothing restricted is cited here and nothing was added to
+      // this record: the checking confirmed its refusal, it did not fill it in.
+      {
+        work: "aiatsis-cultural-sensitivity",
+        supports:
+          "The warnings carried by Australian broadcasters and publishers, and why: hearing recordings, seeing images or reading the names of people who have died may offend against strongly held prohibitions.",
+      },
+      {
+        work: "qld-sorry-business",
+        supports:
+          "Sorry Business as the Aboriginal English term for the mourning period and the obligations that follow it, the prohibition on naming the deceased, and the variation between communities that makes any single description partial.",
+      },
+    ],
+    verified: { checked: "2026-08-14", claims: 4, status: "clean" },
   },
   {
     id: "bunyip",
@@ -1490,6 +1626,14 @@ export const RECORDS_A: Record[] = [
     threads: ["food", "return", "water"],
     remembrance: { cluster: "mourning", role: "Continuous presence with the body before burial" },
     tags: ["marae", "grief", "speech"],
+    sources: [
+      {
+        work: "teara-tangihanga",
+        supports:
+          "The three days, the marae, the karanga that welcomes each group, speaking to the deceased directly, and Te Ara's own assessment — that of all Māori customary practice, the rituals for the dead stand closest to their pre-contact form.",
+      },
+    ],
+    verified: { checked: "2026-08-14", claims: 6, status: "clean" },
   },
   {
     id: "taniwha",
@@ -1556,5 +1700,13 @@ export const RECORDS_A: Record[] = [
     threads: ["return"],
     remembrance: { cluster: "object", role: "Monumental ancestors positioned to face the living" },
     tags: ["ancestors", "stone", "archaeology"],
+    sources: [
+      {
+        work: "rapanui-2024",
+        supports:
+          "Ancient genomes showing no pre-European population collapse — the study that turned the record's cautious 'substantially revised' into the settled position. Rapa Nui held a small, stable population for centuries; the ecocide story was never in the DNA.",
+      },
+    ],
+    verified: { checked: "2026-08-14", claims: 6, status: "clean" },
   },
 ];

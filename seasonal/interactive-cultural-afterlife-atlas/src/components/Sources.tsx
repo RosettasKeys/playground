@@ -91,8 +91,8 @@ export default function Sources({ onClose }: { onClose: () => void }) {
           <H>How far it has been checked</H>
           <P>
             The records were first drafted by a language model, which is very good at
-            sounding certain and less good at being right about specifics. Every record is
-            being worked through by hand against published sources.
+            sounding certain and less good at being right about specifics. Every one of
+            them has since been worked through by hand against published sources.
           </P>
           <div className="my-4 border border-white/10 bg-black/25 px-4 py-3">
             <div className="font-mono2 text-[12.5px] text-[#e8d3a4]">
@@ -106,9 +106,10 @@ export default function Sources({ onClose }: { onClose: () => void }) {
               />
             </div>
             <p className="mt-2.5 text-[11px] leading-relaxed text-slate-500">
-              {WORKS && Object.keys(WORKS).length} works cited so far. Records that have not
-              been checked yet simply carry no sources — an absent source list means
-              unverified, not verified-and-sourceless.
+              {Object.keys(WORKS).length} works cited.{" "}
+              {COVERAGE.checked < COVERAGE.total
+                ? "Records that have not been checked yet simply carry no sources — an absent source list means unverified, not verified-and-sourceless."
+                : "Thirty-six claims were corrected along the way. None of them were invented facts; they were specifics that had drifted, hardened, gone stale, or been quietly stated more confidently than the evidence allowed."}
             </p>
           </div>
 

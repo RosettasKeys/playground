@@ -755,6 +755,14 @@ export const RECORDS_B: Record[] = [
     remembrance: { cluster: "festival", role: "Household and civic reception of the returning dead" },
     calendar: { start: 305, end: 306, label: "1–2 November", drift: "fixed", theme: "ancestors" },
     tags: ["ofrenda", "graves", "catrina"],
+    sources: [
+      {
+        work: "brandes-2006",
+        supports:
+          "The record's central caution — that the unbroken line from Mexica festivals is contested, and that colonial Catholic practice, nineteenth-century satire and twentieth-century nation-building all shaped what exists now — along with the regional variation the record describes.",
+      },
+    ],
+    verified: { checked: "2026-08-14", claims: 7, status: "clean" },
   },
   {
     id: "ofrenda",
@@ -775,6 +783,14 @@ export const RECORDS_B: Record[] = [
     threads: ["food", "lights", "flame", "return"],
     remembrance: { cluster: "altar", role: "A structured domestic altar built for named individuals" },
     tags: ["marigold", "copal", "altar"],
+    sources: [
+      {
+        work: "brandes-2006",
+        supports:
+          "The tiered altar and its standard elements — water, salt, copal, papel picado, cempasúchil — and the regional variation that makes any single description of an ofrenda partial.",
+      },
+    ],
+    verified: { checked: "2026-08-14", claims: 5, status: "clean" },
   },
   {
     id: "hanal-pixan",
@@ -797,6 +813,14 @@ export const RECORDS_B: Record[] = [
     remembrance: { cluster: "offering", role: "Cooked food prepared specifically for returning souls" },
     calendar: { start: 304, end: 306, label: "31 October – 2 November", drift: "fixed", theme: "ancestors" },
     tags: ["maya", "pib", "tamal"],
+    sources: [
+      {
+        work: "uady-hanal-pixan",
+        supports:
+          "The name as 'food of the souls', the division of the days across 31 October, 1 and 2 November, mucbipollo baked in the pib, and the altar's white embroidered cloth, green cross, jícaras and candles lit to show the way. Some communities keep it going for eight days.",
+      },
+    ],
+    verified: { checked: "2026-08-14", claims: 7, status: "clean" },
   },
   {
     id: "mictlan",
@@ -811,13 +835,21 @@ export const RECORDS_B: Record[] = [
     summary:
       "Those who died ordinary deaths travelled four years through nine layers, ending at a river they could not cross alone.",
     body: [
-      "The Florentine Codex describes obstacles: clashing mountains, a wind of obsidian blades, a place where banners are seized. At the river Apanohuaya the dead are carried across by a small dog, which is why a dog was cremated with the body. The destination, Mictlan, is rest rather than punishment.",
+      "The Florentine Codex describes obstacles: clashing mountains, a wind of obsidian blades, a place where banners are seized. At the last of them, the nine-fold river Chiconahuapan, the dead are carried across by a reddish dog, which is why a dog was cremated with the body. Other retellings name that river Apanohuaya and set it at the start of the road rather than the end; the schemes genuinely disagree. The destination, Mictlan, is rest rather than punishment.",
       "Destination depended on manner of death, not conduct: the drowned and lightning-struck went to Tlalocan, warriors and women who died in childbirth accompanied the sun, infants went to a tree that dripped milk.",
     ],
     note: "Known almost entirely through sources produced under colonial rule, by friars with an agenda and Nahua informants with their own. The schema is likely tidier on the page than in life.",
     threads: ["descent", "water", "animals"],
     veil: { depth: "otherworld", role: "A long journey with a required companion" },
     tags: ["nahua", "codex", "journey"],
+    sources: [
+      {
+        work: "florentine-codex",
+        supports:
+          "Book III on the four-year road and its obstacles, and on the river crossed with a dog's help at the end of it — Sahagún names that river Chiconahuapan and places it last, which is the ordering this record follows.",
+      },
+    ],
+    verified: { checked: "2026-08-14", claims: 7, status: "amended" },
   },
   {
     id: "xolo",
@@ -881,7 +913,7 @@ export const RECORDS_B: Record[] = [
       "A weeping woman searching for the children she drowned, encountered near rivers, canals and irrigation ditches at night.",
     body: [
       "Versions differ on whether she was abandoned, betrayed, or punished, and on whether she drowned the children deliberately. What is constant is the sound, the water, and the warning against being out late — this is a story adults tell children and men tell each other.",
-      "The Florentine Codex records an omen before the conquest of a woman heard weeping at night for her children, and some writers connect her to Cihuacóatl. The link is suggestive rather than established; the modern legend is documented from the nineteenth century onward.",
+      "The Florentine Codex records an omen before the conquest of a woman heard weeping at night for her children, and some writers connect her to Cihuacóatl. The link is suggestive rather than established. Her first appearance in print is an 1849 sonnet by Manuel Carpio — and the codices said to hold her origins were themselves unpublished until the nineteenth century, which makes the direction of influence harder to argue than it looks.",
     ],
     note: "The claim of direct Mexica descent is widely repeated and only weakly evidenced. Similar weeping-woman figures also existed in early modern Spain.",
     threads: ["water", "crossroads", "return"],
@@ -893,14 +925,32 @@ export const RECORDS_B: Record[] = [
         { name: "La Llorona", lang: "Spanish, 'the weeping woman'" },
         { name: "La Malogra", lang: "New Mexican Spanish, a related figure" },
       ],
-      earliest: "Print references from the 19th century; oral tradition older",
-      earliestYear: 1550,
+      earliest: "First in print in Manuel Carpio's sonnet 'La Llorona', 1849; oral tradition older",
+      earliestYear: 1849,
       range: "Mexico, Central America, the US Southwest; strong in New Mexico and Texas",
       traits: ["White dress", "Heard before seen", "Near canals, rivers and acequias", "Cry loudest when far away"],
       development:
         "A durable and adaptable warning story, now also a film franchise and a staple of borderlands literature.",
     },
     tags: ["water", "children", "warning"],
+    sources: [
+      {
+        work: "carpio-1849",
+        supports:
+          "The legend's earliest known appearance in print, where the weeping woman is Rosalía, murdered by her husband.",
+      },
+      {
+        work: "perez-2008",
+        supports:
+          "The variability of the story, its use as a warning told to children, its spread through the US Southwest, and the weakness of the direct-Mexica-descent claim.",
+      },
+      {
+        work: "florentine-codex",
+        supports:
+          "Book XII's sixth omen — a woman heard weeping at night, 'my children, where am I to take you?' — which is the passage the descent claim rests on.",
+      },
+    ],
+    verified: { checked: "2026-08-14", claims: 6, status: "amended" },
   },
   {
     id: "santa-muerte",
@@ -915,13 +965,21 @@ export const RECORDS_B: Record[] = [
     summary:
       "A skeletal folk saint petitioned for protection, healing and justice, especially by people the institutional church has not served.",
     body: [
-      "Public devotion emerged around 2001 when Enriqueta Romero placed a life-size figure on the street in Tepito. Offerings include cigarettes, tequila, apples and flowers; robes are colour-coded — white for cleansing, red for love, gold for prosperity. Estimates run into the millions of devotees across Mexico, Central America and the United States.",
-      "The Vatican has condemned the cult; Mexican authorities have destroyed roadside shrines. Devotees frequently identify as Catholic and see no contradiction. Inquisition records from the 1790s describe indigenous communities venerating a skeletal figure, suggesting older roots.",
+      "Public devotion dates from Halloween 2001, when Enriqueta Romero set a life-size figure on the pavement outside her house in Tepito. Offerings include cigarettes, tequila, apples and flowers; robes are colour-coded — white for cleansing, red for love, gold for prosperity. Estimates run into the millions of devotees across Mexico, Central America and the United States.",
+      "The Vatican has condemned the cult; Mexican authorities have destroyed roadside shrines. Devotees frequently identify as Catholic and see no contradiction. An Inquisition file of 1797, on the superstitions of the Indians of San Luis de la Paz, carries the earliest known use of the name: a figure called Santa Muerte, bound and flogged to compel a miracle. The roots run deeper than the shrine, but what is recorded down there is not simple veneration.",
     ],
     note: "Frequently reduced in reporting to 'the narco saint'. Most devotees are ordinary working people; the association is real but not representative.",
     threads: ["ward", "flame"],
     remembrance: { cluster: "altar", role: "Street and household shrines to a personified death" },
     tags: ["folk saint", "shrines", "devotion"],
+    sources: [
+      {
+        work: "chesnut-2012",
+        supports:
+          "Doña Queta's Tepito shrine as the start of public devotion, the colour-coded robes, the scale of the following, the Vatican's condemnation, and the record's own correction — that most devotees are ordinary working people and the 'narco saint' framing is real but unrepresentative.",
+      },
+    ],
+    verified: { checked: "2026-08-14", claims: 7, status: "amended" },
   },
   {
     id: "alebrijes",
@@ -1086,6 +1144,14 @@ export const RECORDS_B: Record[] = [
         "An Indigenous forest-guardian concept that entered Brazilian national folklore, and is now used in conservation education.",
     },
     tags: ["forest", "hunting", "tracks"],
+    sources: [
+      {
+        work: "anchieta-1560",
+        supports:
+          "The first European record of the Curupira, written from São Vicente on 31 May 1560 — a Tupinambá being that fitted none of the categories Anchieta had brought with him.",
+      },
+    ],
+    verified: { checked: "2026-08-14", claims: 5, status: "clean" },
   },
   {
     id: "jazz-funeral",
@@ -1096,16 +1162,25 @@ export const RECORDS_B: Record[] = [
     place: { name: "New Orleans, Louisiana", country: "United States", lat: 29.95, lng: -90.07 },
     continent: "Americas",
     source: "living",
-    evidence: "Living tradition; documented in detail since the late 19th century",
+    evidence: "Living tradition, documented from 1819; the name 'jazz funeral' is far younger than the practice",
     summary:
       "A brass band walks the body out with dirges, then cuts loose the moment the deceased is released.",
     body: [
       "The band plays hymns and dirges to the cemetery — 'Nearer My God to Thee', 'Just a Closer Walk with Thee'. After the body is 'cut loose', the snare drum snaps into a second line rhythm and the crowd behind the band dances the rest of the way back.",
       "The practice grew from benevolent societies and Social Aid and Pleasure Clubs, which provided burial insurance to Black New Orleanians excluded from other institutions. Second line parading continues weekly, independent of funerals.",
+      "It is much older than its name. The architect Benjamin Latrobe watched a Black funeral in New Orleans in 1819 and wrote down the same shape — loud lamentation on the way out, noise and laughter coming back — a century before there was any jazz to name it after. 'Jazz funeral' is a twentieth-century label attached to a nineteenth-century practice.",
     ],
     threads: ["return", "flame"],
     remembrance: { cluster: "festival", role: "Music as the structure of a funeral procession" },
     tags: ["brass band", "second line", "mutual aid"],
+    sources: [
+      {
+        work: "64p-jazz-funerals",
+        supports:
+          "Benjamin Latrobe's 1819 account of a Black New Orleans funeral — lamentation out, noise and laughter back — the benevolent societies that arranged the bands and collected dues for burial, the dirge-then-up-tempo structure, and that the funerals only 'eventually became known' as jazz funerals.",
+      },
+    ],
+    verified: { checked: "2026-08-14", claims: 6, status: "amended" },
   },
   {
     id: "decoration-day",
@@ -1127,6 +1202,14 @@ export const RECORDS_B: Record[] = [
     remembrance: { cluster: "grave", role: "Collective annual maintenance of a whole cemetery" },
     calendar: { start: 145, end: 250, label: "A fixed Sunday, varying by cemetery (May–September)", drift: "variable", theme: "remembrance" },
     tags: ["cemetery", "flowers", "singing"],
+    sources: [
+      {
+        work: "jabbour-2010",
+        supports:
+          "The fixed Sunday per cemetery, families travelling back for it, mounding and scrubbing the graves, flowers on every grave including the unvisited ones, dinner on the ground and singing — and that these traditions run back before the post-war grave decoration that produced national Memorial Day.",
+      },
+    ],
+    verified: { checked: "2026-08-14", claims: 5, status: "clean" },
   },
   {
     id: "spiritualism",
@@ -1148,6 +1231,14 @@ export const RECORDS_B: Record[] = [
     threads: ["return", "thresholds"],
     veil: { depth: "presence", role: "An attempt to make contact into a procedure" },
     tags: ["seance", "confession", "grief"],
+    sources: [
+      {
+        work: "braude-2008",
+        supports:
+          "The scale and speed of the movement after 1848, its entanglement with mass bereavement, and the record's harder point — that a thing fraudulent in origin can be sincere in most of its practice.",
+      },
+    ],
+    verified: { checked: "2026-08-14", claims: 6, status: "clean" },
   },
   {
     id: "mothman",
@@ -1213,7 +1304,7 @@ export const RECORDS_B: Record[] = [
     summary:
       "First described in Puerto Rico as a spined bipedal creature; within a few years it had become a hairless dog in Texas.",
     body: [
-      "Livestock deaths near Canóvanas in 1995 were attributed to a creature described by eyewitness Madelyne Tolentino as grey, bipedal, with large black eyes and spines along its back. Folklorist Benjamin Radford noted the description closely matched the creature in the film Species, which she had recently seen.",
+      "Livestock deaths were reported in Puerto Rico from March 1995. The creature got its face that August, when Madelyne Tolentino of Canóvanas described something grey and bipedal, with large black eyes and spines along its back. Folklorist Benjamin Radford noticed the description matched the creature in the film Species — which had opened on 7 July, five weeks before she saw it.",
       "The name migrated to Mexico and the US Southwest, where it attached to hairless canids. Several were tested: coyotes and dogs with advanced sarcoptic mange, which causes hair loss, thickened skin and altered gait.",
     ],
     note: "A rare case where the emergence, transformation and probable explanation of a cryptid are all documented within thirty years.",
@@ -1224,18 +1315,27 @@ export const RECORDS_B: Record[] = [
       names: [
         { name: "chupacabras", lang: "Spanish, 'goat-sucker'" },
       ],
-      earliest: "Reports near Canóvanas, Puerto Rico, March 1995",
+      earliest: "Livestock deaths in Puerto Rico from March 1995; the Canóvanas sighting that fixed its appearance came in August",
       earliestYear: 1995,
       range: "Puerto Rico, Mexico, Texas and the US Southwest; reports as far as Chile",
       traits: ["Puerto Rico: bipedal, spined, large eyes", "Mainland: hairless quadruped", "Blamed for exsanguinated livestock"],
       accounts: [
-        { when: "1995", what: "Canóvanas livestock deaths; first composite sketch published" },
+        { when: "Mar 1995", what: "First livestock deaths reported in Puerto Rico" },
+        { when: "Aug 1995", what: "Madelyne Tolentino's sighting at Canóvanas; the composite sketch that fixed the creature's appearance" },
         { when: "2004–2010", what: "Texas specimens recovered; genetic testing identifies coyotes with severe mange" },
       ],
       development:
         "Two distinct creatures under one name. The shift from biped to canid happened within roughly five years and can be tracked in the press.",
     },
     tags: ["1995", "mange", "media"],
+    sources: [
+      {
+        work: "radford-2011",
+        supports:
+          "The chronology this record turns on: livestock deaths from March 1995, Species released 7 July, Madelyne Tolentino's Canóvanas sighting in the second week of August. Also the mainland shift and the mange-afflicted canids recovered in Texas.",
+      },
+    ],
+    verified: { checked: "2026-08-14", claims: 7, status: "amended" },
   },
   {
     id: "jersey-devil",
@@ -1251,7 +1351,7 @@ export const RECORDS_B: Record[] = [
       "A winged, hoofed creature said to have been born as a thirteenth child in 1735 — and a newspaper sensation in January 1909.",
     body: [
       "The legend centres on 'Mother Leeds' of Burlington County, whose thirteenth child was said to transform and escape up the chimney. The Leeds family were real, and their almanac-publishing feud with Benjamin Franklin may have contributed to their reputation.",
-      "In January 1909 hundreds of tracks and sightings were reported across Pennsylvania and New Jersey over about a week. A Philadelphia museum exhibited a 'captured' Jersey Devil, later revealed to be a painted kangaroo with artificial wings, part of a promotional scheme.",
+      "In January 1909 hundreds of tracks and sightings were reported across Pennsylvania and New Jersey over about a week. On the 24th, as the flap subsided, the Ninth and Arch Street Museum in Philadelphia announced it had the creature alive. The publicist Norman Jefferies had painted green stripes on a kangaroo and strapped fake wings to it; he admitted the whole thing years later.",
     ],
     note: "The 1909 flap is documented; a deliberate hoax formed part of it. How old the underlying legend is remains unclear.",
     threads: ["ward"],
@@ -1268,12 +1368,20 @@ export const RECORDS_B: Record[] = [
       traits: ["Horse-like head", "Bat wings", "Cloven hooves", "High scream"],
       accounts: [
         { when: "Jan 1909", what: "Tracks and sightings reported across two states in roughly a week" },
-        { when: "Jan 1909", what: "Philadelphia Arcade Museum exhibits a painted kangaroo with fitted wings" },
+        { when: "24 Jan 1909", what: "The Ninth and Arch Street Museum, Philadelphia, exhibits a striped kangaroo with fitted wings" },
       ],
       development:
         "Local family reputation → regional legend → newspaper flap with a commercial hoax attached → the name of a hockey team.",
     },
     tags: ["1909", "press", "kangaroo"],
+    sources: [
+      {
+        work: "regal-2018",
+        supports:
+          "The Leeds family as real people, the almanac feud with Benjamin Franklin, the January 1909 flap across two states, and Norman Jefferies's kangaroo at the Ninth and Arch Street Museum — announced on 24 January 1909 and confessed to years afterwards.",
+      },
+    ],
+    verified: { checked: "2026-08-14", claims: 7, status: "amended" },
   },
   {
     id: "sasquatch",
@@ -1404,6 +1512,14 @@ export const RECORDS_B: Record[] = [
         "Invented, credited, dated — and nonetheless absorbed into occult bookshops and internet folklore as though inherited.",
     },
     tags: ["fiction", "invention", "attribution"],
+    sources: [
+      {
+        work: "lovecraft-cthulhu",
+        supports:
+          "The story itself, and its dates: written in 1926, published in Weird Tales in February 1928. This is a record about a thing with a publication date, so the publication is the citation.",
+      },
+    ],
+    verified: { checked: "2026-08-14", claims: 6, status: "clean" },
   },
   {
     id: "vanishing-hitchhiker",
@@ -1414,7 +1530,7 @@ export const RECORDS_B: Record[] = [
     place: { name: "Chicago, Illinois", country: "United States", lat: 41.79, lng: -87.83 },
     continent: "Americas",
     source: "folklore",
-    evidence: "Collected in hundreds of variants since the 1930s; older analogues debated",
+    evidence: "Collected in hundreds of variants, the earliest dated to 1912; older analogues debated",
     summary:
       "A driver gives a lift to a young woman who provides an address, then disappears from the moving car before arriving.",
     body: [
@@ -1432,8 +1548,8 @@ export const RECORDS_B: Record[] = [
         { name: "Resurrection Mary", lang: "Chicago variant" },
         { name: "la muchacha de la curva", lang: "Spanish variant" },
       ],
-      earliest: "Widely collected from the 1930s; academic catalogue published 1942",
-      earliestYear: 1930,
+      earliest: "Variants dated as far back as 1912; catalogued by Beardsley and Hankey, 1942",
+      earliestYear: 1912,
       range: "North America, Europe, Latin America, East Asia — adapted to local roads",
       traits: ["Requests a specific address", "Disappears from a moving vehicle", "Sometimes leaves a borrowed garment"],
       variants: ["Resurrection Mary, Chicago", "The lady of the curve, Spain and Latin America", "Roadside variants adapted to taxis"],
@@ -1441,6 +1557,14 @@ export const RECORDS_B: Record[] = [
         "The most thoroughly documented contemporary legend, and the standard example used to show how legends localise.",
     },
     tags: ["roads", "cars", "variants"],
+    sources: [
+      {
+        work: "beardsley-hankey-1942",
+        supports:
+          "The 79 variants, gathered from New York to Hawaii and dated between 1912 and 1942, and the classification built from them. The paper also coined the name this record uses.",
+      },
+    ],
+    verified: { checked: "2026-08-14", claims: 6, status: "amended" },
   },
   {
     id: "slender-man",
@@ -1477,6 +1601,14 @@ export const RECORDS_B: Record[] = [
         "Deliberate collaborative fiction that acquired the behaviour of folklore, including variant traditions and manufactured 'historical' antecedents.",
     },
     tags: ["2009", "internet", "authorship"],
+    sources: [
+      {
+        work: "knudsen-2009",
+        supports:
+          "The origin, exactly: two doctored black-and-white photographs with invented witness captions, posted to a Something Awful thread on 10 June 2009 whose brief was to make paranormal images. The thread is the claim, which is why one source is enough here and nowhere else.",
+      },
+    ],
+    verified: { checked: "2026-08-14", claims: 6, status: "clean" },
   },
   {
     id: "wendigo",

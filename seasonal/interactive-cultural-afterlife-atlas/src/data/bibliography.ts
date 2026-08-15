@@ -221,6 +221,26 @@ export const WORKS = {
   },
 
   // ── West Asia ───────────────────────────────────────────────────────────
+  "quran": {
+    title: "The Qur'an — Sūrat al-Raḥmān (55) and Sūrat al-Jinn (72)",
+    tier: "primary",
+  },
+  "elzein-2009": {
+    author: "Amira El-Zein",
+    title: "Islam, Arabs, and the Intelligent World of the Jinn",
+    year: 2009,
+    publisher: "Syracuse University Press",
+    isbn: "9780815632009",
+    tier: "scholarly",
+  },
+  "arbaeen-religions-2020": {
+    title:
+      "From Attachment to a Sacred Figure to Loyalty to a Sacred Route: The Walking Pilgrimage of Arbaeen",
+    year: 2020,
+    publisher: "Religions 11 (3), 145",
+    doi: "10.3390/rel11030145",
+    tier: "scholarly",
+  },
   "etcsl-inana-descent": {
     title: "Inana's descent to the nether world (ETCSL t.1.4.1)",
     publisher: "Electronic Text Corpus of Sumerian Literature, University of Oxford",
@@ -449,7 +469,97 @@ export const WORKS = {
     tier: "scholarly",
   },
 
+  "rigveda": {
+    title: "Rigveda, Maṇḍala 10, hymn 14",
+    publisher: "composed c. 1500–1200 BCE",
+    tier: "primary",
+  },
+  "crooke-1896": {
+    author: "William Crooke",
+    title: "The Popular Religion and Folk-lore of Northern India",
+    year: 1896,
+    publisher: "A. Constable & Co.",
+    url: "https://www.gutenberg.org/cache/epub/43682/pg43682-images.html",
+    tier: "primary",
+  },
+  "eck-1982": {
+    author: "Diana L. Eck",
+    title: "Banaras: City of Light",
+    year: 1982,
+    publisher: "Alfred A. Knopf",
+    isbn: "9780394519715",
+    tier: "scholarly",
+  },
+  "sayers-2015": {
+    author: "Matthew R. Sayers",
+    title: "The Śrāddha: The Development of Ancestor Worship in Classical Hinduism",
+    year: 2015,
+    publisher: "Religion Compass 9 (6)",
+    doi: "10.1111/rec3.12155",
+    tier: "scholarly",
+  },
+  "oaks-2004": {
+    author: "J. Lindsay Oaks and others",
+    title: "Diclofenac residues as the cause of vulture population decline in Pakistan",
+    year: 2004,
+    publisher: "Nature 427, 630–633",
+    doi: "10.1038/nature02317",
+    tier: "scholarly",
+  },
+  "boyce-zoroastrians": {
+    // No year: the second edition is dated 2000 by the publisher and 2001 in
+    // most citations, and neither was verified against the book itself.
+    author: "Mary Boyce",
+    title: "Zoroastrians: Their Religious Beliefs and Practices",
+    publisher: "Routledge, 2nd edition",
+    isbn: "9780415239028",
+    tier: "scholarly",
+  },
+
   // ── Africa ──────────────────────────────────────────────────────────────
+  "book-of-the-dead": {
+    title: "The Book of Going Forth by Day, spell 125",
+    publisher: "New Kingdom to Ptolemaic funerary papyri, c. 1550–50 BCE",
+    tier: "primary",
+  },
+  "rueness-2011": {
+    author: "Eli Knispel Rueness and others",
+    title: "The Cryptic African Wolf: Canis aureus lupaster Is Not a Golden Jackal and Is Not Endemic to Egypt",
+    year: 2011,
+    publisher: "PLOS ONE 6 (1)",
+    doi: "10.1371/journal.pone.0016385",
+    tier: "scholarly",
+  },
+  "drewal-1978": {
+    author: "Margaret Thompson Drewal and Henry John Drewal",
+    title: "More Powerful than Each Other: An Egbado Classification of Egungun",
+    year: 1978,
+    publisher: "African Arts 11 (3)",
+    tier: "scholarly",
+  },
+  "ashforth-2005": {
+    author: "Adam Ashforth",
+    title: "Witchcraft, Violence, and Democracy in South Africa",
+    year: 2005,
+    publisher: "University of Chicago Press",
+    tier: "scholarly",
+  },
+  "bloch-1971": {
+    author: "Maurice Bloch",
+    title:
+      "Placing the Dead: Tombs, Ancestral Villages, and Kinship Organization in Madagascar",
+    year: 1971,
+    publisher: "Seminar Press",
+    tier: "scholarly",
+  },
+  "tschumi-2014": {
+    author: "Regula Tschumi",
+    title: "Concealed Art: The Figurative Palanquins and Coffins of Ghana",
+    year: 2014,
+    publisher: "Benteli",
+    isbn: "9783038280996",
+    tier: "scholarly",
+  },
   "vanbeek-1991": {
     author: "Walter E. A. van Beek",
     title: "Dogon Restudied: A Field Evaluation of the Work of Marcel Griaule",
@@ -483,6 +593,34 @@ export const WORKS = {
   },
 
   // ── Oceania ─────────────────────────────────────────────────────────────
+  "rapanui-2024": {
+    title: "Ancient Rapanui genomes reveal resilience and pre-European contact with the Americas",
+    year: 2024,
+    publisher: "Nature 633",
+    doi: "10.1038/s41586-024-07881-4",
+    tier: "scholarly",
+  },
+  "teara-tangihanga": {
+    author: "Rawinia Higgins",
+    title: "Tangihanga — death customs",
+    year: 2011,
+    publisher: "Te Ara — the Encyclopedia of New Zealand, Manatū Taonga",
+    url: "https://teara.govt.nz/en/tangihanga-death-customs",
+    tier: "institutional",
+  },
+  "aiatsis-cultural-sensitivity": {
+    title: "Cultural sensitivity",
+    publisher:
+      "Australian Institute of Aboriginal and Torres Strait Islander Studies (AIATSIS)",
+    url: "https://aiatsis.gov.au/cultural-sensitivity",
+    tier: "institutional",
+  },
+  "qld-sorry-business": {
+    title: "Sad news, sorry business: guidelines for caring for Aboriginal and Torres Strait Islander people through death and dying",
+    publisher: "Queensland Health",
+    url: "https://www.health.qld.gov.au/__data/assets/pdf_file/0023/151736/sorry_business.pdf",
+    tier: "institutional",
+  },
   "teara-taniwha": {
     title: "Taniwha",
     publisher: "Te Ara — the Encyclopedia of New Zealand, Manatū Taonga",
@@ -510,6 +648,120 @@ export const WORKS = {
   },
 
   // ── Americas ────────────────────────────────────────────────────────────
+  "brandes-2006": {
+    author: "Stanley Brandes",
+    title: "Skulls to the Living, Bread to the Dead: The Day of the Dead in Mexico and Beyond",
+    year: 2006,
+    publisher: "Blackwell",
+    isbn: "9781405152488",
+    tier: "scholarly",
+  },
+  "chesnut-2012": {
+    // No identifier: the 2012 first edition's ISBN was not verified this
+    // session, and the ones in circulation belong to later editions.
+    author: "R. Andrew Chesnut",
+    title: "Devoted to Death: Santa Muerte, the Skeleton Saint",
+    year: 2012,
+    publisher: "Oxford University Press",
+    tier: "scholarly",
+  },
+  "radford-2011": {
+    author: "Benjamin Radford",
+    title: "Tracking the Chupacabra: The Vampire Beast in Fact, Fiction, and Folklore",
+    year: 2011,
+    publisher: "University of New Mexico Press",
+    isbn: "9780826350152",
+    tier: "scholarly",
+  },
+  "perez-2008": {
+    author: "Domino Renee Perez",
+    title: "There Was a Woman: La Llorona from Folklore to Popular Culture",
+    year: 2008,
+    publisher: "University of Texas Press",
+    isbn: "9780292718128",
+    tier: "scholarly",
+  },
+  "florentine-codex": {
+    author: "Bernardino de Sahagún and his Nahua collaborators",
+    title: "Florentine Codex (Books III and XII)",
+    publisher: "compiled c. 1545–1590; Getty digital edition",
+    url: "https://florentinecodex.getty.edu/",
+    tier: "primary",
+  },
+  "anchieta-1560": {
+    author: "José de Anchieta",
+    title: "Letter to Ignatius of Loyola, 31 May 1560",
+    year: 1560,
+    tier: "primary",
+  },
+  "carpio-1849": {
+    author: "Manuel Carpio",
+    title: "La Llorona (sonnet)",
+    year: 1849,
+    tier: "primary",
+  },
+  "uady-hanal-pixan": {
+    title: "Hanal Pixán",
+    publisher:
+      "Centro de Investigaciones Regionales \"Dr. Hideyo Noguchi\", Universidad Autónoma de Yucatán",
+    url: "https://www.mayas.uady.mx/articulos/pixan.html",
+    tier: "institutional",
+  },
+  "regal-2018": {
+    author: "Brian Regal and Frank J. Esposito",
+    title:
+      "The Secret History of the Jersey Devil: How Quakers, Hucksters, and Benjamin Franklin Created a Monster",
+    year: 2018,
+    publisher: "Johns Hopkins University Press",
+    isbn: "9781421424897",
+    tier: "scholarly",
+  },
+  "jabbour-2010": {
+    author: "Alan Jabbour and Karen Singer Jabbour",
+    title:
+      "Decoration Day in the Mountains: Traditions of Cemetery Decoration in the Southern Appalachians",
+    year: 2010,
+    publisher: "University of North Carolina Press",
+    isbn: "9780807833971",
+    tier: "scholarly",
+  },
+  "beardsley-hankey-1942": {
+    author: "Richard K. Beardsley and Rosalie Hankey",
+    title: "The Vanishing Hitchhiker",
+    year: 1942,
+    publisher: "California Folklore Quarterly 1 (4), 303–335",
+    doi: "10.2307/1495600",
+    tier: "scholarly",
+  },
+  "braude-2008": {
+    // Second edition; the 1989 Beacon Press first edition was not verified.
+    author: "Ann Braude",
+    title: "Radical Spirits: Spiritualism and Women's Rights in Nineteenth-Century America",
+    year: 2008,
+    publisher: "Indiana University Press, 2nd edition",
+    isbn: "9780253215024",
+    tier: "scholarly",
+  },
+  "64p-jazz-funerals": {
+    title: "Jazz Funerals and Second Line Parades",
+    publisher: "64 Parishes, Louisiana Endowment for the Humanities",
+    url: "https://64parishes.org/entry/jazz-funerals-and-second-line-parades",
+    tier: "institutional",
+  },
+  "knudsen-2009": {
+    // The thread itself is the claim; no stable archival URL verified this session.
+    author: "Eric Knudsen, as \"Victor Surge\"",
+    title: "Two doctored photographs posted to the Something Awful forums, 10 June 2009",
+    year: 2009,
+    tier: "primary",
+  },
+  "lovecraft-cthulhu": {
+    author: "H. P. Lovecraft",
+    title: "The Call of Cthulhu",
+    year: 1928,
+    publisher: "written 1926; published in Weird Tales, February 1928",
+    tier: "primary",
+  },
   "burns-1929": {
     author: "J. W. Burns",
     title: "Introducing B.C.'s Hairy Giants",

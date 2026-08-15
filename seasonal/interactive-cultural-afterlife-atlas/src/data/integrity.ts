@@ -26,7 +26,7 @@ const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
  * undone.  **Raise this at the end of each batch** — the same moment the batch
  * gets its entry in `_wiki/log.md`.
  */
-export const COVERAGE_FLOOR = 60;
+export const COVERAGE_FLOOR = 92;
 
 export function checkAtlasIntegrity(
   records: readonly Record[],

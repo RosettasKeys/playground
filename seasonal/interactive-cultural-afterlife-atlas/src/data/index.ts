@@ -1,6 +1,7 @@
 import { RECORDS_A } from "./records-a";
 import { RECORDS_B } from "./records-b";
 import { WORKS } from "./bibliography";
+import { checkAtlasIntegrity, orphanWorks } from "./integrity";
 import type {
   Continent,
   EntityKind,
@@ -19,19 +20,24 @@ export const RECORDS: Record[] = [...RECORDS_A, ...RECORDS_B];
 export const BY_ID = new Map(RECORDS.map((r) => [r.id, r]));
 
 /**
- * Every `sources[].work` has to name a real entry in the bibliography.
- * `Citation.work` is a plain string — the data files would otherwise have to
- * import from bibliography.ts purely to get the key union — so a typo is
- * caught here instead, loudly, the moment the module loads in dev.
+ * Fail loudly the moment the data stops holding together — see integrity.ts
+ * for what is checked and why.  This is the dev-server half; the build runs
+ * the same checks from vite.config.ts, because `import.meta.env.DEV` is
+ * compiled to `false` and this whole block disappears from the bundle.
+ * Nothing checks at runtime in the shipped page, on purpose.
  */
 if (import.meta.env.DEV) {
-  const missing = RECORDS.flatMap((r) =>
-    (r.sources ?? [])
-      .filter((c) => !(c.work in WORKS))
-      .map((c) => `${r.id} → "${c.work}"`),
-  );
-  if (missing.length) {
-    throw new Error(`Unknown citation keys:\n  ${missing.join("\n  ")}`);
+  const problems = checkAtlasIntegrity(RECORDS, WORKS);
+  if (problems.length) {
+    throw new Error(
+      `Atlas data integrity — ${problems.length} problem(s):\n  ${problems.join("\n  ")}`,
+    );
+  }
+  const orphans = orphanWorks(RECORDS, WORKS);
+  if (orphans.length) {
+    console.warn(
+      `[atlas] ${orphans.length} work(s) in the bibliography that nothing cites: ${orphans.join(", ")}`,
+    );
   }
 }
 

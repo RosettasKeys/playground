@@ -1377,7 +1377,11 @@
           <p>The harvest comes in. The nights draw close. Around the world, people make room for memory—and for what might be standing just outside the light.</p>
         </div>
         <div class="project-stack">
-          <a class="project-card atlas-card" href="interactive-cultural-afterlife-atlas/thresholds-index.html">
+          <!-- dist/, not the folder root.  The file at the atlas root is the
+               Vite dev entry: it loads /src/main.tsx, which Pages cannot serve
+               and no browser can execute.  dist/thresholds-index.html is the
+               built single-file page, and is committed for exactly this. -->
+          <a class="project-card atlas-card" href="interactive-cultural-afterlife-atlas/dist/thresholds-index.html">
             <span class="status">Atlas in progress</span>
             <h4>Thresholds</h4>
             <p>An atlas of the dead, the remembered, and the unseen—crossing cultures through practices, beliefs, afterlives, hauntings, and cryptids.</p>

@@ -241,6 +241,95 @@ body {
     letter-spacing 400ms ease;
 }
 
+/* The link home, matched to the one Spring of Ages carries: it warms and
+   steps a little left, in the direction it is pointing. */
+.rose-back {
+  width: fit-content;
+  text-decoration: none;
+  transition:
+    color 220ms ease,
+    transform 220ms ease;
+}
+
+.rose-back:hover,
+.rose-back:focus-visible {
+  color: #e8d3a4;
+  transform: translateX(-2px);
+}
+
+.rose-back:focus-visible {
+  outline: 1px solid rgba(216, 180, 106, 0.7);
+  outline-offset: 4px;
+  border-radius: 2px;
+}
+
+/* ---------- the ember crossing ---------- */
+.veil-salamander-body { fill: #191d1e; stroke: #7a5838; stroke-width: 0.8; }
+.veil-salamander-spot, .veil-salamander-ember { fill: #f4ad61; }
+.veil-salamander-eye { fill: #e8dcc8; }
+.veil-salamander-run {
+  opacity: 0;
+  animation: veilSalamanderRun 18s linear both;
+}
+.veil-salamander-flicker { animation: veilSalamanderFlicker 430ms steps(2, end) infinite; }
+.veil-salamander-ember {
+  filter: url(#glow);
+}
+.veil-salamander-emberline {
+  fill: none; stroke: #f0a35c; stroke-width: 1; stroke-dasharray: 1 7; opacity: 0.28;
+}
+.veil-salamander-whisper,
+.veil-salamander-credit {
+  paint-order: stroke; stroke: #05070a; stroke-width: 4px; letter-spacing: 0.2em;
+}
+.veil-salamander-whisper { fill: #b9c8d8; font-size: 10px; }
+.veil-salamander-credit {
+  fill: #b47a45; font: 8.5px "IBM Plex Mono", monospace;
+}
+
+@keyframes veilSalamanderRun {
+  0%,
+  2% {
+    opacity: 0;
+    transform: translateX(0);
+  }
+  5% {
+    opacity: 1;
+  }
+  90%,
+  95% {
+    opacity: 1;
+    transform: translateX(540px);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(540px);
+  }
+}
+
+@keyframes veilSalamanderFlicker {
+  0%, 68%, 100% { opacity: 1; }
+  70%, 76% { opacity: 0.38; }
+}
+
+@media (max-width: 640px) {
+  .veil-salamander-whisper { font-size: 18px; }
+  .veil-salamander-credit {
+    font-size: 16px;
+    letter-spacing: 0.12em;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .veil-salamander-run {
+    opacity: 1;
+    transform: translateX(340px);
+    animation: none;
+  }
+
+  .veil-salamander-flicker { animation: none; }
+}
+
 /* ---------- lantern mode folds ---------- */
 .fold > summary::-webkit-details-marker {
   display: none;

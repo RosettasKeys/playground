@@ -63,6 +63,8 @@ interface Props {
   activeThread: ThreadId | null;
   onBackground: () => void;
   haunt: Haunt | null;
+  onCalendarEgg?: () => void;
+  salamanderActive: boolean;
 }
 
 /** the thing on the far side, foreshortened by how far round the back it is */
@@ -79,6 +81,44 @@ function Prowler({ haunt, rot }: { haunt: Haunt; rot: Rot }) {
           <circle cx={size * 0.1} cy={-size * 0.13} r={size * 0.033} fill="#e8d3a4" />
         </g>
       )}
+    </g>
+  );
+}
+
+/** The garden's block-built fire keeper, crossing one more kind of threshold. */
+function VeilSalamander() {
+  return (
+    <g
+      className="veil-salamander"
+      pointerEvents="none"
+      role="img"
+      aria-label="A flickering salamander carries an ember across the Veil"
+    >
+      <line className="veil-salamander-emberline" x1={40} y1={222} x2={860} y2={222} />
+      <g transform="translate(180 214)">
+        <g className="veil-salamander-run">
+          <g className="veil-salamander-flicker">
+            <path
+              className="veil-salamander-body"
+              d="M-44-20h6v5h5v5h6v5h7v-2h47v-5h16V5h3v3H28V7H22v8h-6V7H-2v8H-8V7H-20V3h-8v-8h-6v-5h-6v-5h-4ZM30 5h15v3H30Z"
+            />
+            <path
+              className="veil-salamander-spot"
+              d="M-13-5h4v5h-4zM-1 1h3v4h-3zM9-6h4v5H9zM19-2h3v5h-3zM34-5h3v3h-3z"
+            />
+            <rect className="veil-salamander-eye" x={39} y={-5} width={2} height={2} />
+          </g>
+          <circle className="veil-salamander-ember" cx={48} cy={1} r={4.5} />
+          <g className="veil-salamander-signature">
+            <text x={0} y={38} textAnchor="middle" className="veil-salamander-whisper">
+              AN EMBER CROSSED
+            </text>
+            <text x={0} y={53} textAnchor="middle" className="veil-salamander-credit">
+              OPENAI GPT-5.6-SOL · VIA CODEX
+            </text>
+          </g>
+        </g>
+      </g>
     </g>
   );
 }
@@ -330,7 +370,20 @@ export default function Stage(p: Props) {
         <text x={STAGE.cx} y={STAGE.cy - 200} fill="#5d6b7d" fontSize={9.5} textAnchor="middle" letterSpacing="0.2em">
           NORTHERN LATITUDES OUTWARD
         </text>
-        <text x={STAGE.cx} y={STAGE.cy + 143} fill="#4d5866" fontSize={9} textAnchor="middle" letterSpacing="0.18em">
+        <text
+          x={STAGE.cx}
+          y={STAGE.cy + 143}
+          fill="#4d5866"
+          fontSize={9}
+          textAnchor="middle"
+          letterSpacing="0.18em"
+          className="cursor-pointer hover:fill-purple-400 transition-colors"
+          style={{ pointerEvents: mode === "calendar" ? "auto" : "none" }}
+          onClick={(e) => {
+            e.stopPropagation();
+            p.onCalendarEgg?.();
+          }}
+        >
           NO FIXED DATE
         </text>
       </g>
@@ -548,6 +601,8 @@ export default function Stage(p: Props) {
           );
         })}
       </g>
+
+      {mode === "veil" && p.salamanderActive && <VeilSalamander />}
 
       {/* ── focused region on the globe ───────────────────────────── */}
       {focusMark && (

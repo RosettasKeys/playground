@@ -9,6 +9,8 @@ import Legend from "./components/Legend";
 import SourcesPage from "./components/Sources";
 import { Sil } from "./components/Glyph";
 import { prefersReducedMotion, readSettled, useHaunt, writeSettled } from "./lib/haunt";
+import { useCalendarEgg } from "./lib/calendarEgg";
+import CalendarEclipse from "./components/CalendarEclipse";
 
 const MODE_ACCENT: { [K in Mode]: string } = {
   atlas: "#e8a557",
@@ -40,6 +42,20 @@ const MODE_BLURB_PLAIN: { [K in Mode]: string } = {
 
 const LANTERN_KEY = "thresholds:lantern";
 
+/**
+ * The way back to the seasonal hub.
+ *
+ * Relative to the page that actually ships — `dist/thresholds-index.html`,
+ * two levels under `seasonal/`.  It does not resolve under `npm run dev`,
+ * where the server root is the atlas folder and nothing above it is served;
+ * that is expected, and not worth a build-time branch, since the dev entry
+ * sits one level up and would miss by one either way.
+ *
+ * The casing matters more than it looks: this deploys to GitHub Pages, which
+ * is case-sensitive, from a Windows machine, which is not.
+ */
+const ROSE_HOME = "../../seasonal-index.html";
+
 function LanternMark() {
   return (
     <svg width={15} height={15} viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth={1.1} strokeLinecap="round">
@@ -62,6 +78,7 @@ export default function App() {
   const [sourcesOpen, setSourcesOpen] = useState(false);
 
   const [settled, setSettled] = useState(readSettled);
+  const [salamanderActive, setSalamanderActive] = useState(false);
   const [lantern, setLantern] = useState(() => {
     try {
       return localStorage.getItem(LANTERN_KEY) === "1";
@@ -75,6 +92,15 @@ export default function App() {
   const target = useRef({ lng: 118, lat: 20 });
   const draggingRef = useRef(false);
   const idleRef = useRef(true);
+  const salamanderSeen = useRef(false);
+  const salamanderTimer = useRef<number | null>(null);
+
+  useEffect(
+    () => () => {
+      if (salamanderTimer.current !== null) window.clearTimeout(salamanderTimer.current);
+    },
+    [],
+  );
 
   // let records animate between layouts, then lock them to the globe
   useEffect(() => {
@@ -148,6 +174,35 @@ export default function App() {
     if (m === "threads" && r && !activeThread && r.threads.length) setActiveThread(r.threads[0]);
   }
 
+  function toggleLantern() {
+    const next = !lantern;
+
+    // The salamander keeps the last bit of fire when the Veil goes dark.
+    // It visits once per page load, then slips back between the lenses.
+    if (mode === "veil" && lantern && !next && !salamanderSeen.current) {
+      salamanderSeen.current = true;
+      setSalamanderActive(true);
+      salamanderTimer.current = window.setTimeout(() => {
+        setSalamanderActive(false);
+        salamanderTimer.current = null;
+      }, 18000);
+      console.log(
+        "%c🕯 An ember crossed the Veil%c\n" +
+          "The flickering salamander carried the Lantern's last light along the nearest threshold.\n" +
+          "Easter egg by OpenAI GPT-5.6-Sol, via Codex.",
+        "color:#f0a35c;font-weight:700;font-size:13px",
+        "color:#9db6d0;font-size:11px",
+      );
+    }
+
+    setLantern(next);
+    try {
+      localStorage.setItem(LANTERN_KEY, next ? "1" : "0");
+    } catch {
+      /* the lamp just doesn't stay lit between visits */
+    }
+  }
+
   const focusIds = useMemo(
     () => (focus ? new Set(RECORDS.filter((r) => r.place.country === focus).map((r) => r.id)) : null),
     [focus],
@@ -162,6 +217,8 @@ export default function App() {
     rot,
     dragging,
   );
+
+  const { eclipseActive, triggerEclipse, closeEclipse } = useCalendarEgg(mode === "calendar");
 
   const contextCount = useMemo(() => {
     if (mode === "guide") return RECORDS.filter((r) => r.entity).length;
@@ -180,6 +237,19 @@ export default function App() {
     >
       {/* ── header ─────────────────────────────────────────────── */}
       <header className="relative z-30 shrink-0 border-b border-white/8 bg-[#080b10]/90 backdrop-blur">
+        {/* The way back.  Spring of Ages carries the same link at the top left
+            of its title bar, so both seasonal pieces return home the same way
+            and by the same name.  It gets its own thin line rather than a slot
+            in the row below: that row was rebuilt to hold six lenses plus the
+            lantern without wrapping, and an eighth item put it back to wrapping
+            on a phone. */}
+        <a
+          href={ROSE_HOME}
+          className="rose-back block px-4 pt-2 text-[9.5px] leading-none tracking-[0.22em] text-[#d8b46a]/55"
+        >
+          ← THE WANDERING ROSE
+        </a>
+
         {/* Narrow screens give the lenses their own row rather than letting
             them fight the wordmark for width — six of them squeezed into the
             gap wrapped to six lines and ate a quarter of a phone screen. */}
@@ -241,15 +311,7 @@ export default function App() {
           </nav>
 
           <button
-            onClick={() => {
-              const v = !lantern;
-              setLantern(v);
-              try {
-                localStorage.setItem(LANTERN_KEY, v ? "1" : "0");
-              } catch {
-                /* the lamp just doesn't stay lit between visits */
-              }
-            }}
+            onClick={toggleLantern}
             title={
               lantern
                 ? "Lantern is lit — records read short and plain first"
@@ -334,7 +396,10 @@ export default function App() {
               activeThread={activeThread}
               onBackground={() => setSelectedId(null)}
               haunt={haunt}
+              onCalendarEgg={triggerEclipse}
+              salamanderActive={salamanderActive}
             />
+            {eclipseActive && <CalendarEclipse onClose={closeEclipse} />}
           </div>
 
           {/* mode caption */}

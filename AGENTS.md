@@ -29,6 +29,7 @@ Zones include their landing page and child pages. Vibe strongest with the piece 
 - Fidget Toy Garden: fidgetToy-index.html
 - Misfire Arcade: misfire-arcade-index.html
 - E-cards: card-index.html
+- The Wandering Rose: seasonal/seasonal-index.html
 
 
 ## The Proposal (then wait for yes)
@@ -45,6 +46,7 @@ Approved → build it. Declined or no answer → drop it silently.
 ## The Constraints (same as everything else in the repo)
 
 - **Discoverable, not blocking.** Found by the curious, never in the way.
+- **Unique and clever.** Don't repeat an egg already in existence. Be clever and use creative freedom.
 - **On-brand.** Reads as belonging to that zone's world—read the landing page for tone, not this doc for rules.
 - **Cheap.** Small footprint. If it needs explanation, it's over-built.
 - **No API keys, no build step, no fail states.**

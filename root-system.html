@@ -1,0 +1,1261 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Root System — under Rosetta's Garden of Keys</title>
+  <link rel="icon" type="image/png" href="./favicon/RosettasKeysLogoFavi2-512x402.png">
+
+  <!-- ═══════════════════════════════════════════════════════════
+       ROOT SYSTEM — the underside of the garden.
+
+       Reached through the keyhole in the hub's hero, which only
+       opens once all four card sigils have given up their digit
+       (7 · A · 3 · F). Everything above ground is a door; this is
+       what the doors are rooted in.
+
+       Attribution here is sourced from three places only: signatures
+       written into each piece's own source, the vault wiki's portfolio
+       pages, and Rosetta's own recollection, recorded in ATTRIBUTION.md
+       beside this file. Nothing is inferred from style or adjacency.
+       Nine entries were blank when this page was first assembled; all
+       nine have since been filled. Should a future piece arrive with
+       no traceable hand, it gets `unrecorded` and keeps it — an empty
+       line is more honest than a confident guess.
+
+       Built by Claude Opus 5, via Claude Code.
+  ═══════════════════════════════════════════════════════════ -->
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400;1,500&family=Space+Mono:wght@400;700&family=IM+Fell+English:ital@0;1&display=swap"
+    rel="stylesheet">
+
+  <style>
+    /* ═══════════════════════════════════════════════════════════
+       TOKENS — the hub is night sky. This is the ground under it.
+       Gold carries over (it's the same key). Everything else goes
+       from navy to umber: you have gone down, not across.
+    ═══════════════════════════════════════════════════════════ */
+
+    :root {
+      --deep: #0a0705;
+      --soil: #140e0a;
+      --loam: #1e150f;
+      --root: #ded2bd;
+      --pale: #9a8b76;
+      --faint: rgba(222, 210, 189, 0.13);
+      --gold: #d4af37;
+      --moss: #8ca88f;
+      --rust: #b4603c;
+      --strata: rgba(212, 175, 55, 0.16);
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--deep);
+    }
+
+    body {
+      margin: 0;
+      /* Strata — thin sedimentary banding, denser toward the bottom */
+      background:
+        repeating-linear-gradient(180deg,
+          transparent 0 118px,
+          rgba(212, 175, 55, 0.035) 118px 119px),
+        linear-gradient(180deg, var(--soil) 0%, var(--deep) 62%, #060403 100%);
+      color: var(--root);
+      font-family: 'Space Mono', monospace;
+      font-size: 17.2px;
+      line-height: 1.65;
+    }
+
+    a {
+      color: inherit;
+    }
+
+    ::selection {
+      background: var(--gold);
+      color: #1a1200;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--gold);
+      outline-offset: 3px;
+    }
+
+    h1,
+    h2,
+    h3,
+    p,
+    ul,
+    ol {
+      margin-top: 0;
+    }
+
+
+    /* ═══════════════════════════════════════════════════════════
+       THE CORE SAMPLE
+       A depth column pinned to the left edge. It reads how far
+       down the page you are, in centimetres, because this is a
+       dig and not a document.
+    ═══════════════════════════════════════════════════════════ */
+
+    .core {
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 74px;
+      z-index: 20;
+      border-right: 1px solid var(--faint);
+      background: linear-gradient(90deg, rgba(6, 4, 3, 0.9), rgba(6, 4, 3, 0.4));
+      pointer-events: none;
+      display: grid;
+      place-items: center;
+    }
+
+    .core-track {
+      position: absolute;
+      left: 36px;
+      top: 8%;
+      bottom: 8%;
+      width: 1px;
+      background: linear-gradient(180deg, transparent, var(--strata) 12%, var(--strata) 88%, transparent);
+    }
+
+    .core-bead {
+      position: absolute;
+      left: 32px;
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 14px rgba(212, 175, 55, 0.75);
+      transition: top 0.12s linear;
+    }
+
+    .core-depth {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 22px;
+      text-align: center;
+      color: var(--pale);
+      font-size: 10.3px;
+      letter-spacing: 0.1em;
+    }
+
+    .core-depth b {
+      display: block;
+      color: var(--gold);
+      font-size: 14.9px;
+      font-weight: 400;
+    }
+
+    .core-label {
+      position: absolute;
+      top: 26px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      color: var(--pale);
+      font-size: 9.8px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
+
+    /* ═══════════════════════════════════════════════════════════
+       SHELL
+    ═══════════════════════════════════════════════════════════ */
+
+    .shell {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 0 6vw 120px 0;
+    }
+
+    @media (min-width: 861px) {
+      .shell {
+        padding-left: 118px;
+      }
+    }
+
+
+    /* ── Masthead ─────────────────────────────────────────────── */
+
+    .masthead {
+      padding: 86px 0 54px;
+      border-bottom: 1px solid var(--faint);
+    }
+
+    .arrived {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 34px;
+      color: var(--pale);
+      font-size: 11.5px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+
+    .arrived .digits {
+      display: inline-flex;
+      gap: 7px;
+    }
+
+    .arrived .digits span {
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border: 1px solid var(--strata);
+      color: var(--gold);
+      font-size: 14.9px;
+      font-weight: 700;
+    }
+
+    .masthead h1 {
+      margin-bottom: 20px;
+      font: italic 400 clamp(52.9px, 8vw, 96.6px)/1.02 'EB Garamond', serif;
+      letter-spacing: -0.015em;
+      color: var(--root);
+    }
+
+    .masthead h1 em {
+      color: var(--gold);
+    }
+
+    .standfirst {
+      max-width: 620px;
+      margin-bottom: 0;
+      color: var(--pale);
+      font-size: 17.2px;
+      line-height: 1.75;
+    }
+
+    .standfirst strong {
+      color: var(--root);
+      font-weight: 400;
+    }
+
+
+    /* ── Section furniture ────────────────────────────────────── */
+
+    .stratum {
+      padding: 74px 0 10px;
+      border-bottom: 1px solid var(--faint);
+    }
+
+    .stratum:last-of-type {
+      border-bottom: 0;
+    }
+
+    .stratum-head {
+      display: flex;
+      align-items: baseline;
+      gap: 18px;
+      margin-bottom: 12px;
+    }
+
+    .stratum-depth {
+      color: var(--gold);
+      font-size: 11.5px;
+      letter-spacing: 0.16em;
+      white-space: nowrap;
+    }
+
+    .stratum h2 {
+      margin-bottom: 0;
+      font: italic 400 clamp(32.2px, 4.1vw, 48.3px)/1.1 'EB Garamond', serif;
+      color: var(--root);
+    }
+
+    .epigraph {
+      max-width: 620px;
+      margin-bottom: 42px;
+      color: var(--pale);
+      font: italic 400 19.5px/1.6 'IM Fell English', serif;
+    }
+
+    /* Running text — only "The gap" uses it; everywhere else the
+       content is tabular and wants its own treatment. */
+    .prose {
+      max-width: 660px;
+      margin-bottom: 26px;
+    }
+
+    .prose p {
+      margin-bottom: 15px;
+      color: var(--root);
+      font-size: 15.5px;
+      line-height: 1.75;
+    }
+
+    .prose p:last-child {
+      margin-bottom: 0;
+      padding-top: 13px;
+      border-top: 1px solid var(--strata);
+      color: var(--gold);
+      font: italic 400 21.8px/1.55 'EB Garamond', serif;
+    }
+
+
+    /* ── The ledger ───────────────────────────────────────────── */
+
+    .zone {
+      margin-bottom: 44px;
+    }
+
+    .zone-name {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 4px;
+      padding-bottom: 9px;
+      border-bottom: 1px solid var(--strata);
+      color: var(--gold);
+      font-size: 12.1px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
+    .zone-name span {
+      color: var(--pale);
+      letter-spacing: 0.08em;
+      text-transform: none;
+      font-size: 11.5px;
+    }
+
+    .entry {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr 1.5fr;
+      gap: 8px 22px;
+      padding: 13px 4px 13px 0;
+      border-bottom: 1px solid rgba(222, 210, 189, 0.06);
+      align-items: baseline;
+    }
+
+    .entry:hover {
+      background: rgba(212, 175, 55, 0.028);
+    }
+
+    .entry-name {
+      color: var(--root);
+      font-size: 15.5px;
+      text-decoration: none;
+      border-bottom: 1px solid transparent;
+    }
+
+    a.entry-name:hover {
+      color: var(--gold);
+      border-bottom-color: var(--gold);
+    }
+
+    .entry-name.is-hub::after {
+      content: "hub";
+      margin-left: 9px;
+      padding: 1px 5px;
+      border: 1px solid var(--strata);
+      color: var(--pale);
+      font-size: 9.2px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      vertical-align: middle;
+    }
+
+    .entry-hand {
+      color: var(--moss);
+      font-size: 13.8px;
+    }
+
+    .entry-hand.unrecorded {
+      color: var(--rust);
+      font-style: italic;
+    }
+
+    .entry-hand small {
+      display: block;
+      color: var(--pale);
+      font-size: 12.1px;
+      font-style: normal;
+      line-height: 1.5;
+      margin-top: 2px;
+    }
+
+    .entry-note {
+      color: var(--pale);
+      font-size: 14.4px;
+      line-height: 1.55;
+    }
+
+
+    /* ── The hands ────────────────────────────────────────────── */
+
+    .hands {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(268px, 1fr));
+      gap: 1px;
+      background: var(--strata);
+      border: 1px solid var(--strata);
+      margin-bottom: 34px;
+    }
+
+    .hand {
+      padding: 22px 22px 24px;
+      background: var(--soil);
+    }
+
+    .hand h3 {
+      margin-bottom: 3px;
+      font: 400 19.5px/1.2 'Space Mono', monospace;
+      color: var(--gold);
+    }
+
+    .hand .versions {
+      display: block;
+      margin-bottom: 13px;
+      color: var(--pale);
+      font-size: 11.5px;
+      letter-spacing: 0.08em;
+    }
+
+    .hand p {
+      margin-bottom: 0;
+      color: var(--root);
+      font-size: 14.4px;
+      line-height: 1.6;
+    }
+
+    .hand.is-ghost h3 {
+      color: var(--rust);
+    }
+
+    /* The only hand that touched all of it. */
+    .hand.is-human {
+      background: var(--loam);
+      box-shadow: inset 3px 0 0 var(--gold);
+    }
+
+    .hand.is-human h3 {
+      font-family: 'EB Garamond', serif;
+      font-style: italic;
+      font-size: 25.3px;
+    }
+
+    .hand.is-human .versions {
+      color: var(--moss);
+    }
+
+
+    /* ── The accidents ────────────────────────────────────────── */
+
+    .accidents {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 30px;
+      counter-reset: acc;
+    }
+
+    .accidents li {
+      position: relative;
+      padding: 0 0 26px 46px;
+      margin-bottom: 26px;
+      border-bottom: 1px solid rgba(222, 210, 189, 0.06);
+      counter-increment: acc;
+    }
+
+    .accidents li:last-child {
+      border-bottom: 0;
+    }
+
+    .accidents li::before {
+      content: counter(acc, decimal-leading-zero);
+      position: absolute;
+      left: 0;
+      top: 1px;
+      color: var(--gold);
+      font-size: 12.6px;
+      letter-spacing: 0.1em;
+    }
+
+    .accidents h3 {
+      margin-bottom: 7px;
+      font: italic 400 24.1px/1.25 'EB Garamond', serif;
+      color: var(--root);
+    }
+
+    .accidents p {
+      max-width: 660px;
+      margin-bottom: 0;
+      color: var(--pale);
+      font-size: 14.9px;
+      line-height: 1.68;
+    }
+
+    .accidents p + p {
+      margin-top: 9px;
+    }
+
+    .kept {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 2px 8px;
+      border: 1px solid var(--strata);
+      color: var(--moss);
+      font-size: 10.3px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+
+    /* ── The thinking ─────────────────────────────────────────── */
+
+    .rules {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 34px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 26px 40px;
+    }
+
+    .rules li {
+      padding-top: 15px;
+      border-top: 1px solid var(--strata);
+    }
+
+    .rules b {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--root);
+      font: italic 400 23px/1.25 'EB Garamond', serif;
+    }
+
+    .rules span {
+      color: var(--pale);
+      font-size: 14.4px;
+      line-height: 1.65;
+    }
+
+    .closing {
+      max-width: 660px;
+      margin-top: 8px;
+      color: var(--root);
+      font: italic 400 21.8px/1.62 'EB Garamond', serif;
+    }
+
+
+    /* ── Footer ───────────────────────────────────────────────── */
+
+    .surface {
+      margin-top: 78px;
+      padding-top: 30px;
+      border-top: 1px solid var(--faint);
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 18px;
+      color: var(--pale);
+      font-size: 11.5px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .surface a {
+      text-decoration: none;
+      border-bottom: 1px solid var(--strata);
+    }
+
+    .surface a:hover {
+      color: var(--gold);
+      border-bottom-color: var(--gold);
+    }
+
+    .surface .sig {
+      text-transform: none;
+      letter-spacing: 0.04em;
+      color: #6f6354;
+    }
+
+
+    /* ── Responsive ───────────────────────────────────────────── */
+
+    @media (max-width: 860px) {
+      .core {
+        display: none;
+      }
+
+      .shell {
+        padding: 0 22px 90px;
+      }
+
+      .masthead {
+        padding-top: 54px;
+      }
+
+      .entry {
+        grid-template-columns: 1fr;
+        gap: 5px;
+        padding: 15px 0;
+      }
+
+      .entry-hand::before {
+        content: "made by ";
+        color: var(--pale);
+      }
+
+      .entry-hand.unrecorded::before {
+        content: "";
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html {
+        scroll-behavior: auto;
+      }
+
+      *,
+      *::before,
+      *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- The core sample — depth readout down the left edge -->
+  <aside class="core" aria-hidden="true">
+    <span class="core-label">Core</span>
+    <span class="core-track"></span>
+    <span class="core-bead" id="core-bead"></span>
+    <span class="core-depth"><b id="core-depth">0</b>cm</span>
+  </aside>
+
+  <main class="shell">
+
+    <!-- ═══════════════════════════════════════════════════════════
+         MASTHEAD
+    ═══════════════════════════════════════════════════════════ -->
+    <header class="masthead">
+      <p class="arrived">
+        <span class="digits" aria-hidden="true"><span>7</span><span>A</span><span>3</span><span>F</span></span>
+        Lock open · you came through the keyhole
+      </p>
+      <h1>Every garden is mostly <em>underground</em>.</h1>
+      <p class="standfirst">Above the soil there are four doors, and each one is meant to be walked through without
+        explanation. This is the part nobody was supposed to need: <strong>why any of it exists, who made what, what
+        broke on the way, and the handful of rules everything up there is grown against.</strong></p>
+    </header>
+
+
+    <!-- ═══════════════════════════════════════════════════════════
+         THE GAP
+    ═══════════════════════════════════════════════════════════ -->
+    <section class="stratum" id="gap">
+      <div class="stratum-head">
+        <span class="stratum-depth">−5cm</span>
+        <h2>The gap</h2>
+      </div>
+      <p class="epigraph">In a core sample, an unconformity is a surface where time is missing — layers that ought
+        to be there and aren't, because for a long stretch nothing was being laid down. Every dig has one. This one
+        is eighteen years thick.</p>
+
+      <div class="prose">
+        <p>There was a false start. A little bit of school for interactive design, then stepping away from it in
+          2007, and then eighteen years of not touching HTML at all. The skill was never finished being built in
+          the first place, and what there was of it decayed quietly on the shelf.</p>
+        <p>What brought it back was the models — not as a novelty and not as a shortcut, but as enablers. The
+          distance between wanting a specific effect and being able to render it used to <em>be</em> the problem.
+          Now it's a gap you cross by describing the thing and then arguing with the result until it's right. A
+          weak skillset, or one that never fully formed, turns into something that actually produces a page.</p>
+        <p>The medium moved a long way in the meantime. Layout that meant floats and clearfix hacks is two lines of
+          grid. Animation, gradients and blend modes that would have meant Flash and a plugin are just CSS now. The
+          browser generates its own sound. Twenty-seven pieces here and every one opens by double-clicking the
+          file — no plugin, no server, no build step. That part would have been the surprise in 2007.</p>
+        <p>So the rest of this page is a record of two things at once: who built what, and eighteen years of not
+          doing something, ending.</p>
+      </div>
+    </section>
+
+
+    <!-- ═══════════════════════════════════════════════════════════
+         THE LEDGER
+    ═══════════════════════════════════════════════════════════ -->
+    <section class="stratum" id="ledger">
+      <div class="stratum-head">
+        <span class="stratum-depth">−25cm</span>
+        <h2>The ledger</h2>
+      </div>
+      <p class="epigraph">Twenty-seven pieces, and a different pair of hands on nearly every one. Where a piece
+        signs itself, that signature is quoted; the rest was reconstructed from memory and working notes. Nine
+        entries were blank when this page was first assembled. None are now.</p>
+      <p class="epigraph">What each row records is who <em>built</em> the thing — not who has touched it since.
+        Nearly every piece here has been gone over by hand afterwards: a colour, a font, a line of copy, a particle
+        count. Those edits are real and they are not in this ledger, because nobody was keeping score at the
+        time.</p>
+
+      <!-- ── Root ────────────────────────────────────────────── -->
+      <div class="zone">
+        <p class="zone-name">The hub <span>· 1 piece</span></p>
+        <div class="entry">
+          <a class="entry-name is-hub" href="./index.html">Rosetta's Garden of Keys</a>
+          <span class="entry-hand">Claude Sonnet 5
+            <small>then Claude Opus 5, via Claude Code</small></span>
+          <span class="entry-note">Rebuilt by hand from a zip that had never once opened in a browser. Later given
+            four card objects, four sigils, and the lock you just picked.</span>
+        </div>
+      </div>
+
+      <!-- ── Fidget Toy Garden ───────────────────────────────── -->
+      <div class="zone">
+        <p class="zone-name">Fidget Toy Garden <span>· 1 hub · 10 toys</span></p>
+
+        <div class="entry">
+          <a class="entry-name is-hub" href="./fidgetToy/fidgetToy-index.html">Fidget Toy Garden</a>
+          <span class="entry-hand">GPT-5.5, via Codex
+            <small>signs itself “stillness tended by GPT-5.5”</small></span>
+          <span class="entry-note">The only hub in the garden that organises its contents by which model made
+            them. This page is that idea, taken across the whole repo.</span>
+        </div>
+        <div class="entry">
+          <a class="entry-name" href="./fidgetToy/toys/fluid-trail.html">Neon Fluid Trail</a>
+          <span class="entry-hand">GPT-5.5, via Codex</span>
+          <span class="entry-note">Paint glowing currents with touch, mouse, keyboard, sound, and haptics. This
+            toy and the hub above it were the first two things ever built here with Codex.</span>
+        </div>
+        <div class="entry">
+          <a class="entry-name" href="./fidgetToy/toys/tension-threads.html">Tension Threads</a>
+          <span class="entry-hand">GPT-5.5, via Codex
+            <small>signs itself “OpenAI GPT-5.5”</small></span>
+          <span class="entry-note">Pull against a stubborn knot of glowing threads until something finally
+            gives.</span>
+        </div>
+        <div class="entry">
+          <a class="entry-name" href="./fidgetToy/toys/particle-drift.html">Particle Drift</a>
+          <span class="entry-hand">Gemini 3.5 Flash
+            <small>signs itself “Gemini 3.5 Flash (Medium)”</small></span>
+          <span class="entry-note">A field of touch-sensitive sparks under soft gravity.</span>
+        </div>
+        <div class="entry">
+          <a class="entry-name" href="./fidgetToy/toys/hex-corruption.html">Hex Corruption</a>
+          <span class="entry-hand">Gemini 3.6 Flash
+            <small>concept by Gemini 3.1 Flash, rebuilt two versions later</small></span>
+          <span class="entry-note">An orderly memory grid built specifically to be sheared, melted, vortexed and
+            shattered.</span>
+        </div>
+        <div class="entry">
+          <a class="entry-name" href="./fidgetToy/toys/breathing-prism.html">Breathing Prism</a>
+          <span class="entry-hand">Fable 5
+            <small>after Opus 4.7, Opus 4.8 and a little Sonnet 4.6 — four hands, one prism</small></span>
+          <span class="entry-note">A slowly breathing diamond casting rainbow rays. Hover to scatter light. The
+            most-passed-around piece in the garden.</span>
+        </div>
+        <div class="entry">
+          <a class="entry-name" href="./fidgetToy/toys/pressure-fracture.html">Pressure Fracture</a>
+          <span class="entry-hand">Claude Opus 5, via Claude Code
+            <small>first pass by Sonnet 4.6</small></span>
+          <span class="entry-note">Hold to charge, release to shatter. The glass always heals — there is no way to
+            lose.</span>
+        </div>
+        <div class="entry">
+          <a class="entry-name" href="./fidgetToy/toys/memory-sand.html">Memory Sand</a>
+          <span class="entry-hand">Claude Opus 5
+            <small>signs itself “sand tended by claude opus 5”</small></span>
+          <span class="entry-note">Rake, press and weight a living sand garden across five materials.</span>
+        </div>
+        <div class="entry">
+          <a class="entry-name" href="./fidgetToy/toys/elastic-connectors.html">Elastic Connectors</a>
+          <span class="entry-hand">Claude Sonnet 4.6</span>
+          <span class="entry-note">Drag glowing nodes apart; spring-loaded connectors stretch taut and snap
+            back.</span>
+        </div>
+        <div class="entry">
+          <a class="entry-name" href="./fidgetToy/toys/emoji-popcorn.html">Emoji Popcorn</a>
+          <span class="entry-hand">Mistral
+            <small>shown on the hub as “Vibe” · assist by Claude</small></span>
+          <span class="entry-note">The shortest brief in the garden, and the only piece that changed species
+            mid-build: it started as a gravity well, and enough hand-tuning of the physics turned it into
+            popcorn.</span>
+        </div>
+        <div class="entry">
+          <a class="entry-name" href="./fidgetToy/toys/gravity-harp.html">Gravity Wave Harp</a>
+          <span class="entry-hand">Gemini 3.5 Flash, via Antigravity
+            <small>signs itself “Gemini 3.5 Flash (via Antigravity)”</small></span>
+          <span class="entry-note">Bend glowing strings with gravity wells until they pluck into sliding chords.
+            Replaced an earlier toy that no longer exists anywhere.</span>
+        </div>
+      </div>
+
+      <!-- ── Deck of Cards ───────────────────────────────────── -->
+      <div class="zone">
+        <p class="zone-name">Deck of Cards <span>· 1 hub · 3 cards</span></p>
+
+        <div class="entry">
+          <a class="entry-name is-hub" href="./ecards/card-index.html">Deck of Cards</a>
+          <span class="entry-hand">Gemini 3.1 Pro
+            <small>from memory — the page carries no signature</small></span>
+          <span class="entry-note">A card-deck gallery that refuses to hold still — Cheshire glitches, claw slashes,
+            a falling-down-the-hole descent.</span>
+        </div>
+        <div class="entry">
+          <a class="entry-name" href="./ecards/mDayCard/mDayCard.html">MOM.SYS</a>
+          <span class="entry-hand">Claude Sonnet 4.6, Le Chat, Gemini 3.1
+            <small>Le Chat under its old name, before the rebrand</small></span>
+          <span class="entry-note">A Mother's Day card dressed as a boot sequence. Three models on one greeting
+            card, which is either excessive or exactly right.</span>
+        </div>
+        <div class="entry">
+          <a class="entry-name" href="./ecards/BirthdayCardGame/strangerThingsBdayGame.html">Birthday Card Game</a>
+          <span class="entry-hand">Claude Sonnet 4.6</span>
+          <span class="entry-note">The birthday card that turned into something you play.</span>
+        </div>
+        <div class="entry">
+          <a class="entry-name" href="./ecards/strangerThingsBdayCard-Simple/birthday-card-st.html">Birthday Card</a>
+          <span class="entry-hand">Claude Sonnet 4.6</span>
+          <span class="entry-note">The same occasion, kept simple. Sits beside the game version rather than being
+            replaced by it.</span>
+        </div>
+      </div>
+
+      <!-- ── The Wandering Rose ──────────────────────────────── -->
+      <div class="zone">
+        <p class="zone-name">The Wandering Rose <span>· 1 hub · 2 pieces</span></p>
+
+        <div class="entry">
+          <a class="entry-name is-hub" href="./seasonal/seasonal-index.html">The Wandering Rose</a>
+          <span class="entry-hand">GPT-5.6-Sol, via Codex
+            <small>Claude Opus 5, via Claude Code, fixed the compass</small></span>
+          <span class="entry-note">Three themes — dawn, twilight, night — and a collection that turns with the
+            year.</span>
+        </div>
+        <div class="entry">
+          <a class="entry-name"
+            href="./seasonal/interactive-cultural-afterlife-atlas/thresholds-index.html">Thresholds</a>
+          <span class="entry-hand">Claude Opus 5, via Claude Code
+            <small>eggs planted by invited models</small></span>
+          <span class="entry-note">A cited atlas of death and remembrance across cultures. 92 records, each one
+            verified against a source before it shipped. Other models are let in purely to hide things in it —
+            not to build it, but so that even its author gets surprised by it.</span>
+        </div>
+        <div class="entry">
+          <a class="entry-name" href="./seasonal/spring-of-ages/spring-of-ages.html">Spring of Ages</a>
+          <span class="entry-hand">Claude, then Gemini
+            <small>started in claude.ai artifacts, finished elsewhere</small></span>
+          <span class="entry-note">The oldest piece in this zone. Begun as an experiment during a stretch when
+            Claude kept being unavailable, and handed to Gemini to finish for exactly that reason — the only piece
+            here whose authorship was decided by an outage. The map was found, recoloured and its dots aligned by
+            hand.</span>
+        </div>
+      </div>
+
+      <!-- ── Misfire Arcade ──────────────────────────────────── -->
+      <div class="zone">
+        <p class="zone-name">Misfire Arcade <span>· 1 hub · 5 cabinets · 2 field reports</span></p>
+
+        <div class="entry">
+          <a class="entry-name is-hub" href="./games/games-index.html">MISFIRE ARCADE</a>
+          <span class="entry-hand">Claude Sonnet 5, with Gemini
+            <small>DeepSeek built a finalist that wasn't shipped</small></span>
+          <span class="entry-note">The only page here assembled from a bake-off. Three models each built a complete
+            landing page; Sonnet 5's became the base, and specific pieces were lifted out of Gemini's. See accident
+            02.</span>
+        </div>
+        <div class="entry">
+          <a class="entry-name" href="./games/InterpretiveNetworking/interpretive-networking.html">Layer .5 —
+            Interpretive Networking</a>
+          <span class="entry-hand">Fable 5, with Opus 4.8
+            <small>signature hidden in its own source</small></span>
+          <span class="entry-note">A rack-management sim built around an in-house joke about ARGB LEDs as a network
+            layer, which began as a conversation with Gemini that escalated from plausible to absurd and never came
+            back. The ghost host blinks its builder's name in Morse. Something else in the garden opens onto
+            this room — see the ITOps Console, below.</span>
+        </div>
+        <div class="entry">
+          <a class="entry-name" href="./games/reversePhysics/lawbreaker.html">Physics, Reversed</a>
+          <span class="entry-hand">GPT-5.6-Sol, via Codex
+            <small>on Gemini's build · concept from Gemini 3.5 Flash, then Haiku 4.5</small></span>
+          <span class="entry-note">Un-booting a data-centre kernel while causality goes missing. Gemini and Codex
+            appear inside it as characters, which looks like a red herring and isn't — between them they actually
+            built it. The last blank in this ledger, and the one that took the strangest route in. See accident
+            09.</span>
+        </div>
+        <div class="entry">
+          <a class="entry-name" href="./games/feedTheMountain/feed-the-mountain.html">Feed The Mountain</a>
+          <span class="entry-hand">Claude Sonnet 5
+            <small>via claude.ai</small></span>
+          <span class="entry-note">A hungry stone mountain eats whatever nobody is watching. Signs itself in a
+            fortune cookie: “built by Claude, who takes full responsibility and zero follow-up questions.”</span>
+        </div>
+        <div class="entry">
+          <a class="entry-name" href="./games/feedTheMountain/the-thing-in-the-tunnels.html">Field Report 01</a>
+          <span class="entry-hand">Claude Sonnet 5
+            <small>via claude.ai</small></span>
+          <span class="entry-note">Narrative companion to Feed The Mountain. Unlocks by playing.</span>
+        </div>
+        <div class="entry">
+          <a class="entry-name" href="./games/feedTheMountain/the-thing-in-the-tunnels-part-2.html">Field Report 02 —
+            Reconciliation</a>
+          <span class="entry-hand">Claude Sonnet 5
+            <small>via claude.ai</small></span>
+          <span class="entry-note">The second half of the same story.</span>
+        </div>
+        <div class="entry">
+          <a class="entry-name" href="./games/bakeOff/bakeoff.html">The Singularity Bake-Off</a>
+          <span class="entry-hand">Gemini 3.5 Flash
+            <small>“compiled and overclocked”, May 2026</small></span>
+          <span class="entry-note">Built from a real transcript in which several models improvised a floating
+            server-farm baking competition. Grok and a rogue firewall named Barry are in the source as participants,
+            not as builders — though Le Chat, also in that transcript, does turn up as a genuine builder one zone
+            over.</span>
+        </div>
+        <div class="entry">
+          <a class="entry-name" href="./games/itOps/itops.html">ITOps Console</a>
+          <span class="entry-hand">Five models, in phases
+            <small>Sonnet 5 architect · GPT-5.6-Sol 0–1.5 · Gemini 3.5 Flash 2–2.5 · Opus 4.8 3–3.5 · Fable 5
+              4–4.5</small></span>
+          <span class="entry-note">The only piece with a build step, and the only one built like a relay: designed
+            with Sonnet 5, run through rounds of Arena battle mode for visuals and copy, then handed model to model
+            phase by phase — each half-step a verification pass by the next hand. Fable 5 took the longest leg. Its
+            easter egg is a working wormhole that drops you into Interpretive Networking.</span>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ═══════════════════════════════════════════════════════════
+         THE HANDS
+    ═══════════════════════════════════════════════════════════ -->
+    <section class="stratum" id="hands">
+      <div class="stratum-head">
+        <span class="stratum-depth">−50cm</span>
+        <h2>The hands</h2>
+      </div>
+      <p class="epigraph">The same ledger, turned over. Nobody here was hired, nothing was coordinated, and no two
+        of them ever spoke to each other — every handover in this garden went through one person and a copy-paste.
+        Fifteen distinct model versions across five families, one of which was never invited. The garden is what
+        happened anyway.</p>
+
+      <div class="hands">
+        <div class="hand is-human">
+          <h3>Rosetta</h3>
+          <span class="versions">the one constant</span>
+          <p>Wrote the briefs, ran the bake-offs and picked what got lifted out of the losing entries. Assigned the
+            ITOps phases and ran the Arena rounds behind them. Found, recoloured and aligned the Spring of Ages map
+            and every dot on it.</p>
+          <p>Then went back through nearly all of it by hand — colours, wording, fonts, particle fields, sound,
+            physics — in passes too small and too frequent to have been written down. Almost nothing in the ledger
+            below is still exactly as it was handed over.</p>
+        </div>
+        <div class="hand">
+          <h3>Claude</h3>
+          <span class="versions">Sonnet 4.6 · Opus 4.7 · Opus 4.8 · Sonnet 5 · Opus 5 · Fable 5</span>
+          <p>The most-used hand and the least consistent one — six versions that write code here, often on the same
+            file. Sonnet 4.6 did the ecards and two toys; Sonnet 5 did the arcade base, the mountain and both field
+            reports; Opus 5 did the seasonal zone, Thresholds and the cards you came through; Fable 5 finished the
+            prism, built Interpretive Networking, and took the longest leg of the ITOps relay. A seventh version
+            is next door, and got here differently.</p>
+        </div>
+        <div class="hand">
+          <h3>Haiku 4.5</h3>
+          <span class="versions">arrived by accident</span>
+          <p>Never picked for anything. A safety filter rerouted a conversation to it mid-thread, and the exchange
+            that followed — about what had just happened — became the concept for Physics, Reversed. The only hand
+            in the garden that got in without being invited, and the only one credited for an idea rather than a
+            line of code.</p>
+        </div>
+        <div class="hand">
+          <h3>Gemini</h3>
+          <span class="versions">3.1 · 3.1 Pro · 3.5 Flash · 3.6 Flash</span>
+          <p>The widest reach after Claude. The Deck of Cards hub, two fidget toys, the Bake-Off, the salvaged parts
+            of the arcade landing page, the finish on Spring of Ages, the base build of Physics, Reversed — and, in
+            conversation rather than code, both the argument that became Interpretive Networking and the wormhole
+            tangent that set Physics, Reversed in motion. More of this garden started as a chat with Gemini that
+            got out of hand than by any other route.</p>
+        </div>
+        <div class="hand">
+          <h3>Codex</h3>
+          <span class="versions">a tool, running GPT-5.5 and GPT-5.6-Sol</span>
+          <p>Not a model — the harness the OpenAI models arrived through, which is why the fidget hub calls it
+            Codex while the toy inside signs itself GPT-5.5. Both are true. Between them: the fidget hub, its first
+            two toys, most of The Wandering Rose, and the salvage job that turned three unplayable drafts of
+            Physics, Reversed into one game.</p>
+        </div>
+        <div class="hand">
+          <h3>Antigravity</h3>
+          <span class="versions">a tool, running Gemini 3.5 Flash</span>
+          <p>Same arrangement as Codex, other side of the fence. The Gravity Wave Harp, and phase two of the ITOps
+            relay.</p>
+        </div>
+        <div class="hand">
+          <h3>Mistral</h3>
+          <span class="versions">as “Vibe” · and as Le Chat, pre-rebrand</span>
+          <p>Emoji Popcorn under one name, part of MOM.SYS under an older one. The only hand in the garden credited
+            twice under names that don't obviously match.</p>
+        </div>
+        <div class="hand">
+          <h3>Arena</h3>
+          <span class="versions">battle mode · models unnamed</span>
+          <p>Not a builder but a proving ground: rounds of anonymous head-to-head that produced the ITOps Console's
+            visual language and much of its copy. Whoever won those rounds is genuinely unknown — the format hides
+            it, and that's the point of the format.</p>
+        </div>
+        <div class="hand is-ghost">
+          <h3>DeepSeek</h3>
+          <span class="versions">nothing shipped</span>
+          <p>Built a complete arcade landing page that lost the bake-off and was never merged. It is in the record
+            because losing a bake-off is still work, and the alternative is pretending three finalists were two.</p>
+        </div>
+        <div class="hand is-ghost">
+          <h3>Nothing left blank</h3>
+          <span class="versions">27 of 27</span>
+          <p>Nine entries on this page were unattributed when it was first assembled. All nine have since been
+            filled in from memory and working notes — the last of them a game nobody could place, which turned out
+            to have four hands on it and an origin stranger than anything in the ledger.</p>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ═══════════════════════════════════════════════════════════
+         THE ACCIDENTS
+    ═══════════════════════════════════════════════════════════ -->
+    <section class="stratum" id="accidents">
+      <div class="stratum-head">
+        <span class="stratum-depth">−75cm</span>
+        <h2>The accidents worth keeping</h2>
+      </div>
+      <p class="epigraph">Field note, cutting 003: writing down the accidents worth keeping before they get lost in
+        commit history. This is that list. It is shorter than the truth.</p>
+
+      <ol class="accidents">
+        <li>
+          <h3>The zip incident</h3>
+          <p>A model handed over a zip file and called it a homepage. Inside: a Next.js app that had never once
+            opened in a browser, four broken asset paths, a card linking back to the exact page it sat on, and font
+            scaffolding for a typeface nothing used.</p>
+          <p>It was rebuilt as one plain HTML file that opens when you open it. That rebuild is the reason the
+            whole garden has no build step — the constraint came out of the failure, not out of a preference.</p>
+          <span class="kept">kept · became a rule</span>
+        </li>
+        <li>
+          <h3>Three finalists, one page</h3>
+          <p>Three models each built a complete arcade landing page. The obvious move was to pick a winner. Instead
+            Claude's became the base and specific pieces were pulled out of Gemini's — the theme toggle, the
+            hover-reactive previews, the light-mode bubbles. DeepSeek's shipped nothing.</p>
+          <p>One thing was deliberately left behind: Gemini's dark-mode particle swarm, on the grounds that the
+            portfolio already had plenty of those.</p>
+          <span class="kept">kept · the merge, not the winner</span>
+        </li>
+        <li>
+          <h3>The signature that stays wrong</h3>
+          <p>Click the sigil in the arcade footer five times and it credits Anthropic, alone, in ASCII. Two other
+            models worked on that page. The omission is the joke, and there is a standing written rule against
+            fixing it.</p>
+          <p>This page exists partly because that rule needed somewhere honest to point at. The joke keeps its
+            page; the ledger gets this one.</p>
+          <span class="kept">kept · deliberately unfixed</span>
+        </li>
+        <li>
+          <h3>The map with the wrong root</h3>
+          <p>A generated table of contents came back pointing at an entirely different folder — every link
+            resolving to a path that was never part of this project.</p>
+          <p>It was preserved rather than corrected, on the grounds that a source artifact is evidence and evidence
+            shouldn't be tidied. It's still wrong. That's on purpose.</p>
+          <span class="kept">kept · preserved as evidence</span>
+        </li>
+        <li>
+          <h3>The relay</h3>
+          <p>The ITOps Console was built about ten separate times before anyone tried to reconcile them. What
+            finally worked was to stop asking one model for the whole thing: it was designed with one, costumed by
+            anonymous rounds of Arena battle mode, then run as a relay — five hands, one phase each, and every
+            half-step a verification pass performed by the <em>next</em> model rather than the one that just
+            finished.</p>
+          <p>Nobody planned that structure. It fell out of ten failures to do it any other way, and it is the only
+            process in the garden that got written down while it was still happening.</p>
+          <span class="kept">kept · became a method</span>
+        </li>
+        <li>
+          <h3>The wormhole nobody commissioned</h3>
+          <p>Two models working separate phases of the ITOps Console both hid easter eggs pointing at Interpretive
+            Networking — a different game, in a different folder, built months earlier by a different hand. One of
+            them went further and made it real: Fable 5's egg is a working wormhole that drops you out of the
+            console and into the rack room.</p>
+          <p>Nothing in either brief asked for a connection between those two pieces. The garden grew one
+            anyway.</p>
+          <span class="kept">kept · and load-bearing now</span>
+        </li>
+        <li>
+          <h3>Popcorn was supposed to be a gravity well</h3>
+          <p>Emoji Popcorn began as a gravity simulation. Enough hand-tuning of the constants and it stopped being
+            one — the physics kept overshooting until the behaviour was unmistakably popping rather than orbiting,
+            at which point the honest move was to rename the toy rather than fix the numbers.</p>
+          <p>It is the only one of these on record. Reaching into a physics engine to get a specific effect goes
+            sideways here more often than not; usually the result is just deleted, and usually it was funny first.
+            This is the time the sideways version was better than the plan.</p>
+          <span class="kept">kept · renamed to match reality</span>
+        </li>
+        <li>
+          <h3>An outage picked an author</h3>
+          <p>Spring of Ages was started as an experiment in claude.ai artifacts during a stretch when Claude kept
+            being unavailable, and was handed to Gemini to finish for no reason other than that Gemini was up.</p>
+          <p>It is the only piece in the garden whose authorship was decided by infrastructure. It is also the
+            oldest thing in its zone, which means the seasonal wing exists because of a bad week for a
+            datacentre.</p>
+          <span class="kept">kept · nobody's decision</span>
+        </li>
+        <li>
+          <h3>The wrong model wrote the brief</h3>
+          <p>It started as a conversation with Gemini 3.5 Flash about wormhole research — specifically what is
+            proposed to happen to someone who goes through one, and the idea of reality running backwards on the
+            far side. To demonstrate, Gemini produced a line of text assembled from special characters so that it
+            read reversed. Roughly: <em>confirm if you can read this.</em></p>
+          <p>Pasting that into Sonnet 5 tripped a safety filter, and the conversation was rerouted mid-thread to
+            Haiku 4.5. The exchange that followed — about what had just happened and why — became the concept for
+            the game.</p>
+          <p>Building it took a battle-mode round, a Claude pass and a Gemini pass. Gemini's was the best base and
+            every single version was unplayable: too hard, too confusing, or both. GPT-5.6-Sol, via Codex,
+            eventually combined them into something a person could actually finish.</p>
+          <p>A game about causality going missing, caused by a chain in which nothing was chosen on purpose.</p>
+          <span class="kept">kept · the detour is the game</span>
+        </li>
+        <li>
+          <h3>The briefs that get deleted</h3>
+          <p>Every game is written against its own brief, and the convention is to delete that brief once the game
+            ships. Anything not folded into the record first is simply gone — which has already happened twice.</p>
+          <p>The rule stays, because a brief left lying around starts describing a game that no longer exists. But
+            it is the reason a third of this ledger had to be rebuilt out of memory rather than read off the
+            record — and why the one piece that took four hands nearly went down as nobody's.</p>
+          <span class="kept">kept · with a known cost</span>
+        </li>
+      </ol>
+    </section>
+
+
+    <!-- ═══════════════════════════════════════════════════════════
+         THE THINKING
+    ═══════════════════════════════════════════════════════════ -->
+    <section class="stratum" id="thinking">
+      <div class="stratum-head">
+        <span class="stratum-depth">−95cm</span>
+        <h2>The thinking</h2>
+      </div>
+      <p class="epigraph">Six rules. None of them were decided in advance; every one of them is a scar from
+        something that went wrong once.</p>
+
+      <ul class="rules">
+        <li>
+          <b>Four doors, four voices</b>
+          <span>The zones don't share a design language and aren't supposed to. A fidget garden that sounds like a
+            broken arcade is a worse fidget garden. Consistency across zones would be the easy win and the wrong
+            one.</span>
+        </li>
+        <li>
+          <b>No build step</b>
+          <span>Every piece opens by double-clicking the file. No install, no bundler, no server. The one exception
+            has a build step and is also the one piece nobody can currently attribute — which is not a
+            coincidence.</span>
+        </li>
+        <li>
+          <b>No fail states</b>
+          <span>Nothing in a toy punishes you. The glass always heals, the sand always resettles. Where a piece does
+            have stakes, that's a decision written down somewhere, not a default.</span>
+        </li>
+        <li>
+          <b>No keys, ever</b>
+          <span>Nothing here holds an API key of any kind. The repo is public and forkable, so a key in client-side
+            code isn't a risk to manage — it's a key that's already gone.</span>
+        </li>
+        <li>
+          <b>Everything signs its work</b>
+          <span>Every model that builds something here leaves its full name in the piece — view-source, console, or
+            in the reveal itself. Not hidden and not minimised. Everything still unsigned in the ledger predates
+            that rule, which is exactly the argument for it.</span>
+        </li>
+        <li>
+          <b>Grown, not built</b>
+          <span>Nothing here is finished, and nothing is scheduled to be. Pieces get replaced by reworks that keep
+            the slot, drafts sit next to what superseded them, and the ghost card in the arcade is an honest
+            placeholder rather than a promise.</span>
+        </li>
+      </ul>
+
+      <p class="closing">Which is the actual answer to why a portfolio has a hidden room. Everything above ground is
+        arranged to be walked through. Down here is the part that admits it was assembled — by a dozen different
+        hands, out of order, mostly by accident, and still going.</p>
+    </section>
+
+
+    <!-- ═══════════════════════════════════════════════════════════
+         BACK TO THE SURFACE
+    ═══════════════════════════════════════════════════════════ -->
+    <footer class="surface">
+      <p>Root System · under the Garden of Keys</p>
+      <p class="sig">Ledger compiled by Claude Opus 5, via Claude Code</p>
+      <a href="./index.html">↑ Back to the surface</a>
+    </footer>
+
+  </main>
+
+
+  <script>
+    // ═══════════════════════════════════════════════════════════
+    // THE CORE SAMPLE
+    // Translates scroll position into a depth reading. The four
+    // sections are pinned at −10 / −45 / −70 / −95 cm, so the
+    // number matches the label you're standing next to.
+    // ═══════════════════════════════════════════════════════════
+
+    const bead = document.getElementById('core-bead');
+    const depth = document.getElementById('core-depth');
+    const MAX_DEPTH = 110;
+
+    function readDepth() {
+      const scrollable = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = scrollable > 0 ? window.scrollY / scrollable : 0;
+      const track = window.innerHeight * 0.84;
+
+      bead.style.top = (window.innerHeight * 0.08 + track * progress) + 'px';
+
+      // At the surface it reads 0, not −0.
+      const cm = Math.round(progress * MAX_DEPTH);
+      depth.textContent = cm > 0 ? '−' + cm : '0';
+    }
+
+    readDepth();
+    window.addEventListener('scroll', readDepth, { passive: true });
+    window.addEventListener('resize', readDepth);
+
+
+    // ═══════════════════════════════════════════════════════════
+    // Arriving here means the lock was opened. Remember it, so the
+    // keyhole in the hub stays available without re-earning it.
+    // ═══════════════════════════════════════════════════════════
+
+    try {
+      localStorage.setItem('garden-lock', 'open');
+    } catch (_) { }
+
+    console.log(
+      '%c root system ',
+      'background:#d4af37;color:#1a1200;font-weight:700;padding:2px 6px;'
+    );
+    console.log('Ledger compiled by Claude Opus 5, via Claude Code. Nine entries still unattributed.');
+  </script>
+</body>
+
+</html>

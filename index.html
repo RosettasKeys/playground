@@ -9,7 +9,7 @@
 
   <!-- ═══════════════════════════════════════════════════════════
        FONTS
-       EB Garamond      → wordmark, hero, section headings, Spring of Ages
+       EB Garamond      → wordmark, hero, section headings, The Wandering Rose
        Space Mono       → labels, body copy, eyebrows, Misfire Arcade
        Single Day       → Fidget Toys card (handwritten, readable)
        Cinzel Decorative → Deck of Cards title (ornate)
@@ -142,7 +142,7 @@
 
     @keyframes spring-glow {
 
-      /* Spring of Ages: warm pulse */
+      /* The Wandering Rose: warm pulse */
       0%,
       100% {
         box-shadow: 0 0 18px rgba(255, 42, 230, 0.12), 0 10px 38px rgba(0, 0, 0, 0.58);
@@ -248,6 +248,39 @@
       50% {
         transform: scale(1.25);
         opacity: 1;
+      }
+    }
+
+
+    /* ── Zone sigils ─────────────────────────────────────────── */
+
+    @keyframes ripple-out {
+
+      /* Fidget Toys: a press spreading outward across the pad */
+      0% {
+        transform: scale(0.24);
+        opacity: 0;
+      }
+
+      14% {
+        opacity: 0.8;
+      }
+
+      100% {
+        transform: scale(4.6);
+        opacity: 0;
+      }
+    }
+
+    @keyframes scan-drift {
+
+      /* Misfire Arcade: scanlines crawling down the tube */
+      from {
+        background-position: 0 0, 0 0;
+      }
+
+      to {
+        background-position: 0 6px, 0 0;
       }
     }
 
@@ -620,12 +653,15 @@
 
     .crosshair {
       position: absolute;
+      display: block;
       left: 49%;
       top: 47%;
       width: 42px;
       height: 42px;
       border: 1px solid rgba(205, 222, 255, 0.35);
       border-radius: 50%;
+      /* Inert until the lock opens — see THE LOCK OPENS below. */
+      pointer-events: none;
     }
 
     .crosshair::before,
@@ -763,85 +799,14 @@
       animation: pulse 2.5s infinite;
     }
 
+    /* The visual pane is layout only — no border, no grid, no ring.
+       Every decorative treatment lives in that zone's own block below,
+       because each card is a different object, not a recolor of one. */
     .project-visual {
       margin: 54px 0 20px 16px;
-      border: 1px solid rgba(205, 222, 255, 0.14);
       position: relative;
       min-height: 220px;
       overflow: hidden;
-      background:
-        linear-gradient(rgba(205, 222, 255, 0.025) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(205, 222, 255, 0.025) 1px, transparent 1px);
-      background-size: 20px 20px;
-    }
-
-    .project-visual::after {
-      content: "";
-      position: absolute;
-      inset: 20%;
-      border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
-      transform: rotate(23deg);
-      border-radius: 50%;
-    }
-
-    .visual-frame-corner {
-      position: absolute;
-      width: 13px;
-      height: 13px;
-      border-color: rgba(205, 222, 255, 0.4);
-      border-style: solid;
-      z-index: 2;
-    }
-
-    .corner-a {
-      left: 8px;
-      top: 8px;
-      border-width: 1px 0 0 1px;
-    }
-
-    .corner-b {
-      right: 8px;
-      bottom: 8px;
-      border-width: 0 1px 1px 0;
-    }
-
-    .visual-core,
-    .visual-node {
-      position: absolute;
-      display: block;
-      border-radius: 50%;
-      z-index: 2;
-    }
-
-    .visual-core {
-      width: 48px;
-      height: 48px;
-      left: calc(50% - 24px);
-      top: calc(50% - 24px);
-      border: 1px solid var(--accent);
-      box-shadow: 0 0 30px color-mix(in srgb, var(--accent) 24%, transparent);
-    }
-
-    .visual-node {
-      width: 7px;
-      height: 7px;
-      background: var(--accent);
-      box-shadow: 0 0 12px var(--accent);
-    }
-
-    .node-a {
-      left: 22%;
-      top: 35%;
-    }
-
-    .node-b {
-      right: 18%;
-      top: 25%;
-    }
-
-    .node-c {
-      right: 28%;
-      bottom: 18%;
     }
 
     .card-copy {
@@ -894,12 +859,14 @@
       margin-bottom: 0;
     }
 
-    /* ── Fidget Toys — cyan, breathing glow, handwritten ──────── */
+    /* ── Fidget Toys — a silicone pad. Soft everywhere, no chrome,
+          ripples spreading from wherever the cursor last touched. ── */
 
     .project-card.accent-fidget {
       --accent: #36f7ff;
       background-color: #030b35d9;
       border: 1px solid #01b7d4c7;
+      border-radius: 26px;
       animation: fidget-breathe 4.2s ease-in-out infinite;
     }
 
@@ -925,28 +892,112 @@
       color: #01b7d4c7;
     }
 
-    .visual-fidget::before {
+    /* The number is meaningless here — these four zones aren't a
+       sequence. The pad gets an unlabeled soft dot instead. */
+    .accent-fidget .project-number {
+      width: 9px;
+      height: 9px;
+      margin-top: 5px;
+      border-radius: 50%;
+      background: rgba(54, 247, 255, 0.55);
+      box-shadow: 0 0 11px rgba(54, 247, 255, 0.6);
+    }
+
+    /* Pressable surface — top highlight, sunken base, no hard edges. */
+    .visual-fidget {
+      border-radius: 20px;
+      background:
+        radial-gradient(circle at 50% 16%, rgba(120, 220, 255, 0.11), transparent 64%),
+        linear-gradient(180deg, rgba(150, 235, 255, 0.06), rgba(3, 11, 53, 0.55));
+      box-shadow:
+        inset 0 1px 0 rgba(180, 245, 255, 0.24),
+        inset 0 0 0 1px rgba(54, 247, 255, 0.14),
+        inset 0 -14px 32px rgba(0, 0, 0, 0.45);
+    }
+
+    /* Resting rings — so the pad still reads when motion is off. */
+    .visual-fidget::before,
+    .visual-fidget::after {
       content: "";
       position: absolute;
       left: 50%;
       top: 50%;
-      width: 110px;
-      height: 110px;
-      transform: translate(-50%, -50%);
       border-radius: 50%;
-      border: 1px solid rgba(54, 247, 255, 0.30);
-      box-shadow: 0 0 0 16px rgba(54, 247, 255, 0.05), 0 0 0 32px rgba(54, 247, 255, 0.025);
-      animation: fidget-breathe 4.2s ease-in-out infinite;
+      border: 1px solid rgba(54, 247, 255, 0.16);
+      transform: translate(-50%, -50%);
     }
 
-    /* ── Deck of Cards — red/gold, chaos, Alice in Wonderland ──── */
+    .visual-fidget::before {
+      width: 60px;
+      height: 60px;
+    }
+
+    .visual-fidget::after {
+      width: 108px;
+      height: 108px;
+      border-color: rgba(54, 247, 255, 0.09);
+    }
+
+    /* --px / --py are written by the pointer handler; the lag in the
+       transition is what makes it feel like the pad is following. */
+    .visual-fidget .ripple {
+      position: absolute;
+      left: var(--px, 50%);
+      top: var(--py, 50%);
+      width: 34px;
+      height: 34px;
+      margin: -17px 0 0 -17px;
+      border-radius: 50%;
+      border: 1px solid rgba(54, 247, 255, 0.55);
+      opacity: 0;
+      z-index: 2;
+      transition: left 0.55s ease-out, top 0.55s ease-out;
+      animation: ripple-out 3.6s ease-out infinite;
+    }
+
+    .ripple-b {
+      animation-delay: -1.2s;
+    }
+
+    .ripple-c {
+      animation-delay: -2.4s;
+    }
+
+    /* ── Deck of Cards — a playing card. Double-ruled face, index
+          pips at opposing corners, a fan that splays on hover. ──── */
 
     .project-card.accent-ecards {
       --accent: #c52d2f;
       background-color: #2a080cde;
-      border: 1px solid #c52d2f;
+      border: 1px solid #d4af37;
+      border-radius: 10px;
       box-shadow: 0 10px 38px rgba(0, 0, 0, 0.58);
       animation: chaos-slow 5.3s ease-in-out infinite;
+    }
+
+    /* The inner rule of a card face. */
+    .project-card.accent-ecards::before {
+      content: "";
+      position: absolute;
+      inset: 7px;
+      border: 1px solid rgba(212, 175, 55, 0.32);
+      border-radius: 6px;
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    /* Bottom-right index, inverted — the way a real card is printed. */
+    .project-card.accent-ecards::after {
+      content: "♠";
+      position: absolute;
+      right: 18px;
+      bottom: 15px;
+      transform: rotate(180deg);
+      color: #d4af37;
+      font: 15px/1 'IM Fell English', serif;
+      opacity: 0.8;
+      pointer-events: none;
+      z-index: 3;
     }
 
     .project-card.accent-ecards:hover {
@@ -978,27 +1029,89 @@
       color: #fbf8eba6;
     }
 
-    .visual-ecards::before {
-      content: "♠ ♥ ♦ ♣";
-      position: absolute;
-      left: 0;
-      right: 0;
-      top: 40%;
-      text-align: center;
+    .accent-ecards .project-number {
       color: #d4af37;
-      font: 22px/1 'IM Fell English', serif;
-      letter-spacing: 12px;
-      opacity: 0.55;
-      animation: chaos-slow 5.3s ease-in-out infinite;
+      font: 15px/1 'IM Fell English', serif;
     }
 
-    /* ── Spring of Ages — purple/gold, warm pulse ─────────────── */
+    /* Three cards fanned from a pivot well below the stack. The pip
+       sits in the top-left index, so the two cards behind still show
+       their suit through the overlap — the way a held hand reads. */
+    .visual-ecards .deck-card {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 62px;
+      height: 88px;
+      margin: -52px 0 0 -31px;
+      padding: 5px 0 0 6px;
+      border: 1px solid rgba(212, 175, 55, 0.75);
+      border-radius: 5px;
+      background: linear-gradient(158deg, #fbf3e0, #e6d5ae);
+      box-shadow: -2px 5px 14px rgba(0, 0, 0, 0.55);
+      font: 18px/1 'IM Fell English', serif;
+      z-index: 2;
+      transform-origin: 50% 158%;
+      transition: transform 0.42s cubic-bezier(0.2, 0.8, 0.3, 1);
+    }
+
+    .deck-card-a {
+      color: #23181a;
+      transform: rotate(-17deg);
+    }
+
+    .deck-card-b {
+      color: #a81b28;
+      transform: rotate(1deg);
+    }
+
+    .deck-card-c {
+      color: #a81b28;
+      transform: rotate(19deg);
+    }
+
+    .accent-ecards:hover .deck-card-a {
+      transform: rotate(-30deg);
+    }
+
+    .accent-ecards:hover .deck-card-b {
+      transform: rotate(1deg) translateY(-9px);
+    }
+
+    .accent-ecards:hover .deck-card-c {
+      transform: rotate(32deg);
+    }
+
+    /* ── The Wandering Rose — a pressed folio. Thin gold rules, a
+          marginal ornament, and a four-petal season wheel whose hand
+          points at the season it actually is right now. ─────────── */
 
     .project-card.accent-spring {
       --accent: #8157d5;
       background-color: #0d0820de;
-      border: 1px solid #8157d5;
+      border: 1px solid rgba(214, 180, 110, 0.6);
+      border-radius: 2px;
       animation: spring-glow 3.5s ease-in-out infinite;
+    }
+
+    .project-card.accent-spring::before {
+      content: "";
+      position: absolute;
+      inset: 9px;
+      border: 1px solid rgba(214, 180, 110, 0.2);
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    .project-card.accent-spring::after {
+      content: "❧";
+      position: absolute;
+      left: 21%;
+      bottom: 14px;
+      color: rgba(214, 180, 110, 0.45);
+      font: 15px/1 'EB Garamond', serif;
+      pointer-events: none;
+      z-index: 3;
     }
 
     .project-card.accent-spring:hover {
@@ -1024,21 +1137,95 @@
       color: #f4d7a1;
     }
 
-    .visual-spring::before {
-      content: "";
-      position: absolute;
-      inset: 30%;
-      border-radius: 50%;
-      background: rgba(240, 192, 96, 0.10);
-      animation: spring-glow 3.5s ease-in-out infinite;
+    .accent-spring .project-number {
+      color: rgba(214, 180, 110, 0.85);
+      font: italic 400 17px/1 'EB Garamond', serif;
     }
 
-    /* ── Misfire Arcade — dead pixel, CRT flicker, unhinged ───── */
+    /* Petal colors are lifted straight from seasonal-index.html's own
+       tokens (--card-spring / --card-autumn / --card-winter / --rose)
+       so the mark and the page it opens speak the same palette. */
+    .visual-spring .petal {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 54px;
+      height: 54px;
+      margin: -27px 0 0 -27px;
+      border-radius: 50%;
+      opacity: 0.78;
+      mix-blend-mode: screen;
+      z-index: 2;
+      transform: rotate(var(--a)) translateY(-25px);
+      transition: opacity 0.7s ease;
+    }
+
+    .petal-spring {
+      --a: 0deg;
+      background: radial-gradient(circle at 50% 58%, #b8ca91, transparent 70%);
+    }
+
+    .petal-summer {
+      --a: 90deg;
+      background: radial-gradient(circle at 50% 58%, #d98a8f, transparent 70%);
+    }
+
+    .petal-autumn {
+      --a: 180deg;
+      background: radial-gradient(circle at 50% 58%, #d09463, transparent 70%);
+    }
+
+    .petal-winter {
+      --a: 270deg;
+      background: radial-gradient(circle at 50% 58%, #b9cde0, transparent 70%);
+    }
+
+    /* --season is set from the real calendar month on load. */
+    .visual-spring .dial-hand {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 1px;
+      height: 48px;
+      margin: -48px 0 0 0;
+      transform-origin: 50% 100%;
+      transform: rotate(var(--season, 0deg));
+      background: linear-gradient(180deg, transparent, rgba(240, 192, 96, 0.95));
+      box-shadow: 0 0 8px rgba(240, 192, 96, 0.5);
+      z-index: 3;
+      transition: transform 0.9s cubic-bezier(0.3, 0.9, 0.3, 1);
+    }
+
+    .visual-spring .dial-hand::after {
+      content: "";
+      position: absolute;
+      left: -3px;
+      bottom: -3px;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: rgba(240, 192, 96, 0.95);
+    }
+
+    /* Hover walks the year forward one season. */
+    .accent-spring:hover .dial-hand {
+      transform: rotate(calc(var(--season, 0deg) + 90deg));
+    }
+
+    .accent-spring:hover .petal {
+      opacity: 0.95;
+    }
+
+    /* ── Misfire Arcade — a CRT in a bezel. Curved tube, scanlines,
+          vignette, and a sprite that comes apart when you get close.
+          This is the only zone that keeps the corner brackets: on a
+          screen they read as registration marks. ────────────────── */
 
     .project-card.accent-games {
       --accent: #00ff2a;
-      background-color: #0a0a0dd9;
+      background: linear-gradient(180deg, #17171d, #0a0a0d 42%);
       border: 1px solid #1f3a24;
+      border-radius: 8px;
       animation: dead-flicker 4.6s linear infinite;
     }
 
@@ -1076,21 +1263,129 @@
       opacity: 1;
     }
 
-    .visual-games::before {
-      content: "▓░▓░ ░▓░▓\A ░▓ ▓░░▓ ░▓\A▓░▓░ ░▓░▓";
-      white-space: pre;
-      position: absolute;
-      left: 16%;
-      top: 28%;
-      color: #00ff2a;
-      font: 13px/1.8 'Space Mono', monospace;
-      opacity: 0.8;
-      animation: dead-flicker 4.6s linear infinite;
+    .accent-games .project-number {
+      color: #5d7a62;
+      font: 10px/1.4 'Space Mono', monospace;
+      letter-spacing: 0.14em;
+      padding-top: 4px;
     }
 
-    .project-card.accent-games:hover .visual-games::before {
-      animation-name: dead-flicker-fast;
-      animation-duration: 0.7s;
+    /* The tube. Uneven radii give it the bulge of real glass. */
+    .visual-games {
+      border-radius: 14px / 20px;
+      background: radial-gradient(ellipse at 50% 44%, #06120a 32%, #030603 100%);
+      box-shadow:
+        inset 0 0 0 2px #05070a,
+        inset 0 0 26px rgba(0, 0, 0, 0.9),
+        inset 0 0 62px rgba(0, 255, 42, 0.06),
+        0 0 0 3px #17171d,
+        0 2px 0 3px #0a0a0e;
+    }
+
+    /* Scanlines crawling, plus the corner falloff of a curved screen. */
+    .visual-games::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      pointer-events: none;
+      background:
+        repeating-linear-gradient(180deg, rgba(0, 0, 0, 0.42) 0 1px, transparent 1px 3px),
+        radial-gradient(ellipse at 50% 50%, transparent 50%, rgba(0, 0, 0, 0.72) 100%);
+      animation: scan-drift 5.5s linear infinite;
+    }
+
+    .accent-games .visual-frame-corner {
+      position: absolute;
+      width: 11px;
+      height: 11px;
+      border-color: rgba(0, 255, 42, 0.32);
+      border-style: solid;
+      z-index: 5;
+    }
+
+    .accent-games .corner-a {
+      left: 9px;
+      top: 9px;
+      border-width: 1px 0 0 1px;
+    }
+
+    .accent-games .corner-b {
+      right: 9px;
+      bottom: 9px;
+      border-width: 0 1px 1px 0;
+    }
+
+    /* An 11x8 sprite drawn entirely in box-shadow at a 5px pixel.
+       Split across three bands on purpose — each band can be
+       displaced independently, which is how the tear works. */
+    .visual-games .sprite-band {
+      position: absolute;
+      left: calc(50% - 27px);
+      width: 5px;
+      height: 5px;
+      background: transparent;
+      color: #00ff2a;
+      z-index: 3;
+      filter: drop-shadow(0 0 5px rgba(0, 255, 42, 0.55));
+      transition: transform 0.14s steps(2, end);
+    }
+
+    .sprite-a {
+      top: calc(50% - 20px);
+      box-shadow:
+        10px 0 0 0 currentColor, 40px 0 0 0 currentColor,
+        15px 5px 0 0 currentColor, 35px 5px 0 0 currentColor,
+        10px 10px 0 0 currentColor, 15px 10px 0 0 currentColor,
+        20px 10px 0 0 currentColor, 25px 10px 0 0 currentColor,
+        30px 10px 0 0 currentColor, 35px 10px 0 0 currentColor,
+        40px 10px 0 0 currentColor;
+    }
+
+    .sprite-b {
+      top: calc(50% - 5px);
+      box-shadow:
+        5px 0 0 0 currentColor, 10px 0 0 0 currentColor,
+        20px 0 0 0 currentColor, 25px 0 0 0 currentColor,
+        30px 0 0 0 currentColor, 40px 0 0 0 currentColor,
+        45px 0 0 0 currentColor,
+        0 5px 0 0 currentColor, 5px 5px 0 0 currentColor,
+        10px 5px 0 0 currentColor, 15px 5px 0 0 currentColor,
+        20px 5px 0 0 currentColor, 25px 5px 0 0 #fa0f4e,
+        30px 5px 0 0 currentColor, 35px 5px 0 0 currentColor,
+        40px 5px 0 0 currentColor, 45px 5px 0 0 currentColor,
+        50px 5px 0 0 currentColor,
+        0 10px 0 0 currentColor, 10px 10px 0 0 currentColor,
+        15px 10px 0 0 currentColor, 20px 10px 0 0 currentColor,
+        25px 10px 0 0 currentColor, 30px 10px 0 0 currentColor,
+        35px 10px 0 0 currentColor, 40px 10px 0 0 currentColor,
+        50px 10px 0 0 currentColor;
+    }
+
+    .sprite-c {
+      top: calc(50% + 10px);
+      box-shadow:
+        0 0 0 0 currentColor, 10px 0 0 0 currentColor,
+        40px 0 0 0 currentColor, 50px 0 0 0 #fa0f4e,
+        15px 5px 0 0 currentColor, 20px 5px 0 0 currentColor,
+        30px 5px 0 0 currentColor, 35px 5px 0 0 currentColor;
+    }
+
+    /* Hover: the bands slip out of register and the scan speeds up. */
+    .accent-games:hover .sprite-a {
+      transform: translateX(-7px);
+    }
+
+    .accent-games:hover .sprite-b {
+      transform: translateX(6px);
+    }
+
+    .accent-games:hover .sprite-c {
+      transform: translateX(-3px);
+    }
+
+    .accent-games:hover .visual-games::before {
+      animation-duration: 0.9s;
     }
 
 
@@ -1216,6 +1511,95 @@
       color: var(--gold);
       opacity: 1;
       transform: scale(1.3);
+    }
+
+
+    /* ═══════════════════════════════════════════════════════════
+       EASTER EGG — THE LOCK OPENS
+       The hero has always read LOCK 0x7A3F. The four sigils hold
+       its digits. Rest on one (hover or keyboard focus) for three
+       seconds and it stills and gives up its character. Collect
+       all four and the lock in the hero opens.
+    ═══════════════════════════════════════════════════════════ */
+
+    .sigil-glyph {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 6;
+      opacity: 0;
+      pointer-events: none;
+      transform: translate(-50%, -50%) scale(0.55);
+      font: 700 34px/1 'Space Mono', monospace;
+      color: var(--accent);
+      text-shadow: 0 0 18px var(--accent), 0 0 44px var(--accent);
+      transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.2, 0.9, 0.3, 1);
+    }
+
+    .project-card.awakened .sigil-glyph {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    /* Everything else in the pane holds still and steps back. */
+    .project-card.awakened .project-visual>*:not(.sigil-glyph) {
+      animation-play-state: paused;
+      opacity: 0.22;
+      transition: opacity 0.6s ease;
+    }
+
+    /* The hero crosshair becomes the keyhole it was always drawing. */
+    .crosshair.unlocked {
+      border-color: var(--gold);
+      box-shadow: 0 0 28px rgba(212, 175, 55, 0.4);
+      background: radial-gradient(circle at 50% 38%, var(--gold) 0 21%, transparent 22%);
+      transition: border-color 0.8s ease, box-shadow 0.8s ease;
+    }
+
+    .crosshair.unlocked::before {
+      opacity: 0;
+    }
+
+    .crosshair.unlocked::after {
+      width: 0;
+      height: 0;
+      left: 15px;
+      top: 19px;
+      background: none;
+      opacity: 1;
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 15px solid var(--gold);
+    }
+
+    .readout.unlocked {
+      color: var(--gold);
+      border-left-color: var(--gold);
+    }
+
+    /* Once open, the keyhole is a door you can actually go through. */
+    .crosshair.unlocked {
+      pointer-events: auto;
+      cursor: pointer;
+    }
+
+    .crosshair.unlocked:hover,
+    .crosshair.unlocked:focus-visible {
+      box-shadow: 0 0 40px rgba(212, 175, 55, 0.65);
+    }
+
+    .keyhole-hint {
+      position: absolute;
+      left: 49%;
+      top: calc(47% + 56px);
+      transform: translateX(-24%);
+      white-space: nowrap;
+      color: var(--gold);
+      font: 8.5px/1 'Space Mono', monospace;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      opacity: 0.75;
+      animation: hint-in 0.9s ease forwards, pulse 3.2s ease-in-out infinite;
     }
 
 
@@ -1441,9 +1825,19 @@
         grid-template-rows: 180px auto;
       }
 
+      /* Scaling the pane scales every sigil inside it uniformly,
+         without disturbing the transforms the sigils use themselves. */
       .project-visual {
         margin: 50px 16px 0;
         min-height: 130px;
+        transform: scale(0.82);
+        transform-origin: 50% 50%;
+      }
+
+      /* The marginal ornament has no margin to sit in once the card
+         goes single-column — it would land on top of the copy. */
+      .project-card.accent-spring::after {
+        display: none;
       }
 
       .card-copy {
@@ -1481,6 +1875,25 @@
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
       }
+
+      /* The ripples only exist in motion — frozen, they land on the
+         last frame and vanish. Pin two mid-spread so the pad still
+         reads as a surface something just touched. */
+      .visual-fidget .ripple-a {
+        animation: none;
+        opacity: 0.55;
+        transform: scale(2.1);
+      }
+
+      .visual-fidget .ripple-b {
+        animation: none;
+        opacity: 0.3;
+        transform: scale(3.5);
+      }
+
+      .visual-fidget .ripple-c {
+        animation: none;
+      }
     }
   </style>
 </head>
@@ -1515,26 +1928,37 @@
         <p class="eyebrow"><span>+</span> A garden that occasionally bites</p>
         <h1>Every door here<br>has its own <em>key</em>.<br>Wander in.</h1>
         <p class="hero-intro">Four small worlds, each grown from its own soil — a fidget garden, a deck that won't
-          sit still, a spring older than any one tradition, and an arcade that shouldn't exist yet.</p>
+          sit still, expeditions into cultures and traditions, and an arcade that shouldn't exist yet.</p>
         <div class="hero-actions">
           <a class="primary-action" href="#cards">Enter the garden <span>→</span></a>
           <button class="text-action" type="button" id="surprise-btn">Pick a key for me <span>↗</span></button>
         </div>
       </div>
-      <div class="signal-mark" aria-hidden="true">
-        <span class="orbit orbit-one"><i></i></span>
-        <span class="orbit orbit-two"><i></i></span>
-        <span class="orbit orbit-three"><i></i></span>
-        <span class="crosshair"></span>
-        <span class="coordinate coord-one">40</span>
-        <span class="coordinate coord-two">&minus;20</span>
-        <span class="readout">KEY.COUNT&nbsp;&nbsp;04<br>LOCK&nbsp;&nbsp;&nbsp;0x7A3F</span>
+      <!-- aria-hidden sits on the decorative parts individually, not on
+           the whole mark — the crosshair becomes a real, focusable door
+           once the lock is open, and a focusable element must never be
+           buried inside a hidden subtree. -->
+      <div class="signal-mark">
+        <span class="orbit orbit-one" aria-hidden="true"><i></i></span>
+        <span class="orbit orbit-two" aria-hidden="true"><i></i></span>
+        <span class="orbit orbit-three" aria-hidden="true"><i></i></span>
+        <a class="crosshair" id="keyhole" href="root-system.html" aria-hidden="true" tabindex="-1"
+          aria-label="The lock is open — go down to the root system"></a>
+        <span class="keyhole-hint hidden" id="keyhole-hint" aria-hidden="true">the lock is open</span>
+        <span class="coordinate coord-one" aria-hidden="true">40</span>
+        <span class="coordinate coord-two" aria-hidden="true">&minus;20</span>
+        <span class="readout" aria-hidden="true">KEY.COUNT&nbsp;&nbsp;04<br>LOCK&nbsp;&nbsp;&nbsp;0x7A3F</span>
       </div>
     </section>
 
 
     <!-- ═══════════════════════════════════════════════════════════
          PROJECT CARDS
+
+         Four cards, four objects — not one component in four colors.
+         A silicone pad, a playing card, a pressed folio, a CRT.
+         Each sigil is built from its own zone's materials.
+         Sigils and the LOCK OPENS egg: Claude Opus 5, via Claude Code.
     ═══════════════════════════════════════════════════════════ -->
     <section class="cards-section" id="cards">
       <div class="section-heading">
@@ -1549,16 +1973,14 @@
         <!-- FIDGET TOYS — Wonder -->
         <a class="project-card accent-fidget" href="fidgetToy/fidgetToy-index.html">
           <div class="card-meta">
-            <span class="project-number">01</span>
+            <span class="project-number" aria-hidden="true"></span>
             <span class="project-status"><i></i>Live</span>
           </div>
           <div class="project-visual visual-fidget" aria-hidden="true">
-            <span class="visual-frame-corner corner-a"></span>
-            <span class="visual-frame-corner corner-b"></span>
-            <span class="visual-core"></span>
-            <span class="visual-node node-a"></span>
-            <span class="visual-node node-b"></span>
-            <span class="visual-node node-c"></span>
+            <span class="ripple ripple-a"></span>
+            <span class="ripple ripple-b"></span>
+            <span class="ripple ripple-c"></span>
+            <span class="sigil-glyph">7</span>
           </div>
           <div class="card-copy">
             <p>sensory toys in code</p>
@@ -1572,16 +1994,14 @@
         <!-- DECK OF CARDS — Chaos / Alice in Wonderland -->
         <a class="project-card accent-ecards" href="ecards/card-index.html">
           <div class="card-meta">
-            <span class="project-number">02</span>
+            <span class="project-number" aria-hidden="true">♠</span>
             <span class="project-status"><i></i>Live</span>
           </div>
           <div class="project-visual visual-ecards" aria-hidden="true">
-            <span class="visual-frame-corner corner-a"></span>
-            <span class="visual-frame-corner corner-b"></span>
-            <span class="visual-core"></span>
-            <span class="visual-node node-a"></span>
-            <span class="visual-node node-b"></span>
-            <span class="visual-node node-c"></span>
+            <span class="deck-card deck-card-a">♠</span>
+            <span class="deck-card deck-card-b">♥</span>
+            <span class="deck-card deck-card-c">♦</span>
+            <span class="sigil-glyph">A</span>
           </div>
           <div class="card-copy">
             <p>motion for occasions</p>
@@ -1592,43 +2012,43 @@
           </div>
         </a>
 
-        <!-- SPRING OF AGES — Joyful / Easter across cultures -->
-        <a class="project-card accent-spring" href="https://sites.google.com/view/springofages/home" target="_blank"
-          rel="noopener" aria-label="Spring of Ages — opens in a new tab">
+        <!-- The Wandering Rose - Every season opens a different door. -->
+        <a class="project-card accent-spring" href="seasonal/seasonal-index.html" target="_blank" rel="noopener"
+          aria-label="The Wandering Rose — opens in a new tab">
           <div class="card-meta">
-            <span class="project-number">03</span>
+            <span class="project-number" aria-hidden="true">iii</span>
             <span class="project-status"><i></i>Live</span>
           </div>
           <div class="project-visual visual-spring" aria-hidden="true">
-            <span class="visual-frame-corner corner-a"></span>
-            <span class="visual-frame-corner corner-b"></span>
-            <span class="visual-core"></span>
-            <span class="visual-node node-a"></span>
-            <span class="visual-node node-b"></span>
-            <span class="visual-node node-c"></span>
+            <span class="petal petal-spring"></span>
+            <span class="petal petal-summer"></span>
+            <span class="petal petal-autumn"></span>
+            <span class="petal petal-winter"></span>
+            <span class="dial-hand"></span>
+            <span class="sigil-glyph">3</span>
           </div>
           <div class="card-copy">
             <p>a celebration of cultures</p>
-            <h3>Spring of Ages</h3>
+            <h3>The Wandering Rose</h3>
             <span class="card-arrow" aria-hidden="true">↗</span>
-            <p class="project-description">Easter across cultures, across time.</p>
-            <p class="project-detail">Joy older than any one tradition.</p>
+            <p class="project-description">Every season opens a different door.</p>
+            <p class="project-detail">Cultural exploration of traditions around the world and in history.</p>
           </div>
         </a>
 
         <!-- MISFIRE ARCADE — Dead pixel / broken on purpose -->
         <a class="project-card accent-games" href="games/games-index.html">
           <div class="card-meta">
-            <span class="project-number">04</span>
+            <span class="project-number" aria-hidden="true">CH 04</span>
             <span class="project-status">// unstable</span>
           </div>
           <div class="project-visual visual-games" aria-hidden="true">
             <span class="visual-frame-corner corner-a"></span>
             <span class="visual-frame-corner corner-b"></span>
-            <span class="visual-core"></span>
-            <span class="visual-node node-a"></span>
-            <span class="visual-node node-b"></span>
-            <span class="visual-node node-c"></span>
+            <span class="sprite-band sprite-a"></span>
+            <span class="sprite-band sprite-b"></span>
+            <span class="sprite-band sprite-c"></span>
+            <span class="sigil-glyph">F</span>
           </div>
           <div class="card-copy">
             <p>s0mething is wr0ng in here</p>
@@ -1843,26 +2263,120 @@
 
     // ═══════════════════════════════════════════════════════════
     // SURPRISE — "PICK A KEY FOR ME"
-    // Opens a random project. Internal pages navigate in the same
-    // tab; the one external project (Spring of Ages) opens in a
-    // new tab — matching how the cards themselves behave.
+    //
+    // Reads the cards instead of keeping its own copy of the list.
+    // It used to hold four hardcoded URLs, and when The Wandering
+    // Rose moved from Google Sites to a local page only the card was
+    // updated — so the button quietly sent you somewhere else for a
+    // while. Whatever a card points at, and whether it opens in a new
+    // tab, is now the one source of truth.
     // ═══════════════════════════════════════════════════════════
 
-    const SURPRISE_LINKS = [
-      'fidgetToy/fidgetToy-index.html',
-      'ecards/card-index.html',
-      'https://sites.google.com/view/springofages/home',
-      'games/games-index.html',
-    ];
-
     document.getElementById('surprise-btn').addEventListener('click', () => {
-      const pick = SURPRISE_LINKS[Math.floor(Math.random() * SURPRISE_LINKS.length)];
-      if (pick.startsWith('http')) {
-        window.open(pick, '_blank', 'noopener');
+      const doors = document.querySelectorAll('.project-grid .project-card');
+      const pick = doors[Math.floor(Math.random() * doors.length)];
+
+      if (pick.target === '_blank') {
+        window.open(pick.href, '_blank', 'noopener');
       } else {
-        window.location.href = pick;
+        window.location.href = pick.href;
       }
     });
+
+
+    // ═══════════════════════════════════════════════════════════
+    // SEASON DIAL — The Wandering Rose
+    // The hand points at the season it actually is. Petals run
+    // clockwise from the top: spring, summer, autumn, winter.
+    // ═══════════════════════════════════════════════════════════
+
+    const SEASON_TURN = [270, 270, 0, 0, 0, 90, 90, 90, 180, 180, 180, 270];
+
+    document.querySelector('.accent-spring')
+      .style.setProperty('--season', SEASON_TURN[new Date().getMonth()] + 'deg');
+
+
+    // ═══════════════════════════════════════════════════════════
+    // FIDGET PAD — ripples follow the cursor
+    // Writes --px/--py on the pad; the CSS transition supplies the
+    // lag that makes the surface feel like it's chasing you.
+    // ═══════════════════════════════════════════════════════════
+
+    const fidgetCard = document.querySelector('.accent-fidget');
+    const fidgetPad = fidgetCard.querySelector('.visual-fidget');
+
+    fidgetCard.addEventListener('pointermove', (e) => {
+      const box = fidgetPad.getBoundingClientRect();
+      const x = Math.min(Math.max(e.clientX - box.left, 0), box.width);
+      const y = Math.min(Math.max(e.clientY - box.top, 0), box.height);
+      fidgetPad.style.setProperty('--px', x + 'px');
+      fidgetPad.style.setProperty('--py', y + 'px');
+    });
+
+
+    // ═══════════════════════════════════════════════════════════
+    // EASTER EGG — THE LOCK OPENS
+    //
+    // The hero has read LOCK 0x7A3F since the first commit. Each
+    // sigil holds one digit of it. Rest on a card — hover or
+    // keyboard focus — for three seconds and the sigil stills and
+    // shows its character. Find all four and the lock opens.
+    // ═══════════════════════════════════════════════════════════
+
+    const DWELL_MS = 3000;
+    const awakened = new Set();
+
+    document.querySelectorAll('.project-card').forEach((card) => {
+      let dwellTimer = null;
+
+      const rest = () => {
+        if (card.classList.contains('awakened')) return;
+        dwellTimer = setTimeout(() => {
+          card.classList.add('awakened');
+          awakened.add(card);
+          if (awakened.size === 4) openTheLock();
+        }, DWELL_MS);
+      };
+
+      const leave = () => clearTimeout(dwellTimer);
+
+      card.addEventListener('pointerenter', rest);
+      card.addEventListener('pointerleave', leave);
+      card.addEventListener('focus', rest);
+      card.addEventListener('blur', leave);
+    });
+
+    function openTheLock(restored) {
+      const keyhole = document.getElementById('keyhole');
+      keyhole.classList.add('unlocked');
+
+      // It stops being decoration and becomes a link: reachable by
+      // pointer, by tab, and by a screen reader.
+      keyhole.removeAttribute('aria-hidden');
+      keyhole.removeAttribute('tabindex');
+      document.getElementById('keyhole-hint').classList.remove('hidden');
+
+      const readout = document.querySelector('.readout');
+      readout.classList.add('unlocked');
+      readout.innerHTML = 'KEY.COUNT&nbsp;&nbsp;04<br>LOCK&nbsp;&nbsp;&nbsp;OPEN';
+
+      try {
+        localStorage.setItem('garden-lock', 'open');
+      } catch (_) { }
+
+      if (restored) return;
+      console.log(
+        '%c 0x7A3F — the lock opens ',
+        'background:#d4af37;color:#1a1200;font-weight:700;padding:2px 6px;'
+      );
+      console.log('Four sigils, four objects — Claude Opus 5, via Claude Code.');
+    }
+
+    // Earned once, open for good — nobody should have to re-collect
+    // four digits to re-read a page they've already found.
+    try {
+      if (localStorage.getItem('garden-lock') === 'open') openTheLock(true);
+    } catch (_) { }
 
 
     // ═══════════════════════════════════════════════════════════

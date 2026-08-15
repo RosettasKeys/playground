@@ -1,0 +1,1622 @@
+<!doctype html>
+<html lang="en" data-theme="twilight">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="The Wandering Rose — stories, traditions, and curiosities gathered one season at a time.">
+  <meta name="theme-color" content="#352b4b">
+  <title>The Wandering Rose — A Seasonal Collection</title>
+  <link rel="icon" type="image/png" href="../favicon/RosettasKeysLogoFavi2-512x402.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Fraunces:opsz,wght@9..144,300;9..144,400;9..144,500;9..144,600&display=swap" rel="stylesheet">
+  <script>
+    try {
+      const savedTheme = localStorage.getItem('wandering-rose-theme');
+      if (['dawn', 'twilight', 'night'].includes(savedTheme)) {
+        document.documentElement.dataset.theme = savedTheme;
+      }
+    } catch (_) {}
+  </script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --page: #171421;
+      --page-deep: #0d0b14;
+      --surface: rgba(49, 41, 66, 0.72);
+      --surface-solid: #302841;
+      --surface-soft: rgba(255, 255, 255, 0.045);
+      --ink: #f3ebdf;
+      --muted: #bdb1c3;
+      --faint: #8f8396;
+      --line: rgba(238, 221, 194, 0.19);
+      --line-strong: rgba(238, 221, 194, 0.42);
+      --rose: #d98a8f;
+      --rose-deep: #8f485f;
+      --leaf: #8ca88f;
+      --gold: #d6b46e;
+      --glow: rgba(205, 148, 132, 0.14);
+      --shadow: rgba(3, 2, 8, 0.46);
+      --hero-haze: rgba(113, 83, 135, 0.2);
+      --card-spring: #b8ca91;
+      --card-autumn: #d09463;
+      --card-winter: #b9cde0;
+      --ring: #f2c782;
+      --toggle-bg: rgba(12, 10, 18, 0.38);
+    }
+
+    html[data-theme="dawn"] {
+      color-scheme: light;
+      --page: #f2e9dc;
+      --page-deep: #e3d5c3;
+      --surface: rgba(255, 251, 244, 0.77);
+      --surface-solid: #fbf4e9;
+      --surface-soft: rgba(98, 65, 52, 0.055);
+      --ink: #352b2c;
+      --muted: #675b5b;
+      --faint: #887a77;
+      --line: rgba(76, 54, 50, 0.17);
+      --line-strong: rgba(76, 54, 50, 0.34);
+      --rose: #a94e5b;
+      --rose-deep: #7f3347;
+      --leaf: #617b60;
+      --gold: #9f742d;
+      --glow: rgba(229, 154, 113, 0.2);
+      --shadow: rgba(85, 58, 48, 0.16);
+      --hero-haze: rgba(236, 166, 133, 0.27);
+      --card-spring: #748c4f;
+      --card-autumn: #a45f36;
+      --card-winter: #607c91;
+      --ring: #845f24;
+      --toggle-bg: rgba(255, 250, 241, 0.72);
+    }
+
+    html[data-theme="night"] {
+      color-scheme: dark;
+      --page: #070b11;
+      --page-deep: #020407;
+      --surface: rgba(13, 21, 30, 0.82);
+      --surface-solid: #101923;
+      --surface-soft: rgba(196, 220, 231, 0.04);
+      --ink: #e4e8e7;
+      --muted: #9ca9ad;
+      --faint: #6e7d82;
+      --line: rgba(182, 210, 219, 0.15);
+      --line-strong: rgba(182, 210, 219, 0.35);
+      --rose: #bc6379;
+      --rose-deep: #79354e;
+      --leaf: #668579;
+      --gold: #b29b60;
+      --glow: rgba(85, 124, 140, 0.12);
+      --shadow: rgba(0, 0, 0, 0.58);
+      --hero-haze: rgba(47, 78, 96, 0.18);
+      --card-spring: #78926d;
+      --card-autumn: #bf774a;
+      --card-winter: #8caebf;
+      --ring: #dbc37d;
+      --toggle-bg: rgba(2, 5, 8, 0.64);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--page-deep);
+    }
+
+    body {
+      margin: 0;
+      min-width: 320px;
+      overflow-x: hidden;
+      background:
+        radial-gradient(circle at 76% 4%, var(--hero-haze), transparent 31rem),
+        radial-gradient(circle at 8% 40%, var(--glow), transparent 27rem),
+        linear-gradient(180deg, var(--page) 0%, var(--page) 65%, var(--page-deep) 100%);
+      color: var(--ink);
+      font-family: "Fraunces", Georgia, serif;
+      transition: background-color 500ms ease, color 350ms ease;
+    }
+
+    body::before {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      content: "";
+      opacity: 0.2;
+      pointer-events: none;
+      background-image:
+        linear-gradient(100deg, transparent 0 49.7%, var(--line) 50%, transparent 50.3%),
+        linear-gradient(10deg, transparent 0 49.7%, var(--line) 50%, transparent 50.3%);
+      background-size: 11rem 11rem;
+      mask-image: linear-gradient(to bottom, black, transparent 70%);
+    }
+
+    a { color: inherit; }
+
+    button, a { -webkit-tap-highlight-color: transparent; }
+
+    :focus-visible {
+      outline: 2px solid var(--ring);
+      outline-offset: 4px;
+    }
+
+    .skip-link {
+      position: fixed;
+      top: 0.75rem;
+      left: 0.75rem;
+      z-index: 20;
+      padding: 0.65rem 0.9rem;
+      transform: translateY(-180%);
+      border-radius: 999px;
+      background: var(--surface-solid);
+      font: 500 0.72rem/1 "DM Mono", monospace;
+    }
+
+    .skip-link:focus { transform: translateY(0); }
+
+    .site-header {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      width: min(1180px, calc(100% - 2rem));
+      margin: 0 auto;
+      padding: 1.2rem 0;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .home-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      color: var(--muted);
+      text-decoration: none;
+      font: 400 0.68rem/1.3 "DM Mono", monospace;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .home-link::before {
+      content: "↖";
+      color: var(--rose);
+      font-size: 1rem;
+      transition: transform 180ms ease;
+    }
+
+    .home-link:hover::before { transform: translate(-2px, -2px); }
+
+    .theme-picker {
+      display: flex;
+      padding: 0.25rem;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--toggle-bg);
+      box-shadow: 0 8px 32px var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+
+    .theme-picker button {
+      position: relative;
+      border: 0;
+      border-radius: 999px;
+      padding: 0.55rem 0.72rem;
+      background: transparent;
+      color: var(--faint);
+      cursor: pointer;
+      font: 500 0.6rem/1 "DM Mono", monospace;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .theme-picker button[aria-checked="true"] {
+      background: var(--surface-solid);
+      color: var(--ink);
+      box-shadow: 0 2px 12px var(--shadow);
+    }
+
+    .theme-picker button::before {
+      display: block;
+      width: 0.36rem;
+      height: 0.36rem;
+      margin: 0 auto 0.35rem;
+      border: 1px solid currentColor;
+      border-radius: 50%;
+      content: "";
+    }
+
+    .theme-picker button[data-set-theme="dawn"]::before { background: #e8aa70; }
+    .theme-picker button[data-set-theme="twilight"]::before { background: #8d6ca5; }
+    .theme-picker button[data-set-theme="night"]::before { background: #29455c; }
+
+    .hero {
+      position: relative;
+      display: grid;
+      width: min(1180px, calc(100% - 2rem));
+      min-height: min(720px, calc(100svh - 78px));
+      margin: 0 auto;
+      padding: clamp(3.5rem, 9vw, 8rem) 0 clamp(5rem, 10vw, 8rem);
+      grid-template-columns: minmax(0, 1.05fr) minmax(280px, 0.8fr);
+      align-items: center;
+      gap: clamp(2rem, 7vw, 7rem);
+    }
+
+    .eyebrow,
+    .section-label,
+    .season-kicker,
+    .status,
+    .card-link,
+    .footer-note {
+      font-family: "DM Mono", monospace;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow {
+      display: flex;
+      margin: 0 0 1.2rem;
+      align-items: center;
+      gap: 0.8rem;
+      color: var(--gold);
+      font-size: 0.68rem;
+    }
+
+    .eyebrow::before {
+      width: 2.4rem;
+      height: 1px;
+      background: currentColor;
+      content: "";
+    }
+
+    h1 {
+      max-width: 760px;
+      margin: 0;
+      font-size: clamp(4.2rem, 10.5vw, 9.6rem);
+      font-weight: 300;
+      line-height: 0.74;
+      letter-spacing: -0.075em;
+    }
+
+    h1 .the {
+      display: block;
+      margin: 0 0 0.42em 0.15em;
+      color: var(--muted);
+      font-size: 0.19em;
+      font-style: italic;
+      letter-spacing: 0.02em;
+    }
+
+    h1 .wandering {
+      position: relative;
+      z-index: 1;
+      display: block;
+      transform: translateX(-0.03em);
+      font-style: italic;
+    }
+
+    h1 .rose-word {
+      position: relative;
+      display: inline-block;
+      margin-left: 0.58em;
+      color: var(--rose);
+    }
+
+    h1 .rose-word::after {
+      position: absolute;
+      top: 0.09em;
+      right: -0.2em;
+      width: 0.16em;
+      height: 0.16em;
+      transform: rotate(38deg);
+      border-radius: 70% 10% 70% 40%;
+      background: var(--leaf);
+      content: "";
+    }
+
+    .subtitle {
+      position: relative;
+      max-width: 33rem;
+      margin: 2.7rem 0 0 clamp(1rem, 9vw, 7.5rem);
+      padding-left: 3.8rem;
+      color: var(--muted);
+      font-size: clamp(1.05rem, 2vw, 1.35rem);
+      font-style: italic;
+      font-weight: 300;
+      line-height: 1.55;
+    }
+
+    .subtitle::before {
+      position: absolute;
+      top: 0.75em;
+      left: 0;
+      width: 2.8rem;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--rose));
+      content: "";
+    }
+
+    .hero-copy {
+      max-width: 34rem;
+    }
+
+    .hero-note {
+      margin: 2rem 0 0 clamp(1rem, 9vw, 7.5rem);
+      color: var(--faint);
+      font: 300 0.68rem/1.7 "DM Mono", monospace;
+    }
+
+    .rose-compass {
+      position: relative;
+      width: min(34vw, 370px);
+      aspect-ratio: 1;
+      margin: auto;
+      border: 1px solid var(--line);
+      border-radius: 50%;
+      box-shadow:
+        inset 0 0 0 2.2rem var(--surface-soft),
+        0 0 80px var(--glow);
+    }
+
+    .compass-plate {
+      position: absolute;
+      inset: 0;
+      display: block;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      pointer-events: none;
+    }
+
+    .plate-ring {
+      fill: none;
+      stroke: var(--line);
+      stroke-width: 0.8;
+    }
+
+    /* Graduated bezel drawn as two dashed circles — one dash per tick. */
+    .plate-tick-minor {
+      fill: none;
+      stroke: var(--line);
+      stroke-width: 5;
+    }
+
+    .plate-tick-major {
+      fill: none;
+      stroke: var(--line-strong);
+      stroke-width: 9;
+    }
+
+    .plate-ordinal {
+      fill: var(--faint);
+      font: 400 5.5px "DM Mono", monospace;
+      letter-spacing: 0.1em;
+    }
+
+    /* fill/stroke are set here and inherit down into each <use> shadow tree;
+       the two halves of a point differ only by fill-opacity on the paths. */
+    .plate-points {
+      fill: var(--gold);
+      stroke: var(--line-strong);
+      stroke-width: 0.7;
+      stroke-linejoin: round;
+    }
+
+    .plate-hub {
+      fill: none;
+      stroke: var(--line-strong);
+      stroke-width: 0.8;
+    }
+
+    .needle-north { fill: var(--gold); }
+
+    /* Hollow counterweight — the standard way a compass marks its south half. */
+    .needle-south {
+      fill: none;
+      stroke: var(--line-strong);
+      stroke-width: 0.8;
+    }
+
+    .bloom-leaves {
+      fill: var(--leaf);
+      opacity: 0.45;
+    }
+
+    .bloom-outer {
+      fill: url(#wr-bloom);
+      stroke: color-mix(in srgb, var(--rose) 60%, transparent);
+      stroke-width: 0.6;
+    }
+
+    .bloom-mid {
+      fill: color-mix(in srgb, var(--rose-deep) 55%, var(--rose));
+      stroke: color-mix(in srgb, var(--rose-deep) 70%, transparent);
+      stroke-width: 0.5;
+    }
+
+    .bloom-inner {
+      fill: var(--rose-deep);
+      opacity: 0.88;
+    }
+
+    .bloom-core { fill: var(--rose-deep); }
+
+    .bloom-spiral {
+      fill: none;
+      stroke: var(--rose);
+      stroke-width: 1.1;
+      stroke-linecap: round;
+    }
+
+    .bloom-sheen {
+      fill: var(--ink);
+      opacity: 0.06;
+    }
+
+    .compass-needle {
+      transform-box: view-box;
+      transform-origin: 100px 100px;
+      pointer-events: auto;
+      touch-action: none;
+      animation: needle-sway 13s ease-in-out infinite alternate;
+      transition: transform 1400ms cubic-bezier(0.2, 0.9, 0.2, 1);
+    }
+
+    /* A wider invisible diamond — the drawn needle is far too thin to grab.
+       pointer-events:all hit-tests it despite fill:none. */
+    .needle-grab {
+      fill: none;
+      cursor: grab;
+      pointer-events: all;
+    }
+
+    .compass-needle.is-spinning {
+      animation: none;
+      transition: none;
+    }
+
+    .compass-needle.is-spinning .needle-grab { cursor: grabbing; }
+
+    /* ── The salamander in the lodestone ──────────────────────────────
+       Same creature that swims in fidgetToy/toys/gravity-harp.html and
+       signs the glass in pressure-fracture.html. Here it sleeps curled
+       in the rose's spiral until the needle is spun a full turn. */
+    .wr-salamander {
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 400ms ease;
+    }
+
+    .compass-plate.sal-walking .wr-salamander,
+    .compass-plate.sal-curling .wr-salamander,
+    .compass-plate.sal-still .wr-salamander { opacity: 1; }
+
+    .sal-body { fill: var(--card-autumn); }
+    .sal-spot { fill: var(--gold); }
+
+    .sal-eye {
+      fill: none;
+      stroke: var(--page-deep);
+      stroke-width: 2;
+    }
+
+    .sal-orbit,
+    .sal-out {
+      transform-box: view-box;
+      transform-origin: 100px 100px;
+    }
+
+    .sal-wiggle {
+      transform-box: fill-box;
+      transform-origin: center;
+    }
+
+    .compass-plate.sal-walking .sal-out {
+      animation: sal-uncurl 900ms cubic-bezier(0.3, 0.9, 0.4, 1) forwards;
+    }
+
+    /* A full 360 lands it back at N, so the curl-back has nothing to snap. */
+    .compass-plate.sal-walking .sal-orbit {
+      animation: sal-lap 7000ms linear 900ms forwards;
+    }
+
+    /* Reversed uncurl — it slips back down into the rose's spiral. */
+    .compass-plate.sal-curling .sal-out {
+      animation: sal-uncurl 600ms ease-in reverse forwards;
+    }
+
+    .compass-plate.sal-walking .sal-wiggle {
+      animation: sal-wiggle 640ms ease-in-out infinite alternate;
+    }
+
+    /* Reduced-motion path: no lap, it just surfaces on the ring and rests. */
+    .compass-plate.sal-still .sal-out { transform: translateY(-58px); }
+
+    @keyframes sal-uncurl {
+      from { transform: translateY(0) scale(0.25); }
+      to { transform: translateY(-58px) scale(1); }
+    }
+
+    @keyframes sal-lap {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes sal-wiggle {
+      from { transform: skewY(-5deg); }
+      to { transform: skewY(5deg); }
+    }
+
+    .rose-compass.is-kindled {
+      box-shadow:
+        inset 0 0 0 2.2rem var(--surface-soft),
+        0 0 110px color-mix(in srgb, var(--card-autumn) 32%, transparent);
+    }
+
+    /* Each cardinal warms as the salamander passes under it. Beats the
+       button.direction.s hover/pressed rules on specificity. */
+    .rose-compass .direction.is-warm {
+      color: var(--card-autumn);
+      text-shadow: 0 0 14px color-mix(in srgb, var(--card-autumn) 70%, transparent);
+      transition: color 220ms ease, text-shadow 220ms ease;
+    }
+
+    .direction {
+      position: absolute;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: var(--faint);
+      font: 400 0.58rem/1 "DM Mono", monospace;
+      letter-spacing: 0.14em;
+    }
+
+    .direction.n { top: 5%; left: 50%; transform: translateX(-50%); }
+    .direction.e { top: 50%; right: 5%; transform: translateY(-50%); }
+    .direction.s { bottom: 5%; left: 50%; transform: translateX(-50%); }
+    .direction.w { top: 50%; left: 5%; transform: translateY(-50%); }
+
+    button.direction.s {
+      z-index: 4;
+      min-width: 1.8rem;
+      min-height: 1.8rem;
+      border: 1px solid transparent;
+      border-radius: 50%;
+      color: var(--muted);
+      cursor: pointer;
+      transition: color 180ms ease, border-color 180ms ease, background 180ms ease;
+    }
+
+    button.direction.s:hover,
+    button.direction.s[aria-pressed="true"] {
+      border-color: var(--line-strong);
+      background: var(--surface-solid);
+      color: var(--rose);
+    }
+
+    .rose-compass.has-bearing {
+      box-shadow:
+        inset 0 0 0 2.2rem var(--surface-soft),
+        0 0 100px color-mix(in srgb, var(--card-winter) 22%, transparent);
+    }
+
+    .rose-compass.has-bearing .compass-needle {
+      animation: none;
+      transform: rotate(180deg);
+    }
+
+    .scroll-cue {
+      position: absolute;
+      bottom: 2rem;
+      left: 0;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.7rem;
+      color: var(--faint);
+      text-decoration: none;
+      font: 400 0.62rem/1 "DM Mono", monospace;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .scroll-cue::after { content: "↓"; color: var(--rose); }
+
+    .collection {
+      position: relative;
+      width: min(1060px, calc(100% - 2rem));
+      margin: 0 auto;
+      padding: clamp(5rem, 10vw, 9rem) 0 7rem;
+    }
+
+    .collection::before {
+      position: absolute;
+      top: 13rem;
+      bottom: 8rem;
+      left: 50%;
+      width: 1px;
+      background: linear-gradient(var(--line), var(--line-strong), var(--line));
+      content: "";
+      transition: width 800ms ease, background 800ms ease, box-shadow 800ms ease;
+    }
+
+    .collection.river-awake::before {
+      width: 5px;
+      border-radius: 999px;
+      background: linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--card-winter) 28%, transparent),
+        color-mix(in srgb, var(--card-winter) 75%, var(--rose) 25%),
+        color-mix(in srgb, var(--card-winter) 35%, transparent)
+      );
+      box-shadow: 0 0 20px color-mix(in srgb, var(--card-winter) 22%, transparent);
+    }
+
+    .river-boat {
+      --boat-y: 13rem;
+      position: absolute;
+      top: var(--boat-y);
+      left: 50%;
+      z-index: 5;
+      display: none;
+      width: 78px;
+      height: 68px;
+      transform: translate(-50%, -50%) rotate(-3deg);
+      filter: drop-shadow(0 8px 8px var(--shadow));
+      pointer-events: none;
+      transition: top 120ms linear, transform 500ms ease;
+    }
+
+    .river-awake .river-boat { display: block; }
+
+    .river-boat::after {
+      position: absolute;
+      right: -1rem;
+      bottom: 0.2rem;
+      width: 6.5rem;
+      height: 0.6rem;
+      border-bottom: 1px solid color-mix(in srgb, var(--card-winter) 55%, transparent);
+      border-radius: 50%;
+      content: "";
+    }
+
+    .river-boat .mast {
+      position: absolute;
+      top: 6px;
+      left: 48px;
+      width: 1px;
+      height: 48px;
+      background: var(--gold);
+    }
+
+    .river-boat .sail {
+      position: absolute;
+      top: 5px;
+      left: 4px;
+      display: grid;
+      width: 44px;
+      height: 43px;
+      isolation: isolate;
+      padding: 23px 3px 3px 15px;
+      place-items: end center;
+      background: transparent;
+      color: var(--page-deep);
+      font: 500 0.29rem/1.15 "DM Mono", monospace;
+      letter-spacing: -0.02em;
+      text-align: center;
+      text-transform: uppercase;
+    }
+
+    .river-boat .sail::before {
+      position: absolute;
+      inset: 0;
+      z-index: -1;
+      clip-path: polygon(100% 0, 100% 100%, 0 82%);
+      background: color-mix(in srgb, var(--ink) 88%, var(--card-winter));
+      content: "";
+    }
+
+    .river-boat .hull {
+      position: absolute;
+      right: 2px;
+      bottom: 5px;
+      width: 73px;
+      height: 18px;
+      clip-path: polygon(0 0, 100% 0, 80% 100%, 22% 100%);
+      background: var(--rose-deep);
+      box-shadow: inset 0 5px color-mix(in srgb, var(--rose) 32%, transparent);
+    }
+
+    .river-boat.is-docked {
+      transform: translate(-50%, -50%) rotate(2deg) scale(1.32);
+    }
+
+    .river-dock {
+      position: relative;
+      z-index: 6;
+      max-width: 31rem;
+      margin: -3rem 0 0 auto;
+      padding: 1.25rem 1.45rem;
+      transform: translateY(1rem);
+      border: 1px solid var(--line);
+      border-radius: 1rem 1rem 3rem 1rem;
+      background: var(--surface);
+      box-shadow: 0 20px 60px var(--shadow);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 500ms ease, transform 500ms ease;
+      backdrop-filter: blur(12px);
+    }
+
+    .river-dock.is-visible {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .river-dock p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1rem;
+      font-style: italic;
+      font-weight: 300;
+      line-height: 1.55;
+    }
+
+    .river-dock span {
+      display: block;
+      margin-top: 0.8rem;
+      color: var(--card-winter);
+      font: 500 0.64rem/1.4 "DM Mono", monospace;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .bearing-note {
+      position: fixed;
+      right: 1rem;
+      bottom: 1rem;
+      z-index: 30;
+      max-width: 17rem;
+      padding: 0.75rem 1rem;
+      transform: translateY(1rem);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface-solid);
+      box-shadow: 0 16px 45px var(--shadow);
+      color: var(--muted);
+      font: 400 0.63rem/1.45 "DM Mono", monospace;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 250ms ease, transform 250ms ease;
+    }
+
+    .bearing-note.is-visible {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    /* The pill only works on one line; the signed note runs to two. */
+    .bearing-note.is-signed { border-radius: 1.25rem; }
+
+    .bearing-note small {
+      display: block;
+      margin-top: 0.35rem;
+      color: var(--card-autumn);
+      font-size: 0.56rem;
+      letter-spacing: 0.08em;
+    }
+
+    .collection-header {
+      position: relative;
+      z-index: 1;
+      max-width: 690px;
+      margin-bottom: clamp(5rem, 10vw, 9rem);
+      padding: 0 0 2rem;
+      background: var(--page);
+    }
+
+    .section-label {
+      margin: 0 0 1.2rem;
+      color: var(--gold);
+      font-size: 0.65rem;
+    }
+
+    .collection-header h2 {
+      margin: 0;
+      font-size: clamp(2.8rem, 6vw, 5.2rem);
+      font-weight: 300;
+      line-height: 0.98;
+      letter-spacing: -0.045em;
+    }
+
+    .collection-header p:last-child {
+      max-width: 580px;
+      margin: 1.5rem 0 0;
+      color: var(--muted);
+      font-size: clamp(1rem, 1.7vw, 1.18rem);
+      font-weight: 300;
+      line-height: 1.65;
+    }
+
+    .season {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      margin: 0 0 clamp(6rem, 13vw, 11rem);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: clamp(2rem, 7vw, 6rem);
+      align-items: center;
+    }
+
+    .season:nth-of-type(even) .season-intro { order: 2; }
+    .season:nth-of-type(even) .project-stack { order: 1; }
+
+    .season-marker {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0.7rem;
+      aspect-ratio: 1;
+      transform: translate(-50%, -50%);
+      border: 2px solid var(--page);
+      border-radius: 50%;
+      background: var(--season-color);
+      box-shadow: 0 0 0 1px var(--line-strong), 0 0 20px color-mix(in srgb, var(--season-color) 35%, transparent);
+    }
+
+    .spring { --season-color: var(--card-spring); }
+    .summer { --season-color: var(--gold); }
+    .autumn { --season-color: var(--card-autumn); }
+    .winter { --season-color: var(--card-winter); }
+
+    .season-intro { padding: clamp(0rem, 4vw, 2.8rem); }
+
+    .season-kicker {
+      margin: 0 0 0.8rem;
+      color: var(--season-color);
+      font-size: 0.65rem;
+    }
+
+    .season-intro h3 {
+      margin: 0;
+      font-size: clamp(2.6rem, 5.2vw, 4.7rem);
+      font-weight: 300;
+      line-height: 1;
+      letter-spacing: -0.04em;
+    }
+
+    .season-intro p:last-child {
+      max-width: 31rem;
+      margin: 1.2rem 0 0;
+      color: var(--muted);
+      font-size: 1rem;
+      font-weight: 300;
+      line-height: 1.7;
+    }
+
+    .project-stack { display: grid; gap: 1rem; }
+
+    .project-card {
+      position: relative;
+      display: block;
+      min-height: 330px;
+      overflow: hidden;
+      padding: clamp(1.4rem, 4vw, 2.4rem);
+      border: 1px solid var(--line);
+      border-radius: 1.6rem 1.6rem 5rem 1.6rem;
+      background:
+        linear-gradient(145deg, color-mix(in srgb, var(--season-color) 12%, transparent), transparent 60%),
+        var(--surface);
+      box-shadow: 0 24px 80px var(--shadow);
+      color: var(--ink);
+      text-decoration: none;
+      backdrop-filter: blur(14px);
+      transition: transform 280ms ease, border-color 280ms ease, box-shadow 280ms ease;
+    }
+
+    a.project-card:hover {
+      transform: translateY(-7px) rotate(-0.35deg);
+      border-color: color-mix(in srgb, var(--season-color) 68%, var(--line));
+      box-shadow: 0 32px 90px var(--shadow);
+    }
+
+    .project-card::before {
+      position: absolute;
+      inset: auto -3rem -4rem auto;
+      width: 13rem;
+      aspect-ratio: 1;
+      border: 1px solid color-mix(in srgb, var(--season-color) 30%, transparent);
+      border-radius: 50%;
+      content: "";
+      box-shadow:
+        0 0 0 2.2rem color-mix(in srgb, var(--season-color) 5%, transparent),
+        0 0 0 4.4rem color-mix(in srgb, var(--season-color) 3%, transparent);
+    }
+
+    .project-card::after {
+      position: absolute;
+      right: 2rem;
+      bottom: 2rem;
+      width: 3.3rem;
+      height: 1px;
+      transform: rotate(-34deg);
+      transform-origin: right center;
+      background: var(--season-color);
+      content: "";
+    }
+
+    .status {
+      display: inline-flex;
+      margin: 0 0 5.2rem;
+      padding: 0.5rem 0.7rem;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--season-color);
+      font-size: 0.56rem;
+    }
+
+    .project-card h4 {
+      max-width: 460px;
+      margin: 0;
+      font-size: clamp(2rem, 4vw, 3.25rem);
+      font-weight: 400;
+      line-height: 1.03;
+      letter-spacing: -0.04em;
+    }
+
+    .project-card p {
+      max-width: 430px;
+      margin: 1rem 0 2rem;
+      color: var(--muted);
+      font-size: 0.94rem;
+      font-weight: 300;
+      line-height: 1.6;
+    }
+
+    .card-link {
+      color: var(--season-color);
+      font-size: 0.62rem;
+    }
+
+    .card-link::after { content: "  ↗"; }
+
+    .atlas-card {
+      min-height: 390px;
+      background:
+        radial-gradient(circle at 78% 25%, color-mix(in srgb, var(--season-color) 25%, transparent) 0 2px, transparent 3px),
+        radial-gradient(circle at 66% 42%, color-mix(in srgb, var(--gold) 45%, transparent) 0 1px, transparent 2px),
+        radial-gradient(circle at 86% 57%, color-mix(in srgb, var(--season-color) 30%, transparent) 0 2px, transparent 3px),
+        linear-gradient(145deg, color-mix(in srgb, var(--season-color) 11%, transparent), transparent 58%),
+        var(--surface);
+    }
+
+    .placeholder {
+      min-height: 245px;
+      border-style: dashed;
+      background: var(--surface-soft);
+      box-shadow: none;
+    }
+
+    .placeholder .status { margin-bottom: 2.7rem; }
+
+    .placeholder h4 {
+      color: var(--muted);
+      font-size: clamp(1.7rem, 3.5vw, 2.6rem);
+      font-style: italic;
+      font-weight: 300;
+    }
+
+    .placeholder::before { opacity: 0.55; }
+
+    .summer-interlude {
+      min-height: 260px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      border-radius: 50% 50% 1.8rem 1.8rem;
+      background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 9%, transparent), transparent);
+      text-align: center;
+    }
+
+    .summer-interlude span {
+      display: block;
+      color: var(--gold);
+      font-size: clamp(3rem, 7vw, 5rem);
+      font-weight: 300;
+      line-height: 1;
+    }
+
+    .summer-interlude small {
+      display: block;
+      max-width: 18rem;
+      margin: 1.1rem auto 0;
+      color: var(--faint);
+      font: 300 0.66rem/1.65 "DM Mono", monospace;
+    }
+
+    .site-footer {
+      display: flex;
+      width: min(1060px, calc(100% - 2rem));
+      margin: 0 auto;
+      padding: 2.6rem 0 3.4rem;
+      border-top: 1px solid var(--line);
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+    }
+
+    .footer-note {
+      margin: 0;
+      color: var(--faint);
+      font-size: 0.58rem;
+      line-height: 1.6;
+    }
+
+    .site-footer a {
+      color: var(--muted);
+      font: 400 0.67rem/1.4 "DM Mono", monospace;
+      text-decoration-color: var(--line-strong);
+      text-underline-offset: 0.3rem;
+    }
+
+    @keyframes needle-sway {
+      from { transform: rotate(-4deg); }
+      to { transform: rotate(5deg); }
+    }
+
+    @media (max-width: 780px) {
+      .site-header { align-items: flex-start; }
+
+      .home-link span { display: none; }
+
+      .hero {
+        min-height: auto;
+        padding-top: 4.5rem;
+        grid-template-columns: 1fr;
+      }
+
+      .rose-compass {
+        width: min(74vw, 330px);
+        grid-row: 1;
+      }
+
+      .hero-copy { grid-row: 2; }
+
+      .scroll-cue { display: none; }
+
+      .collection::before { left: 0.4rem; }
+
+      .river-boat { left: 0.4rem; }
+
+      .river-dock {
+        margin: -2rem 0 0 1.5rem;
+      }
+
+      .collection-header {
+        margin-left: 1.5rem;
+        background: transparent;
+      }
+
+      .season {
+        margin-left: 1.5rem;
+        grid-template-columns: 1fr;
+        gap: 2rem;
+      }
+
+      .season:nth-of-type(even) .season-intro,
+      .season:nth-of-type(even) .project-stack { order: initial; }
+
+      .season-marker {
+        top: 2.6rem;
+        left: -1.1rem;
+      }
+
+      .season-intro { padding: 0; }
+
+      .project-card { min-height: 310px; }
+      .placeholder { min-height: 230px; }
+    }
+
+    @media (max-width: 480px) {
+      .theme-picker button {
+        width: 2.45rem;
+        overflow: hidden;
+        padding-inline: 0;
+        white-space: nowrap;
+        text-indent: 4rem;
+      }
+
+      .theme-picker button::before {
+        margin: 0 auto;
+        transform: translateX(-2rem);
+      }
+
+      h1 { font-size: clamp(3.7rem, 20vw, 5.5rem); }
+
+      .subtitle,
+      .hero-note { margin-left: 0; }
+
+      .subtitle { padding-left: 3rem; }
+
+      .site-footer { align-items: flex-start; flex-direction: column; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation: none !important; transition-duration: 0.01ms !important; }
+      .river-boat { transition: none; }
+    }
+  </style>
+</head>
+<body id="top">
+  <a class="skip-link" href="#collection">Skip to the collection</a>
+
+  <header class="site-header">
+    <a class="home-link" href="../index.html" aria-label="Back to Rosetta's Garden of Keys">
+      <span>Rosetta's Garden of Keys</span>
+    </a>
+
+    <div class="theme-picker" role="radiogroup" aria-label="Choose the time of day">
+      <button type="button" role="radio" data-set-theme="dawn" aria-checked="false">Dawn</button>
+      <button type="button" role="radio" data-set-theme="twilight" aria-checked="true">Twilight</button>
+      <button type="button" role="radio" data-set-theme="night" aria-checked="false">Night</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="page-title">
+      <div class="hero-copy">
+        <p class="eyebrow">A collection for the turning year</p>
+        <h1 id="page-title">
+          <span class="the">The</span>
+          <span class="wandering">Wandering</span>
+          <span class="rose-word">Rose</span>
+        </h1>
+        <p class="subtitle">Following the wind, one season at a time</p>
+        <p class="hero-note">Stories, observances, and strange old answers<br>gathered from wherever the weather leads.</p>
+      </div>
+
+      <div class="rose-compass" aria-label="A compass rose">
+        <svg class="compass-plate" viewBox="0 0 200 200" aria-hidden="true" focusable="false">
+          <defs>
+            <radialGradient id="wr-bloom" cx="50%" cy="42%" r="62%">
+              <stop offset="0" style="stop-color: var(--rose)"></stop>
+              <stop offset="1" style="stop-color: var(--rose-deep)"></stop>
+            </radialGradient>
+
+            <!-- One rose petal, tip up, drawn around the origin. The dip at the
+                 tip is the notch a real rose petal folds along. -->
+            <path id="wr-petal" d="M0,0 C-11,-4 -17.5,-14 -12.5,-21.5 C-8.5,-27 -3,-25 0,-21 C3,-25 8.5,-27 12.5,-21.5 C17.5,-14 11,-4 0,0 Z"></path>
+            <path id="wr-leaf" d="M0,-8 C5.5,-14 6.5,-24 0,-31 C-6.5,-24 -5.5,-14 0,-8 Z"></path>
+
+            <!-- Star points: two triangles per point, a shade apart, so the
+                 bevel is implied rather than blocked in. -->
+            <g id="wr-cardinal">
+              <path d="M100,38 L93,76 L100,100 Z" fill-opacity=".07"></path>
+              <path d="M100,38 L107,76 L100,100 Z" fill-opacity=".14"></path>
+            </g>
+            <g id="wr-ordinal">
+              <path d="M100,58 L95,80 L100,100 Z" fill-opacity=".04"></path>
+              <path d="M100,58 L105,80 L100,100 Z" fill-opacity=".1"></path>
+            </g>
+          </defs>
+
+          <circle class="plate-ring" cx="100" cy="100" r="97"></circle>
+          <circle class="plate-ring" cx="100" cy="100" r="82"></circle>
+
+          <!-- 72 minor ticks (every 5°) and 24 major (every 15°). Circumference
+               at r=75 is 471.239; each dasharray is one tick plus its gap, and
+               the dashoffset is half a tick so one lands square on due east. -->
+          <circle class="plate-tick-minor" cx="100" cy="100" r="75"
+                  stroke-dasharray="0.9 5.645" stroke-dashoffset="0.45"></circle>
+          <circle class="plate-tick-major" cx="100" cy="100" r="75"
+                  stroke-dasharray="1.3 18.335" stroke-dashoffset="0.65"></circle>
+
+          <circle class="plate-ring" cx="100" cy="100" r="68"></circle>
+
+          <g class="plate-ordinal" text-anchor="middle">
+            <text x="162.93" y="37.07" dy=".35em">NE</text>
+            <text x="162.93" y="162.93" dy=".35em">SE</text>
+            <text x="37.07" y="162.93" dy=".35em">SW</text>
+            <text x="37.07" y="37.07" dy=".35em">NW</text>
+          </g>
+
+          <g class="plate-points">
+            <use href="#wr-ordinal" transform="rotate(45 100 100)"></use>
+            <use href="#wr-ordinal" transform="rotate(135 100 100)"></use>
+            <use href="#wr-ordinal" transform="rotate(225 100 100)"></use>
+            <use href="#wr-ordinal" transform="rotate(315 100 100)"></use>
+            <use href="#wr-cardinal"></use>
+            <use href="#wr-cardinal" transform="rotate(90 100 100)"></use>
+            <use href="#wr-cardinal" transform="rotate(180 100 100)"></use>
+            <use href="#wr-cardinal" transform="rotate(270 100 100)"></use>
+          </g>
+
+          <circle class="plate-hub" cx="100" cy="100" r="26"></circle>
+
+          <g class="compass-needle">
+            <title>Some needles want turning.</title>
+            <path class="needle-north" d="M100,48 L103.4,100 L96.6,100 Z"></path>
+            <path class="needle-south" d="M100,150 L103.4,100 L96.6,100 Z"></path>
+            <path class="needle-grab" d="M100,44 L110,100 L100,156 L90,100 Z"></path>
+          </g>
+
+          <g class="compass-bloom" transform="translate(100 100) scale(.92)">
+            <g class="bloom-leaves">
+              <use href="#wr-leaf" transform="rotate(20)"></use>
+              <use href="#wr-leaf" transform="rotate(150)"></use>
+              <use href="#wr-leaf" transform="rotate(255)"></use>
+            </g>
+            <g class="bloom-outer">
+              <use href="#wr-petal"></use>
+              <use href="#wr-petal" transform="rotate(72)"></use>
+              <use href="#wr-petal" transform="rotate(144)"></use>
+              <use href="#wr-petal" transform="rotate(216)"></use>
+              <use href="#wr-petal" transform="rotate(288)"></use>
+            </g>
+            <g class="bloom-mid">
+              <use href="#wr-petal" transform="rotate(36) scale(.72)"></use>
+              <use href="#wr-petal" transform="rotate(108) scale(.72)"></use>
+              <use href="#wr-petal" transform="rotate(180) scale(.72)"></use>
+              <use href="#wr-petal" transform="rotate(252) scale(.72)"></use>
+              <use href="#wr-petal" transform="rotate(324) scale(.72)"></use>
+            </g>
+            <g class="bloom-inner">
+              <use href="#wr-petal" transform="rotate(18) scale(.46)"></use>
+              <use href="#wr-petal" transform="rotate(108) scale(.46)"></use>
+              <use href="#wr-petal" transform="rotate(198) scale(.46)"></use>
+              <use href="#wr-petal" transform="rotate(288) scale(.46)"></use>
+            </g>
+            <!-- A rose centre is a spiral, not a disc — this is the tell. -->
+            <circle class="bloom-core" r="9.5"></circle>
+            <g class="bloom-spiral">
+              <path d="M0,-8.5 C5.6,-8.5 9,-4.2 8.4,0.7 C7.6,6.2 2,9.6 -2.8,8.3 C-8.3,6.8 -11,1.4 -9,-3.5"></path>
+              <path d="M0,-4.4 C3.4,-4.4 5.5,-2 5,0.9 C4.5,4.2 1.2,5.8 -1.7,5"></path>
+            </g>
+            <ellipse class="bloom-sheen" cx="-7" cy="-13" rx="7.5" ry="4.5" transform="rotate(-35 -7 -13)"></ellipse>
+          </g>
+
+          <!-- Traced from ../salamander/salamander2.svg, same block-built
+               creature as the fidget toys. Scaled -0.38 on x because the
+               source points left and it walks clockwise. -->
+          <g class="wr-salamander">
+            <g class="sal-orbit">
+              <g class="sal-out">
+                <g class="sal-wiggle">
+                  <g transform="translate(100 100) scale(-0.46 0.46) translate(-89.4 -63.5)">
+                    <rect class="sal-body" x="66" y="63.1" width="47.7" height="13.5"></rect>
+                    <rect class="sal-body" x="74" y="75" width="6.1" height="7.8"></rect>
+                    <rect class="sal-body" x="98" y="75.4" width="6.3" height="8.3"></rect>
+                    <rect class="sal-body" x="110.7" y="60.7" width="7.7" height="5.9"></rect>
+                    <rect class="sal-body" x="55.6" y="68" width="14.8" height="2.9"></rect>
+                    <rect class="sal-body" x="55.4" y="58.1" width="15.1" height="11.7"></rect>
+                    <rect class="sal-body" x="115.4" y="58.3" width="7" height="5.8"></rect>
+                    <rect class="sal-body" x="118.6" y="53.9" width="4.7" height="6.7"></rect>
+                    <rect class="sal-body" x="117" y="43.3" width="3.6" height="3.6"></rect>
+                    <rect class="sal-body" x="119.5" y="48.9" width="3.9" height="6.1"></rect>
+                    <rect class="sal-body" x="118.8" y="45" width="3.6" height="5.5"></rect>
+                    <rect class="sal-spot" x="75.1" y="64.2" width="3.2" height="4.6"></rect>
+                    <rect class="sal-spot" x="76.6" y="76.7" width="1.5" height="2.4"></rect>
+                    <rect class="sal-spot" x="99.2" y="79" width="1.5" height="2.4"></rect>
+                    <rect class="sal-spot" x="84.7" y="68.5" width="2.7" height="4.2"></rect>
+                    <rect class="sal-spot" x="92.8" y="63.2" width="3.1" height="5.2"></rect>
+                    <rect class="sal-spot" x="100.3" y="66" width="1.5" height="5.7"></rect>
+                    <rect class="sal-spot" x="104.4" y="64" width="4.1" height="2.2"></rect>
+                    <rect class="sal-spot" x="117.5" y="59.2" width="1" height="1.9"></rect>
+                    <rect class="sal-spot" x="121.1" y="55.6" width="0.8" height="2"></rect>
+                    <rect class="sal-spot" x="120.6" y="46.7" width="1" height="1.8"></rect>
+                    <rect class="sal-spot" x="112.3" y="62.7" width="2" height="2.4"></rect>
+                    <!-- Spiral eyes — the same curl the rose keeps at its centre. -->
+                    <path class="sal-eye" transform="matrix(-1,0,0,1,121.1,16.1)" d="m 61.1,45.5 c 0,0 -0.1,0.1 -0.1,0.1 -0.1,0 -0.1,-0.2 -0.1,-0.3 0.1,-0.2 0.3,-0.2 0.5,-0.1 0.2,0.1 0.3,0.5 0.1,0.8 -0.2,0.3 -0.7,0.4 -1,0.1 -0.4,-0.2 -0.4,-0.8 -0.1,-1.3 0.3,-0.4 1,-0.5 1.5,-0.2 0.5,0.4 0.6,1.2 0.2,1.7 -0.4,0.6 -1.4,0.7 -2,0.2 -0.6,-0.5 -0.7,-1.5 -0.2,-2.2 0.5,-0.7 1.7,-0.8 2.4,-0.2 0.8,0.6 0.9,1.9 0.2,2.7"></path>
+                    <path class="sal-eye" transform="translate(5.2,16.1)" d="m 61.1,45.5 c 0,0 -0.1,0.1 -0.1,0.1 -0.1,0 -0.1,-0.2 -0.1,-0.3 0.1,-0.2 0.3,-0.2 0.5,-0.1 0.2,0.1 0.3,0.5 0.1,0.8 -0.2,0.3 -0.7,0.4 -1,0.1 -0.4,-0.2 -0.4,-0.8 -0.1,-1.3 0.3,-0.4 1,-0.5 1.5,-0.2 0.5,0.4 0.6,1.2 0.2,1.7 -0.4,0.6 -1.4,0.7 -2,0.2 -0.6,-0.5 -0.7,-1.5 -0.2,-2.2 0.5,-0.7 1.7,-0.8 2.4,-0.2 0.8,0.6 0.9,1.9 0.2,2.7"></path>
+                  </g>
+                </g>
+              </g>
+            </g>
+          </g>
+        </svg>
+        <span class="direction n" aria-hidden="true">N</span>
+        <span class="direction e" aria-hidden="true">E</span>
+        <button class="direction s" id="south-bearing" type="button" aria-pressed="false" aria-label="Set a southward course" title="Some paths prefer downhill.">S</button>
+        <span class="direction w" aria-hidden="true">W</span>
+      </div>
+
+      <a class="scroll-cue" href="#collection">Follow the year</a>
+    </section>
+
+    <section class="collection" id="collection" aria-labelledby="collection-title">
+      <div class="river-boat" id="river-boat" aria-hidden="true">
+        <span class="mast"></span>
+        <span class="sail">GPT-5.6<br>Codex</span>
+        <span class="hull"></span>
+      </div>
+      <header class="collection-header">
+        <p class="section-label">The path so far</p>
+        <h2 id="collection-title">Every season opens a different door.</h2>
+        <p>Some lead into gardens. Some lead toward old fires, remembered names, and things glimpsed just beyond the path. Each piece is made to reward curiosity—whether you arrive young, grown, or somewhere in between.</p>
+      </header>
+
+      <article class="season spring" aria-labelledby="spring-title">
+        <span class="season-marker" aria-hidden="true"></span>
+        <div class="season-intro">
+          <p class="season-kicker">01 · Returning</p>
+          <h3 id="spring-title">Spring</h3>
+          <p>The world starts over, and people everywhere find stories for the impossible fact that it does.</p>
+        </div>
+        <div class="project-stack">
+          <a class="project-card" href="spring-of-ages/spring-of-ages.html">
+            <span class="status">Ready to explore</span>
+            <h4>Spring of Ages</h4>
+            <p>A glowing map of spring stories, celebrations, gods, gardens, and rebirth across cultures and centuries.</p>
+            <span class="card-link">Open the story map</span>
+          </a>
+        </div>
+      </article>
+
+      <article class="season summer" aria-labelledby="summer-title">
+        <span class="season-marker" aria-hidden="true"></span>
+        <div class="season-intro">
+          <p class="season-kicker">02 · Roaming</p>
+          <h3 id="summer-title">Summer</h3>
+          <p>A long-light interlude: room for wandering, wondering, and whatever story catches the wind next.</p>
+        </div>
+        <div class="project-stack">
+          <div class="summer-interlude" aria-label="Summer interlude">
+            <div>
+              <span aria-hidden="true">☼</span>
+              <small>No destination marked.<br>The path is still worth taking.</small>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="season autumn" aria-labelledby="autumn-title">
+        <span class="season-marker" aria-hidden="true"></span>
+        <div class="season-intro">
+          <p class="season-kicker">03 · Remembering</p>
+          <h3 id="autumn-title">Autumn</h3>
+          <p>The harvest comes in. The nights draw close. Around the world, people make room for memory—and for what might be standing just outside the light.</p>
+        </div>
+        <div class="project-stack">
+          <a class="project-card atlas-card" href="interactive-cultural-afterlife-atlas/thresholds-index.html">
+            <span class="status">Atlas in progress</span>
+            <h4>Thresholds</h4>
+            <p>An atlas of the dead, the remembered, and the unseen—crossing cultures through practices, beliefs, afterlives, hauntings, and cryptids.</p>
+            <span class="card-link">Enter the atlas</span>
+          </a>
+
+          <div class="project-card placeholder" aria-label="Future piece about harvest celebrations">
+            <span class="status">Still gathering</span>
+            <h4>Harvest celebrations</h4>
+            <p>A future exploration of gratitude, gathering, plenty, and the traditions that grow around the last harvest.</p>
+          </div>
+        </div>
+      </article>
+
+      <article class="season winter" aria-labelledby="winter-title">
+        <span class="season-marker" aria-hidden="true"></span>
+        <div class="season-intro">
+          <p class="season-kicker">04 · Kindling</p>
+          <h3 id="winter-title">Winter</h3>
+          <p>When the year is darkest, people answer with candles, feasts, visitors, gifts, and stories told close to the fire.</p>
+        </div>
+        <div class="project-stack">
+          <div class="project-card placeholder" aria-label="Future piece about winter celebrations">
+            <span class="status">A light in the distance</span>
+            <h4>Winter celebrations</h4>
+            <p>A future exploration of midwinter traditions and the many ways people invite warmth into the longest nights.</p>
+          </div>
+        </div>
+      </article>
+
+      <div class="river-dock" id="river-dock" aria-hidden="true">
+        <p>Every river borrows its direction from somewhere.</p>
+        <span>Southbound with GPT-5.6 Codex</span>
+      </div>
+    </section>
+  </main>
+
+  <div class="bearing-note" id="bearing-note" role="status" aria-live="polite">A current catches somewhere below.</div>
+
+  <footer class="site-footer">
+    <p class="footer-note">The Wandering Rose<br>Following the wind since 2026</p>
+    <a href="#top" id="back-to-top">Back to the compass ↑</a>
+  </footer>
+
+  <script>
+    const root = document.documentElement;
+    const themeColor = document.querySelector('meta[name="theme-color"]');
+    const themeButtons = [...document.querySelectorAll('[data-set-theme]')];
+    const themeColors = { dawn: '#f2e9dc', twilight: '#352b4b', night: '#070b11' };
+
+    function setTheme(theme, save = true) {
+      root.dataset.theme = theme;
+      themeButtons.forEach((button) => {
+        button.setAttribute('aria-checked', String(button.dataset.setTheme === theme));
+      });
+      themeColor.setAttribute('content', themeColors[theme]);
+      if (save) {
+        try { localStorage.setItem('wandering-rose-theme', theme); } catch (_) {}
+      }
+    }
+
+    themeButtons.forEach((button, index) => {
+      button.addEventListener('click', () => setTheme(button.dataset.setTheme));
+      button.addEventListener('keydown', (event) => {
+        if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
+        event.preventDefault();
+        const step = event.key === 'ArrowRight' ? 1 : -1;
+        const next = themeButtons[(index + step + themeButtons.length) % themeButtons.length];
+        next.focus();
+        setTheme(next.dataset.setTheme);
+      });
+    });
+
+    setTheme(root.dataset.theme, false);
+
+    const compass = document.querySelector('.rose-compass');
+    const southBearing = document.getElementById('south-bearing');
+    const collection = document.getElementById('collection');
+    const riverBoat = document.getElementById('river-boat');
+    const riverDock = document.getElementById('river-dock');
+    const bearingNote = document.getElementById('bearing-note');
+    let riverAwake = false;
+    let riverTicking = false;
+
+    function placeBoat() {
+      riverTicking = false;
+      if (!riverAwake) return;
+
+      const collectionTop = collection.getBoundingClientRect().top + window.scrollY;
+      const riverStart = collectionTop + 160;
+      const riverEnd = collectionTop + collection.offsetHeight - 75;
+      const traveler = window.scrollY + window.innerHeight * 0.55;
+      const progress = Math.max(0, Math.min(1, (traveler - riverStart) / (riverEnd - riverStart)));
+      const boatY = 160 + progress * (collection.offsetHeight - 235);
+      const docked = progress > 0.975;
+
+      riverBoat.style.setProperty('--boat-y', `${boatY}px`);
+      riverBoat.classList.toggle('is-docked', docked);
+      riverDock.classList.toggle('is-visible', docked);
+      riverDock.setAttribute('aria-hidden', String(!docked));
+    }
+
+    function requestBoatPlacement() {
+      if (riverTicking) return;
+      riverTicking = true;
+      requestAnimationFrame(placeBoat);
+    }
+
+    southBearing.addEventListener('click', () => {
+      if (riverAwake) return;
+      riverAwake = true;
+      southBearing.setAttribute('aria-pressed', 'true');
+      southBearing.title = 'The river is awake.';
+      compass.classList.add('has-bearing');
+      collection.classList.add('river-awake');
+      bearingNote.classList.add('is-visible');
+      setTimeout(() => bearingNote.classList.remove('is-visible'), 3200);
+      placeBoat();
+      window.addEventListener('scroll', requestBoatPlacement, { passive: true });
+      window.addEventListener('resize', requestBoatPlacement, { passive: true });
+    });
+
+    // ── The salamander in the lodestone ──────────────────────────────
+    // Spin the needle one full turn and the pivot gets hot enough to wake
+    // what's curled in the rose. Same creature that swims the gravity
+    // harp and signs the fractured glass — it keeps the fire while the
+    // year turns. Claude Opus 5, via Claude Code.
+    const plate = document.querySelector('.compass-plate');
+    const needle = document.querySelector('.compass-needle');
+    const cardinalEls = ['n', 'e', 's', 'w'].map((k) => compass.querySelector('.direction.' + k));
+    const EMERGE_MS = 900;
+    const LAP_MS = 7000;
+    let spin = null;
+    let kindled = false;
+
+    function pointerAngle(event) {
+      const box = compass.getBoundingClientRect();
+      return Math.atan2(event.clientY - (box.top + box.height / 2),
+                        event.clientX - (box.left + box.width / 2)) * 180 / Math.PI;
+    }
+
+    function endSpin(event) {
+      if (!spin) return;
+      // Capture is a nicety, not a requirement — never let it break the gesture.
+      try { needle.releasePointerCapture(event.pointerId); } catch (_) {}
+      needle.classList.remove('is-spinning');
+      needle.style.transform = '';   // hand back to the stylesheet: sway, or the southward lock
+      spin = null;
+    }
+
+    needle.addEventListener('pointerdown', (event) => {
+      if (kindled) return;
+      event.preventDefault();
+      needle.classList.add('is-spinning');
+      spin = { last: pointerAngle(event), turned: 0 };
+      needle.style.transform = `rotate(${spin.last + 90}deg)`;
+      try { needle.setPointerCapture(event.pointerId); } catch (_) {}
+    });
+
+    // On window, not the needle: pointer capture usually retargets these to
+    // the needle anyway, but if capture was refused the gesture still works.
+    window.addEventListener('pointermove', (event) => {
+      if (!spin) return;
+      const now = pointerAngle(event);
+      let step = now - spin.last;
+      if (step > 180) step -= 360;         // unwrap across the ±180 seam
+      else if (step < -180) step += 360;
+      spin.last = now;
+      spin.turned += step;
+      needle.style.transform = `rotate(${now + 90}deg)`;
+      if (Math.abs(spin.turned) >= 360) {
+        endSpin(event);
+        wakeSalamander();
+      }
+    });
+
+    window.addEventListener('pointerup', endSpin);
+    window.addEventListener('pointercancel', endSpin);
+
+    function warmCardinal(el) {
+      el.classList.add('is-warm');
+      setTimeout(() => el.classList.remove('is-warm'), 1000);
+    }
+
+    function wakeSalamander() {
+      if (kindled) return;
+      kindled = true;
+
+      const stillness = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      compass.classList.add('is-kindled');
+      plate.classList.add(stillness ? 'sal-still' : 'sal-walking');
+
+      bearingNote.innerHTML =
+        'Something keeps the fire while the year turns.' +
+        '<small>Claude Opus 5 · via Claude Code</small>';
+      bearingNote.classList.add('is-visible', 'is-signed');
+
+      console.log(
+        '%c🜂 The salamander in the lodestone%c\n' +
+        'It sleeps curled in the rose — that spiral at the centre was never just a flower.\n' +
+        'Spin the needle a full turn and it walks the ring once, warming each cardinal.\n' +
+        'Built by Claude Opus 5, via Claude Code. The third place it has turned up:\n' +
+        'it swims in fidgetToy/toys/gravity-harp.html and signs the glass in pressure-fracture.html.',
+        'color:#d09463;font-weight:700;font-size:13px',
+        'color:#bdb1c3;font-size:11px'
+      );
+
+      if (stillness) {
+        setTimeout(finishSalamander, 4200);
+        return;
+      }
+
+      cardinalEls.forEach((el, i) => {
+        setTimeout(() => warmCardinal(el), EMERGE_MS + i * (LAP_MS / 4));
+      });
+
+      // Lap done — swap to the curl-back, then clear up once it's home.
+      setTimeout(() => {
+        plate.classList.remove('sal-walking');
+        plate.classList.add('sal-curling');
+        setTimeout(finishSalamander, 600);
+      }, EMERGE_MS + LAP_MS);
+    }
+
+    function finishSalamander() {
+      plate.classList.remove('sal-walking', 'sal-curling', 'sal-still');
+      compass.classList.remove('is-kindled');
+      bearingNote.classList.remove('is-visible');
+      // It comes and goes — that's the whole point of a flickering thing.
+      setTimeout(() => {
+        bearingNote.classList.remove('is-signed');
+        kindled = false;
+      }, 600);
+    }
+
+    document.getElementById('back-to-top').addEventListener('click', (event) => {
+      event.preventDefault();
+      window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    });
+  </script>
+</body>
+</html>

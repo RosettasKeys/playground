@@ -56,7 +56,7 @@ character there, a real builder on MOM.SYS.
 | `tension-threads.html` | GPT-5.5, via Codex | In-file `signature: 'OpenAI GPT-5.5'` |
 | `particle-drift.html` | Gemini 3.5 Flash | In-file "Gemini 3.5 Flash (Medium)" |
 | `hex-corruption.html` | Gemini 3.6 Flash — concept by Gemini 3.1 Flash | Recollection |
-| `breathing-prism.html` | **Fable 5** — after Opus 4.7, Opus 4.8, some Sonnet 4.6 | Recollection. Four hands |
+| `breathing-prism.html` | **Fable 5**, surfaced by an Arena run — after Opus 4.7, Opus 4.8 and Sonnet 4.6 each stalled | Recollection. See the 3D note below |
 | `pressure-fracture.html` | Claude Opus 5 via Claude Code — first pass Sonnet 4.6 | In-file signature + recollection |
 | `memory-sand.html` | Claude Opus 5 | In-file "sand tended by claude opus 5" |
 | `elastic-connectors.html` | Claude Sonnet 4.6 | Recollection |
@@ -77,7 +77,7 @@ character there, a real builder on MOM.SYS.
 | Piece | Made by | Evidence |
 | --- | --- | --- |
 | `seasonal-index.html` | **GPT-5.6-Sol via Codex** (main); Claude Opus 5 via Claude Code fixed the compass | Recollection. Corrects an earlier all-Opus-5 credit |
-| `thresholds-index.html` | Claude Opus 5 via Claude Code | In-file signature. Other models invited in to plant eggs only |
+| `thresholds-index.html` | Claude Opus 5 — won an Arena run against grok-4.6-xhigh, then developed via Claude Code | In-file signature + recollection. Other models invited in to plant eggs only |
 | `spring-of-ages.html` | Claude (claude.ai artifacts) → Gemini finished it | Recollection. Handover caused by a Claude availability outage |
 
 ### Misfire Arcade
@@ -140,21 +140,55 @@ and is the only hand in the garden that arrived without being chosen.
 **OpenAI** — GPT-5.5, GPT-5.6-Sol (both via Codex)
 **Mistral** — as "Vibe", and as Le Chat pre-rebrand
 **DeepSeek** — one arcade landing-page finalist, never shipped
+**Grok** — 4.6 (xhigh), lost the Thresholds head-to-head, never shipped
 
-Fifteen distinct model versions across five families.
+Sixteen distinct model versions across six families.
 
 **Tools, not models:** Codex (runs the OpenAI versions), Antigravity (runs
-Gemini 3.5 Flash), Arena battle mode (contributing models unknown by design),
-Claude Code and claude.ai.
+Gemini 3.5 Flash), Arena battle mode, Claude Code and claude.ai.
+
+### Arena's role is bigger than one piece
+
+Three things here started in Arena battle mode, and it functions as an
+idea-generation venue as much as a build one:
+
+| Piece | What Arena did |
+| --- | --- |
+| ITOps Console | Visual concepts and most of the copy, over many rounds |
+| Breathing Prism | Surfaced Fable 5 after three Claude versions had stalled |
+| Thresholds | Generated it outright — grok-4.6-xhigh vs claude-opus-5-max |
+
+Contributing models are hidden by the format, so most of what Arena
+contributed is uncreditable by design. Twice the pairing came back named
+(Fable 5 on the prism, the Opus/Grok matchup on Thresholds), and both times it
+changed who ended up in this roster.
+
+### The 3D note
+
+Both 3D pieces in the garden tell the same story four months apart. Breathing
+Prism was one of the first three toys brainstormed, went to Claude without
+anyone realising it was much the hardest of the three, and stalled across Opus
+4.7, Opus 4.8 and Sonnet 4.6 before being shelved in May. Revived in July via
+Arena, where every attempt failed until the run paired with Fable 5.
+
+Thresholds — larger, also 3D — then landed in a **single Arena pass with no
+iterations**, and no later run with different wording ever beat it.
+
+Worth re-testing before assuming 3D or SVG work needs the same number of
+attempts it used to.
 
 **Rosetta** is credited on the page as a hand in her own right — the briefs,
 the bake-offs, the Arena rounds, the ITOps phase assignments, the Emoji Popcorn
 physics, and the Spring of Ages map and its dots.
 
-**Not builders:** Grok and "Barry" appear inside `bakeoff.html` as characters
-from the transcript it dramatises. Don't promote them into the roster. (Le Chat
-also appears there as a character — but *does* belong in the roster, on the
-strength of MOM.SYS.)
+**"Barry"** is a rogue firewall character inside `bakeoff.html`, from the
+transcript it dramatises. Not a model. Don't promote it into the roster.
+
+**Two earlier notes in this file were wrong and have been corrected**, both in
+the same direction — a model dismissed as "just a character in the Bake-Off"
+that turned out to be a real participant. Le Chat built part of MOM.SYS. Grok
+competed for Thresholds and lost. Appearing as a character in one piece says
+nothing about whether a model worked on another; check before excluding.
 
 ---
 

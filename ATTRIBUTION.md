@@ -155,8 +155,13 @@ idea-generation venue as much as a build one:
 | Piece | What Arena did |
 | --- | --- |
 | ITOps Console | Visual concepts and most of the copy, over many rounds |
-| Breathing Prism | Surfaced Fable 5 after three Claude versions had stalled |
+| Breathing Prism | Produced the run that finally held the beam together (Fable 5) |
 | Thresholds | Generated it outright — grok-4.6-xhigh vs claude-opus-5-max |
+
+**Nothing ships straight out of Arena.** A winning run is taken offline and
+merged by hand into whatever already existed — for Breathing Prism that merge
+also added the easter egg; Thresholds was tweaked offline afterwards. Credit
+Arena as where something started, not as the author of the file.
 
 Contributing models are hidden by the format, so most of what Arena
 contributed is uncreditable by design. Twice the pairing came back named
@@ -165,17 +170,29 @@ changed who ended up in this roster.
 
 ### The 3D note
 
-Both 3D pieces in the garden tell the same story four months apart. Breathing
-Prism was one of the first three toys brainstormed, went to Claude without
-anyone realising it was much the hardest of the three, and stalled across Opus
-4.7, Opus 4.8 and Sonnet 4.6 before being shelved in May. Revived in July via
-Arena, where every attempt failed until the run paired with Fable 5.
+Both 3D pieces tell the same story four months apart, in opposite directions.
 
-Thresholds — larger, also 3D — then landed in a **single Arena pass with no
+**Breathing Prism** was one of the first three toys brainstormed, went to
+Claude without anyone realising it was much the hardest of the three, and
+stalled across Opus 4.7, Opus 4.8 and Sonnet 4.6 before being shelved in May.
+
+The failure was always the same thing: **keeping the beam genuinely passing
+through the prism.** Symptoms — the beam came apart on zoom or pinch; on rotate
+it turned out not to intersect the prism at all; it didn't bend where
+refraction requires. All of it held together only from the default camera
+angle. Revived in July via Arena, where every attempt broke it one of those
+ways until the run paired with Fable 5.
+
+**Thresholds** — larger, also 3D — then landed in a **single Arena pass with no
 iterations**, and no later run with different wording ever beat it.
 
-Worth re-testing before assuming 3D or SVG work needs the same number of
-attempts it used to.
+Worth re-testing before assuming 3D or SVG work needs the number of attempts it
+used to. And when checking 3D output, **move the camera** — the failure mode
+here was consistently invisible from the starting view.
+
+**Note:** Fable 5 was already working in the garden (Interpretive Networking)
+before the prism run. Arena is how it got onto *that piece*, not how it got
+here.
 
 **Rosetta** is credited on the page as a hand in her own right — the briefs,
 the bake-offs, the Arena rounds, the ITOps phase assignments, the Emoji Popcorn

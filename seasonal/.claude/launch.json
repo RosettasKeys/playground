@@ -1,0 +1,45 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "thresholds",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "interactive-cultural-afterlife-atlas",
+        "run",
+        "dev",
+        "--",
+        "--port",
+        "5199",
+        "--strictPort"
+      ],
+      "port": 5199,
+      "autoPort": false
+    },
+    {
+      "name": "thresholds-dist",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "interactive-cultural-afterlife-atlas",
+        "run",
+        "preview",
+        "--",
+        "--port",
+        "5198",
+        "--strictPort"
+      ],
+      "port": 5198,
+      "autoPort": false
+    },
+    {
+      "//": "Serves the whole portfolio the way GitHub Pages does, so links that cross out of the atlas — the way back to the seasonal hub, and the hub's way in — resolve at their real depths. The two configs above each serve only the atlas folder, where nothing above it exists.",
+      "name": "portfolio-root",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "5197", "--directory", ".."],
+      "port": 5197,
+      "autoPort": false
+    }
+  ]
+}

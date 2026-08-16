@@ -573,139 +573,197 @@
             }
         }
 
-        /* Cheshire Cat overlay styles (GLITCH & CREEPY) */
+        /* Cheshire Eclipse Overlay Styles */
+        .cheshire-eclipse-backdrop {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at 50% 45%, rgba(20, 3, 8, 0.92) 0%, rgba(10, 1, 3, 0.98) 85%);
+            backdrop-filter: blur(8px);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 9990;
+            transition: opacity 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        .cheshire-eclipse-backdrop.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
         .cheshire-cat-overlay {
             position: fixed;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%) scale(1);
-            width: 480px;
-            height: 270px;
-            z-index: 9999;
+            transform: translate(-50%, -50%) scale(0.9);
+            width: min(620px, 92vw);
+            height: 380px;
+            z-index: 9995;
             pointer-events: none;
             opacity: 0;
-            display: none;
-            filter: drop-shadow(0 0 15px #ff0055) drop-shadow(0 0 35px rgba(255, 0, 85, 0.4));
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            filter: drop-shadow(0 0 25px rgba(10, 242, 255, 0.3)) drop-shadow(0 0 50px rgba(212, 175, 55, 0.25));
+            transition: opacity 1.4s cubic-bezier(0.16, 1, 0.3, 1), transform 1.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .cheshire-cat-overlay.visible {
-            display: block;
-            animation: cheshireAppear 1.5s forwards, cheshireHover 6s ease-in-out infinite 1.5s, cheshireGlitch 4s linear infinite 2s;
+            opacity: 1;
+            pointer-events: auto;
+            transform: translate(-50%, -50%) scale(1);
+            animation: cheshireFloat 6s ease-in-out infinite;
         }
 
-        @keyframes cheshireAppear {
-            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
-            100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        @keyframes cheshireFloat {
+            0%, 100% { transform: translate(-50%, -50%) translateY(0px) rotate(0deg); }
+            50% { transform: translate(-50%, -50%) translateY(-14px) rotate(0.5deg); }
         }
 
-        @keyframes cheshireHover {
-            0%, 100% { transform: translate(-50%, -50%) scale(1) translateY(0); }
-            50% { transform: translate(-50%, -50%) scale(1.03) translateY(-20px); }
+        .cheshire-svg {
+            width: 100%;
+            height: auto;
+            max-height: 300px;
+            cursor: pointer;
+            overflow: visible;
         }
 
-        @keyframes cheshireGlitch {
-            0%, 95%, 100% { clip-path: inset(0 0 0 0); filter: hue-rotate(0deg) drop-shadow(0 0 15px #ff0055); transform: translate(-50%, -50%) skew(0); }
-            96% { clip-path: inset(15% -20px 70% 0); transform: translate(-50%, -50%) skew(8deg) scaleX(1.1); filter: hue-rotate(90deg) drop-shadow(0 0 25px #0af2ff); }
-            97% { clip-path: inset(65% -20px 5% 0); transform: translate(-50%, -50%) skew(-8deg) scaleX(0.9); filter: hue-rotate(180deg) drop-shadow(0 0 25px #adff2f); }
-            98% { clip-path: inset(0 0 0 0); transform: translate(-50%, -50%) skew(0); }
+        /* Eye glow & tracking */
+        .cat-contour {
+            opacity: 0.45;
+            transition: opacity 1.5s ease;
         }
 
-        .cat-eye, .cat-pupil, .cat-pupil-inner {
+        .cat-eye-glow {
+            filter: drop-shadow(0 0 12px #0af2ff) drop-shadow(0 0 24px rgba(10, 242, 255, 0.6));
             transition: opacity 1.8s ease;
         }
 
-        .cat-mouth, .cat-teeth {
-            transition: opacity 2.2s ease;
+        .cat-pupil-group {
+            transition: transform 0.08s ease-out;
         }
 
-        .cheshire-cat-overlay.fade-eyes .cat-eye,
-        .cheshire-cat-overlay.fade-eyes .cat-pupil,
-        .cheshire-cat-overlay.fade-eyes .cat-pupil-inner {
-            opacity: 0;
+        /* Mouth & Teeth bioluminescence */
+        .cat-mouth-bg {
+            filter: drop-shadow(0 0 16px rgba(255, 0, 85, 0.6)) drop-shadow(0 0 35px rgba(212, 175, 55, 0.4));
+            transition: opacity 2.2s ease, filter 0.3s ease;
         }
 
-        .cheshire-cat-overlay.fade-mouth .cat-mouth,
-        .cheshire-cat-overlay.fade-mouth .cat-teeth {
-            opacity: 0;
+        .cheshire-svg:hover .cat-mouth-bg {
+            filter: drop-shadow(0 0 25px rgba(10, 242, 255, 0.8)) drop-shadow(0 0 45px rgba(255, 0, 85, 0.7));
         }
 
-        /* Jabberwocky slash overlay styles */
-        .jabberwocky-slash-overlay {
-            position: fixed;
-            z-index: 10001;
+        .cat-tooth {
+            transition: fill 0.3s ease, transform 0.3s ease;
+        }
+
+        .cheshire-svg:hover .cat-tooth {
+            fill: #ffffff !important;
+        }
+
+        /* Vorpal slash effect on click */
+        .vorpal-slash-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             pointer-events: none;
-            display: none;
-            width: 280px;
-            height: 380px;
-            filter: drop-shadow(0 0 15px #ff0044) drop-shadow(0 0 30px rgba(255, 0, 68, 0.6));
+            z-index: 10005;
+            opacity: 0;
         }
 
-        .jabberwocky-slash-overlay.slashed {
+        .vorpal-slash-line.active {
+            animation: vorpalStrike 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes vorpalStrike {
+            0% { opacity: 0; transform: scale(0.8) rotate(-15deg); filter: brightness(2) drop-shadow(0 0 20px #0af2ff); }
+            20% { opacity: 1; transform: scale(1.05) rotate(-15deg); filter: brightness(3) drop-shadow(0 0 35px #fff); }
+            100% { opacity: 0; transform: scale(1.15) rotate(-15deg); filter: brightness(1) drop-shadow(0 0 10px #0af2ff); }
+        }
+
+        /* Cheshire Sigil Ribbon */
+        .cheshire-sigil {
+            font-family: 'Cinzel Decorative', serif;
+            font-size: 0.85rem;
+            letter-spacing: 2.5px;
+            color: var(--color-gold);
+            text-shadow: 0 0 15px rgba(212, 175, 55, 0.7);
+            margin-top: 1rem;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 1.6s ease 0.8s, transform 1.6s ease 0.8s;
+            text-align: center;
+            pointer-events: auto;
+        }
+
+        .cheshire-cat-overlay.visible .cheshire-sigil {
+            opacity: 0.9;
+            transform: translateY(0);
+        }
+
+        .cheshire-sigil .dismiss-hint {
             display: block;
-            animation: clawSlash 0.5s ease-out forwards;
+            font-family: 'Space Mono', monospace;
+            font-size: 0.7rem;
+            color: rgba(251, 248, 235, 0.55);
+            letter-spacing: 1px;
+            margin-top: 0.4rem;
         }
 
-        @keyframes clawSlash {
-            0% { opacity: 0; transform: scale(1.15) skewX(-15deg); }
-            15% { opacity: 1; transform: scale(1.0) skewX(-15deg); }
-            80% { opacity: 1; }
-            100% { opacity: 0; transform: scale(0.9) skewX(-15deg); }
+        /* Dissolve sequence phases */
+        .cheshire-cat-overlay.fade-contours .cat-contour {
+            opacity: 0;
         }
 
-        .slash-line {
-            stroke-dasharray: 200;
-            stroke-dashoffset: 200;
-            animation: slashDraw 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        .cheshire-cat-overlay.fade-eyes .cat-eye-group {
+            opacity: 0;
+            transition: opacity 2s ease;
         }
 
-        @keyframes slashDraw {
-            to { stroke-dashoffset: 0; }
-        }
-
-        /* Screen Shake */
-        body.shake-active {
-            animation: screenShake 0.6s cubic-bezier(.36,.07,.19,.97) both;
-        }
-
-        @keyframes screenShake {
-            10%, 90% { transform: translate3d(-3px, -2px, 0); }
-            20%, 80% { transform: translate3d(6px, 4px, 0); }
-            30%, 50%, 70% { transform: translate3d(-10px, -5px, 0); }
-            40%, 60% { transform: translate3d(10px, 5px, 0); }
+        .cheshire-cat-overlay.fade-smile .cat-mouth-group {
+            opacity: 0;
+            transition: opacity 2.5s ease;
         }
 
         /* Easter Egg overlays */
         .hidden-message {
             opacity: 0;
             position: fixed;
-            top: 50%;
+            top: 70px;
             left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 2.8rem;
+            transform: translateX(-50%) translateY(-15px) scale(0.96);
+            font-size: 1.8rem;
             color: var(--color-gold);
-            text-shadow: 0 0 25px rgba(212, 175, 55, 0.8), 0 0 10px rgba(0, 0, 0, 0.9);
+            background: rgba(18, 2, 6, 0.9);
+            border: 1.5px solid var(--color-gold);
+            border-radius: 30px;
+            padding: 0.75rem 2.2rem;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.85), 0 0 25px rgba(212, 175, 55, 0.35);
+            backdrop-filter: blur(10px);
+            text-shadow: 0 0 15px rgba(212, 175, 55, 0.8), 0 2px 4px rgba(0, 0, 0, 0.9);
             font-family: 'Cinzel Decorative', serif;
             text-align: center;
             font-weight: bold;
             pointer-events: none;
-            z-index: 10000;
-            transition: opacity 0.5s ease;
+            z-index: 10010;
+            max-width: min(850px, 92vw);
+            transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1), transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         .hidden-message.revealed {
             opacity: 1;
-            animation: pulse 2s ease-in-out infinite;
+            transform: translateX(-50%) translateY(0) scale(1);
+            animation: bannerGlow 3s ease-in-out infinite;
         }
 
-        @keyframes pulse {
-
-            0%,
-            100% {
-                transform: translate(-50%, -50%) scale(1);
+        @keyframes bannerGlow {
+            0%, 100% {
+                box-shadow: 0 12px 35px rgba(0, 0, 0, 0.85), 0 0 25px rgba(212, 175, 55, 0.35);
             }
-
             50% {
-                transform: translate(-50%, -50%) scale(1.06);
+                box-shadow: 0 12px 40px rgba(0, 0, 0, 0.9), 0 0 35px rgba(10, 242, 255, 0.45);
             }
         }
 
@@ -867,9 +925,11 @@
                 z-index: 10;
             }
 
-            .nav-back-float {
-                margin-top: 2rem;
-                margin-bottom: 4rem;
+            .hidden-message {
+                top: 25px;
+                font-size: 1.15rem;
+                padding: 0.5rem 1.2rem;
+                border-radius: 20px;
             }
         }
     </style>
@@ -882,43 +942,160 @@
         You found the secret! 🎉
     </div>
 
-    <!-- Cheshire Cat overlay container (Creepier & Jagged) -->
+    <!-- Cheshire Eclipse Backdrop -->
+    <div class="cheshire-eclipse-backdrop" id="cheshireBackdrop"></div>
+
+    <!-- Victorian Gothic Cheshire Cat Overlay (Masterpiece Easter Egg) -->
+    <!-- Attributed: Gemini 3.7 Flash via Antigravity -->
     <div class="cheshire-cat-overlay" id="cheshireCat">
-        <svg viewBox="0 0 400 220" class="cheshire-svg">
-            <!-- Eyes (Glowing toxic yellow-green paths) -->
-            <path class="cat-eye" d="M 100 90 C 115 65, 145 65, 160 90 C 145 115, 115 115, 100 90 Z" fill="#adff2f" />
-            <!-- Glowing Red pupil core -->
-            <ellipse class="cat-pupil" cx="130" cy="90" rx="4" ry="13" fill="#ff0055" />
-            <ellipse class="cat-pupil-inner" cx="130" cy="90" rx="1.5" ry="10" fill="var(--color-burgundy-dark)" />
-            
-            <path class="cat-eye" d="M 240 90 C 255 65, 285 65, 300 90 C 285 115, 255 115, 240 90 Z" fill="#adff2f" />
-            <!-- Glowing Red pupil core -->
-            <ellipse class="cat-pupil" cx="270" cy="90" rx="4" ry="13" fill="#ff0055" />
-            <ellipse class="cat-pupil-inner" cx="270" cy="90" rx="1.5" ry="10" fill="var(--color-burgundy-dark)" />
+        <svg viewBox="0 0 600 360" class="cheshire-svg" id="cheshireSvg">
+            <defs>
+                <radialGradient id="eyeGlowLeft" cx="40%" cy="40%" r="60%">
+                    <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9" />
+                    <stop offset="35%" stop-color="#0af2ff" stop-opacity="0.85" />
+                    <stop offset="70%" stop-color="#008080" stop-opacity="0.6" />
+                    <stop offset="100%" stop-color="#120103" stop-opacity="0" />
+                </radialGradient>
+                <radialGradient id="eyeGlowRight" cx="60%" cy="40%" r="60%">
+                    <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9" />
+                    <stop offset="35%" stop-color="#0af2ff" stop-opacity="0.85" />
+                    <stop offset="70%" stop-color="#008080" stop-opacity="0.6" />
+                    <stop offset="100%" stop-color="#120103" stop-opacity="0" />
+                </radialGradient>
+                <radialGradient id="mouthCavityGrad" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stop-color="#2a050d" />
+                    <stop offset="80%" stop-color="#120103" />
+                    <stop offset="100%" stop-color="#050001" />
+                </radialGradient>
+                <linearGradient id="toothGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="#ffffff" />
+                    <stop offset="70%" stop-color="#fdf8e2" />
+                    <stop offset="100%" stop-color="#d4af37" stop-opacity="0.75" />
+                </linearGradient>
+                <linearGradient id="lipGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#ffd700" stop-opacity="0.3" />
+                    <stop offset="25%" stop-color="#ff0055" stop-opacity="0.85" />
+                    <stop offset="50%" stop-color="#0af2ff" stop-opacity="0.9" />
+                    <stop offset="75%" stop-color="#ff0055" stop-opacity="0.85" />
+                    <stop offset="100%" stop-color="#ffd700" stop-opacity="0.3" />
+                </linearGradient>
+                <clipPath id="mouthCavityClip">
+                    <path d="M 100 185 C 160 325, 440 325, 500 185 C 430 230, 170 230, 100 185 Z" />
+                </clipPath>
+                <filter id="vorpalBladeGlow">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur" />
+                    <feMerge>
+                        <feMergeNode in="blur" />
+                        <feMergeNode in="SourceGraphic" />
+                    </feMerge>
+                </filter>
+            </defs>
 
-            <!-- Mouth (Black cavity with glowing crimson border) -->
-            <path class="cat-mouth" d="M 80 120 C 130 195, 270 195, 320 120 C 270 145, 130 145, 80 120 Z" fill="#0f0204" stroke="#ff0055" stroke-width="4" />
-            
-            <!-- Sharp, Jagged, Interlocking Teeth -->
-            <!-- Upper Teeth (pointing down) -->
-            <path class="cat-teeth" fill="var(--color-parchment)" d="
-                M 85 122 L 95 132 L 105 125 L 115 137 L 125 128 L 135 142 L 145 132 L 155 147 L 165 135 L 175 150 L 185 138 L 195 152 L 205 152 L 215 138 L 225 150 L 235 135 L 245 147 L 255 132 L 265 142 L 275 128 L 285 137 L 295 125 L 305 132 L 315 122 Z
-            " />
-            <!-- Lower Teeth (pointing up) -->
-            <path class="cat-teeth" fill="var(--color-parchment)" d="
-                M 85 122 L 95 138 L 105 130 L 115 145 L 125 135 L 135 152 L 140 140 L 155 160 L 165 145 L 175 168 L 185 150 L 195 172 L 205 172 L 215 150 L 225 168 L 235 145 L 245 160 L 255 140 L 265 152 L 275 135 L 285 145 L 295 130 L 305 138 L 315 122 Z
-            " />
-        </svg>
-    </div>
+            <!-- Feline Head Contours & Whiskers (Ethereal Lines) -->
+            <g class="cat-contour" stroke="rgba(212, 175, 55, 0.4)" stroke-width="1.5" fill="none">
+                <!-- Ears -->
+                <path d="M 120 130 C 135 60, 170 20, 205 70" stroke-linecap="round" />
+                <path d="M 480 130 C 465 60, 430 20, 395 70" stroke-linecap="round" />
+                <!-- Brow Curves -->
+                <path d="M 170 105 Q 230 85 275 115" stroke="rgba(10, 242, 255, 0.35)" stroke-width="2" />
+                <path d="M 430 105 Q 370 85 325 115" stroke="rgba(10, 242, 255, 0.35)" stroke-width="2" />
+                <!-- Left Whiskers -->
+                <path d="M 140 215 Q 70 205 20 220" />
+                <path d="M 145 230 Q 75 235 25 260" />
+                <path d="M 150 245 Q 85 260 40 290" />
+                <!-- Right Whiskers -->
+                <path d="M 460 215 Q 530 205 580 220" />
+                <path d="M 455 230 Q 525 235 575 260" />
+                <path d="M 450 245 Q 515 260 560 290" />
+            </g>
 
-    <!-- Jabberwocky Slash overlay container -->
-    <div class="jabberwocky-slash-overlay" id="jabberwockySlash">
-        <svg viewBox="0 0 100 100" preserveAspectRatio="none" style="width: 100%; height: 100%;">
-            <!-- Three glowing jagged claw slashes -->
-            <path d="M 20 15 L 75 85" stroke="#ff0044" stroke-width="5" stroke-linecap="round" class="slash-line line-1" />
-            <path d="M 45 10 L 90 75" stroke="#ff0044" stroke-width="5" stroke-linecap="round" class="slash-line line-2" />
-            <path d="M 5 25 L 60 95" stroke="#ff0044" stroke-width="5" stroke-linecap="round" class="slash-line line-3" />
+            <!-- Glowing Slit Eyes Group -->
+            <g class="cat-eye-group" id="catEyes">
+                <!-- Left Eye Socket Glow -->
+                <ellipse cx="205" cy="120" rx="46" ry="28" fill="url(#eyeGlowLeft)" class="cat-eye-glow" />
+                <!-- Left Eye Outer Contour -->
+                <path d="M 160 120 C 180 85, 230 85, 250 120 C 230 155, 180 155, 160 120 Z" 
+                      fill="#061c24" stroke="#0af2ff" stroke-width="2.5" />
+                <!-- Left Eye Iris / Pupil Group (Cursor Tracked) -->
+                <g class="cat-pupil-group" id="leftPupilGroup">
+                    <circle cx="205" cy="120" r="16" fill="#ffd700" opacity="0.85" />
+                    <!-- Slit Pupil -->
+                    <ellipse cx="205" cy="120" rx="3.5" ry="18" fill="#120103" />
+                    <!-- Slit Core Specular -->
+                    <ellipse cx="203" cy="116" rx="1.5" ry="6" fill="#ffffff" opacity="0.7" />
+                </g>
+
+                <!-- Right Eye Socket Glow -->
+                <ellipse cx="395" cy="120" rx="46" ry="28" fill="url(#eyeGlowRight)" class="cat-eye-glow" />
+                <!-- Right Eye Outer Contour -->
+                <path d="M 350 120 C 370 85, 420 85, 440 120 C 420 155, 370 155, 350 120 Z" 
+                      fill="#061c24" stroke="#0af2ff" stroke-width="2.5" />
+                <!-- Right Eye Iris / Pupil Group (Cursor Tracked) -->
+                <g class="cat-pupil-group" id="rightPupilGroup">
+                    <circle cx="395" cy="120" r="16" fill="#ffd700" opacity="0.85" />
+                    <!-- Slit Pupil -->
+                    <ellipse cx="395" cy="120" rx="3.5" ry="18" fill="#120103" />
+                    <!-- Slit Core Specular -->
+                    <ellipse cx="393" cy="116" rx="1.5" ry="6" fill="#ffffff" opacity="0.7" />
+                </g>
+            </g>
+
+            <!-- Iconic Victorian Cheshire Crescent Smile -->
+            <g class="cat-mouth-group" id="catMouth">
+                <!-- Mouth Background Cavity -->
+                <path class="cat-mouth-bg"
+                      d="M 100 185 C 160 325, 440 325, 500 185 C 430 230, 170 230, 100 185 Z" 
+                      fill="url(#mouthCavityGrad)" />
+
+                <!-- Teeth Clipped strictly within the Mouth Cavity -->
+                <g clip-path="url(#mouthCavityClip)">
+                    <!-- Upper Teeth Set (anchored from top down) -->
+                    <path class="cat-tooth" fill="url(#toothGrad)" d="
+                        M 90 170 L 510 170 L 510 230 
+                        L 480 205 Q 468 228 456 208 Q 442 234 430 211 Q 414 240 402 214 
+                        Q 386 244 374 216 Q 354 248 342 218 Q 320 250 300 220 Q 280 250 258 218 
+                        Q 246 248 226 216 Q 214 244 198 214 Q 186 240 170 211 Q 158 234 144 208 
+                        Q 132 228 120 205 Z
+                    " />
+
+                    <!-- Lower Teeth Set (anchored from bottom up) -->
+                    <path class="cat-tooth" fill="url(#toothGrad)" d="
+                        M 90 335 L 510 335 L 510 200 
+                        L 470 215 Q 458 190 446 213 Q 432 186 420 210 Q 404 182 392 208 
+                        Q 376 178 364 206 Q 344 174 332 204 Q 310 172 290 202 Q 270 172 248 204 
+                        Q 236 174 216 206 Q 204 178 188 208 Q 176 182 160 210 Q 148 186 134 213 
+                        Q 122 190 110 215 Z
+                    " />
+
+                    <!-- Tooth Separation Accents -->
+                    <path d="
+                        M 144 208 L 148 230 M 170 211 L 176 236 M 198 214 L 204 240 
+                        M 226 216 L 234 244 M 258 218 L 268 246 M 300 220 L 300 250 
+                        M 342 218 L 332 246 M 374 216 L 366 244 M 402 214 L 396 240 
+                        M 430 211 L 424 236 M 456 208 L 452 230
+                    " stroke="rgba(18, 1, 3, 0.4)" stroke-width="1.2" />
+                </g>
+
+                <!-- Glowing Outer Lip Stroke -->
+                <path d="M 100 185 C 160 325, 440 325, 500 185 C 430 230, 170 230, 100 185 Z" 
+                      fill="none" stroke="url(#lipGrad)" stroke-width="4.5" stroke-linejoin="round" />
+
+                <!-- Gum / Lip Contour Highlights -->
+                <path d="M 105 186 C 170 230, 430 230, 495 186" fill="none" stroke="rgba(212, 175, 55, 0.45)" stroke-width="1.5" />
+                <path d="M 120 196 C 180 305, 420 305, 480 196" fill="none" stroke="rgba(10, 242, 255, 0.4)" stroke-width="1.5" />
+            </g>
+
+            <!-- Vorpal Slice Laser Arc on Click -->
+            <g class="vorpal-slash-line" id="vorpalSlash">
+                <path d="M 60 50 L 540 310" stroke="#0af2ff" stroke-width="6" stroke-linecap="round" filter="url(#vorpalBladeGlow)" />
+                <path d="M 60 50 L 540 310" stroke="#ffffff" stroke-width="2" stroke-linecap="round" />
+            </g>
         </svg>
+
+        <div class="cheshire-sigil">
+            ✦ CHESHIRE ECLIPSE AWAKENED • TENDED BY GEMINI 3.7 FLASH VIA ANTIGRAVITY ✦
+            <span class="dismiss-hint">[ Click the smile to strike with the Vorpal Blade • Click anywhere else to return ]</span>
+        </div>
     </div>
 
     <div class="title-container">
@@ -938,7 +1115,7 @@
     </div>
 
     <div class="scrolling-text">
-        <span>♣️ "Curiouser and curiouser!" • ♦️ Try clicking the title... • ♠️ Click main title to restore smashed cards! • ♥️ "We're all mad here!" • ♣️ Konami Code triggers the storm! </span>
+        <span>♣️ "Curiouser and curiouser!" • ♦️ Flip all cards to summon the Cheshire Eclipse • ♠️ Click the smile to strike with the Vorpal Blade • ♥️ "We're all mad here!" • ♣️ Konami Code triggers the storm! </span>
     </div>
 
     <div class="nav-back-float">
@@ -1106,8 +1283,6 @@
             `;
 
             const card = container.querySelector('.playing-card');
-            let shakeCount = 0;
-            let dizzyTimer = null;
 
             // Click to flip (avoiding explore button click)
             container.addEventListener('click', (e) => {
@@ -1115,71 +1290,18 @@
                     return;
                 }
                 
-                // Clear any running timers
-                if (dizzyTimer) {
-                    clearTimeout(dizzyTimer);
-                    dizzyTimer = null;
-                }
-                
-                // Remove warning/dizzy classes
-                container.classList.remove('warning-jitter');
-                card.classList.remove('warning-state');
-                
-                if (card.classList.contains('dizzy')) {
-                    // Reset spinning card
-                    card.classList.remove('dizzy');
-                    shakeCount = 0;
-                    playLandingSound();
-                } else {
-                    card.classList.toggle('flipped');
-                    shakeCount = 0;
-                }
-                
-                setTimeout(checkAllCardsFlipped, 500);
+                card.classList.toggle('flipped');
+                playLandingSound();
+                setTimeout(checkAllCardsFlipped, 400);
             });
 
-            // Double click animation trigger
+            // Double click whimsical card dance
             container.addEventListener('dblclick', (e) => {
                 if (e.target.closest('.card-btn')) return;
 
-                // Prevent double click from double flipping (cancels the second toggle)
-                card.classList.toggle('flipped');
-
-                shakeCount++;
-
-                if (shakeCount >= 5) {
-                    // Trigger dizzy spinning break!
-                    const isFlipped = card.classList.contains('flipped');
-                    card.style.setProperty('--rotY', isFlipped ? '180deg' : '0deg');
-                    card.classList.add('dizzy');
-                    playDizzySound();
-
-                    hiddenMessage.textContent = "Instability detected! 🌀";
-                    hiddenMessage.style.fontSize = '2.8rem';
-                    hiddenMessage.classList.add('revealed');
-                    setTimeout(() => hiddenMessage.classList.remove('revealed'), 2000);
-
-                    // Set timers for warning and Jabberwocky attack
-                    dizzyTimer = setTimeout(() => {
-                        // Enter warning state (jitter container)
-                        container.classList.add('warning-jitter');
-                        card.classList.add('warning-state');
-                        hiddenMessage.textContent = "The Jabberwocky draws near! 🐉";
-                        hiddenMessage.style.fontSize = '2.2rem';
-                        hiddenMessage.classList.add('revealed');
-                        setTimeout(() => hiddenMessage.classList.remove('revealed'), 1500);
-
-                        // Second timer: Attack!
-                        dizzyTimer = setTimeout(() => {
-                            triggerJabberwockyAttack(container, card);
-                        }, 2000); // 2 seconds in warning state (total 5s)
-
-                    }, 3000); // 3 seconds in normal dizzy spin
-                } else {
-                    card.style.animation = 'none';
-                    card.offsetHeight; // Reflow
-                    card.style.animation = 'dance 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97) both';
-                }
+                card.style.animation = 'none';
+                card.offsetHeight; // Reflow
+                card.style.animation = 'dance 0.65s cubic-bezier(0.36, 0.07, 0.19, 0.97) both';
             });
 
             // Prevent link click from registering as double click
@@ -1187,10 +1309,7 @@
             btn.addEventListener('click', (e) => {
                 if (data.link === '#') {
                     e.preventDefault();
-                    hiddenMessage.textContent = "Time is stopped here!";
-                    hiddenMessage.style.fontSize = '2.8rem';
-                    hiddenMessage.classList.add('revealed');
-                    setTimeout(() => hiddenMessage.classList.remove('revealed'), 2000);
+                    showHiddenMessage("Time is stopped here! ☕", 6000, "2.4rem");
                 }
             });
 
@@ -1241,8 +1360,20 @@
             }
         }
 
-        // Cheshire Cat detection logic
+        // ═══════════════════════════════════════════════════════════
+        // THE GRAND CHESHIRE ECLIPSE (Easter Egg Masterpiece)
+        // Crafted by Gemini 3.7 Flash via Antigravity (Deck of Cards Zone)
+        // ═══════════════════════════════════════════════════════════
+
         let isCheshireTriggered = false;
+        let cheshireDismissTimer = null;
+
+        const cheshireBackdrop = document.getElementById('cheshireBackdrop');
+        const cheshireCat = document.getElementById('cheshireCat');
+        const cheshireSvg = document.getElementById('cheshireSvg');
+        const vorpalSlash = document.getElementById('vorpalSlash');
+        const leftPupilGroup = document.getElementById('leftPupilGroup');
+        const rightPupilGroup = document.getElementById('rightPupilGroup');
 
         function checkAllCardsFlipped() {
             const allCards = document.querySelectorAll('.playing-card');
@@ -1250,106 +1381,127 @@
             
             if (allCards.length > 0 && flippedCards.length === allCards.length) {
                 if (!isCheshireTriggered) {
-                    triggerCheshireCat();
+                    triggerCheshireEclipse();
                 }
             } else {
                 if (isCheshireTriggered && flippedCards.length < allCards.length) {
-                    resetCheshireState();
+                    dismissCheshireEclipse();
                 }
             }
         }
 
-        function triggerCheshireCat() {
+        let messageTimer = null;
+        function showHiddenMessage(text, duration = 7500, fontSize = '2.2rem') {
+            if (messageTimer) clearTimeout(messageTimer);
+            hiddenMessage.textContent = text;
+            hiddenMessage.style.fontSize = fontSize;
+            hiddenMessage.classList.add('revealed');
+            messageTimer = setTimeout(() => {
+                hiddenMessage.classList.remove('revealed');
+                messageTimer = null;
+            }, duration);
+        }
+
+        function triggerCheshireEclipse() {
             isCheshireTriggered = true;
-            const cheshire = document.getElementById('cheshireCat');
-            
-            cheshire.classList.remove('fade-eyes', 'fade-mouth');
-            cheshire.style.display = 'block';
-            
-            setTimeout(() => {
-                cheshire.classList.add('visible');
-                playCreepyCheshireLaugh();
-            }, 50);
+            if (cheshireDismissTimer) clearTimeout(cheshireDismissTimer);
 
-            // Phase 1: Fade out eyes after 4.2 seconds
-            setTimeout(() => {
-                cheshire.classList.add('fade-eyes');
-            }, 4200);
+            console.log(
+                "%c♠️ The Cheshire Eclipse Awakened ♠️\n%cDeck of Cards Zone • Crafted by Gemini 3.7 Flash via Antigravity\n'We're all mad here!'",
+                "color: #ffd700; font-size: 14px; font-weight: bold; text-shadow: 0 0 8px #ffd700;",
+                "color: #0af2ff; font-style: italic; font-size: 11px;"
+            );
 
-            // Phase 2: Fade out mouth after 7.5 seconds
-            setTimeout(() => {
-                cheshire.classList.add('fade-mouth');
-            }, 7500);
+            // Reset dissolve state classes
+            cheshireCat.classList.remove('fade-contours', 'fade-eyes', 'fade-smile');
+            cheshireBackdrop.classList.add('visible');
+            cheshireCat.classList.add('visible');
 
-            // Phase 3: Hide completely after 10.5 seconds
-            setTimeout(() => {
-                cheshire.classList.remove('visible');
-                cheshire.style.display = 'none';
-            }, 10500);
+            playCheshireEclipseSound();
+
+            // Reveal notification banner (readable duration: 7s)
+            showHiddenMessage("✦ The Cheshire Eclipse Has Awakened ✦", 7000, "2.2rem");
+
+            // Gentle natural dissolve sequence if left undisturbed (24 seconds total)
+            cheshireDismissTimer = setTimeout(() => {
+                cheshireCat.classList.add('fade-contours');
+                setTimeout(() => {
+                    cheshireCat.classList.add('fade-eyes');
+                    setTimeout(() => {
+                        cheshireCat.classList.add('fade-smile');
+                        setTimeout(() => {
+                            dismissCheshireEclipse();
+                        }, 3000);
+                    }, 3000);
+                }, 4000);
+            }, 24000);
         }
 
-        function resetCheshireState() {
+        function dismissCheshireEclipse() {
             isCheshireTriggered = false;
-            const cheshire = document.getElementById('cheshireCat');
-            cheshire.classList.remove('visible', 'fade-eyes', 'fade-mouth');
-            cheshire.style.display = 'none';
+            if (cheshireDismissTimer) clearTimeout(cheshireDismissTimer);
+
+            cheshireCat.classList.remove('visible');
+            cheshireBackdrop.classList.remove('visible');
+            setTimeout(() => {
+                cheshireCat.classList.remove('fade-contours', 'fade-eyes', 'fade-smile');
+            }, 1500);
         }
 
-        // Jabberwocky Attack execution
-        function triggerJabberwockyAttack(container, card) {
-            // Stop any further timers
-            container.classList.remove('warning-jitter');
-            card.classList.remove('warning-state');
-            card.classList.remove('dizzy');
-            
-            // Get bounding coordinates of card
-            const rect = container.getBoundingClientRect();
-            const slash = document.getElementById('jabberwockySlash');
-            
-            // Position slash overlay exactly over the card
-            slash.style.top = `${rect.top + window.scrollY}px`;
-            slash.style.left = `${rect.left + window.scrollX}px`;
-            slash.style.width = `${rect.width}px`;
-            slash.style.height = `${rect.height}px`;
-            
-            // Trigger slash visual
-            slash.classList.remove('slashed');
-            slash.offsetHeight; // Reflow
-            slash.classList.add('slashed');
-            
-            // Play audio growl & slash impact
-            playJabberwockySmashSound();
-            
-            // Trigger body screen shake
-            document.body.classList.remove('shake-active');
-            document.body.offsetHeight; // Reflow
-            document.body.classList.add('shake-active');
-            
-            setTimeout(() => {
-                document.body.classList.remove('shake-active');
-            }, 600);
-            
-            // Set card face Y-rot variable for shatter anim
-            const isFlipped = card.classList.contains('flipped');
-            card.style.setProperty('--rotY', isFlipped ? '180deg' : '0deg');
-            
-            // Trigger shatter
-            card.classList.add('smashed');
-            
-            // Remove container after animation finishes
-            setTimeout(() => {
-                container.remove();
-                
-                // Show broken realm alert banner
-                hiddenMessage.textContent = "Beware the Jabberwock! Click the title to restore.";
-                hiddenMessage.style.fontSize = '1.8rem';
-                hiddenMessage.classList.add('revealed');
-                setTimeout(() => hiddenMessage.classList.remove('revealed'), 4000);
-            }, 700);
+        // Dismiss when clicking the backdrop
+        cheshireBackdrop.addEventListener('click', () => {
+            dismissCheshireEclipse();
+        });
+
+        // Dynamic Eye Tracking with Cursor
+        document.addEventListener('mousemove', (e) => {
+            if (!isCheshireTriggered || !leftPupilGroup || !rightPupilGroup) return;
+
+            const rect = cheshireSvg.getBoundingClientRect();
+            const svgCenterX = rect.left + rect.width / 2;
+            const svgCenterY = rect.top + rect.height * 0.35;
+
+            const deltaX = (e.clientX - svgCenterX) / (window.innerWidth * 0.5);
+            const deltaY = (e.clientY - svgCenterY) / (window.innerHeight * 0.5);
+
+            const clampX = Math.max(-1, Math.min(1, deltaX)) * 14;
+            const clampY = Math.max(-1, Math.min(1, deltaY)) * 8;
+
+            leftPupilGroup.style.transform = `translate(${clampX}px, ${clampY}px)`;
+            rightPupilGroup.style.transform = `translate(${clampX}px, ${clampY}px)`;
+        });
+
+        // Vorpal Blade Strike on Smile Click
+        cheshireSvg.addEventListener('click', (e) => {
+            e.stopPropagation();
+            triggerVorpalStrike();
+        });
+
+        function triggerVorpalStrike() {
+            vorpalSlash.classList.remove('active');
+            vorpalSlash.offsetHeight; // Reflow
+            vorpalSlash.classList.add('active');
+
+            playVorpalSliceSound();
+
+            // Generate burst of Vorpal spark sparks
+            const rect = cheshireSvg.getBoundingClientRect();
+            for (let i = 0; i < 16; i++) {
+                const px = rect.left + rect.width * (0.2 + Math.random() * 0.6);
+                const py = rect.top + rect.height * (0.4 + Math.random() * 0.4);
+                createSpark(px, py);
+            }
+
+            // Display reading-friendly banner (8 seconds)
+            showHiddenMessage("Snicker-snack! The Vorpal Blade strikes! ⚔️", 8000, "2.0rem");
         }
 
-        // Synthesize creepy, glitchy, detuned cat chuckle growl laugh
-        function playCreepyCheshireLaugh() {
+        // ═══════════════════════════════════════════════════════════
+        // AUDIO SYNTHESIZERS (Pure Web Audio API)
+        // ═══════════════════════════════════════════════════════════
+
+        // Ethereal Celestial Chimes + Resonant Feline Purr
+        function playCheshireEclipseSound() {
             let AC;
             try {
                 AC = new (window.AudioContext || window.webkitAudioContext)();
@@ -1359,57 +1511,75 @@
             if (AC.state === 'suspended') AC.resume();
 
             const now = AC.currentTime;
-            const chuckleFrequencies = [220, 190, 170, 150, 130, 110, 80];
-            const delays = [0, 0.15, 0.3, 0.44, 0.56, 0.7, 0.86];
-
             const mainGain = AC.createGain();
-            mainGain.gain.setValueAtTime(0.24, now);
+            mainGain.gain.setValueAtTime(0.28, now);
             mainGain.connect(AC.destination);
 
-            chuckleFrequencies.forEach((freq, idx) => {
-                const t = now + delays[idx];
-                
-                // Detuned dual-sawtooth chuckle chorus
-                [-6, 6].forEach(detune => {
-                    const osc = AC.createOscillator();
-                    const gain = AC.createGain();
-                    
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(freq, t);
-                    osc.frequency.linearRampToValueAtTime(freq * 0.75, t + 0.15);
-                    osc.detune.setValueAtTime(detune, t);
-                    
-                    gain.gain.setValueAtTime(0, t);
-                    gain.gain.linearRampToValueAtTime(0.18, t + 0.02);
-                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.14);
-                    
-                    osc.connect(gain);
-                    gain.connect(mainGain);
-                    
-                    osc.start(t);
-                    osc.stop(t + 0.16);
-                });
+            // 1. Cascading Pentatonic Crystal Chimes (Eb, G, Bb, D, F, G)
+            const chimeNotes = [311.13, 392.00, 466.16, 587.33, 698.46, 783.99];
+            chimeNotes.forEach((freq, idx) => {
+                const t = now + idx * 0.12;
+                const osc = AC.createOscillator();
+                const gain = AC.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, t);
+                osc.frequency.exponentialRampToValueAtTime(freq * 1.01, t + 1.2);
+
+                gain.gain.setValueAtTime(0, t);
+                gain.gain.linearRampToValueAtTime(0.18, t + 0.03);
+                gain.gain.exponentialRampToValueAtTime(0.0001, t + 1.8);
+
+                osc.connect(gain);
+                gain.connect(mainGain);
+
+                osc.start(t);
+                osc.stop(t + 1.9);
             });
 
-            // Sub-bass growl finale
-            const subOsc = AC.createOscillator();
-            const subGain = AC.createGain();
-            subOsc.type = 'sawtooth';
-            subOsc.frequency.setValueAtTime(70, now + 0.86);
-            subOsc.frequency.linearRampToValueAtTime(40, now + 1.6);
-            
-            subGain.gain.setValueAtTime(0, now + 0.86);
-            subGain.gain.linearRampToValueAtTime(0.25, now + 0.9);
-            subGain.gain.exponentialRampToValueAtTime(0.001, now + 1.6);
-            
-            subOsc.connect(subGain);
-            subGain.connect(mainGain);
-            subOsc.start(now + 0.86);
-            subOsc.stop(now + 1.7);
+            // 2. Resonant Sub-Bass Feline Purr (Warm Modulated Tremolo)
+            const purrOsc1 = AC.createOscillator();
+            const purrOsc2 = AC.createOscillator();
+            const purrGain = AC.createGain();
+            const purrFilter = AC.createBiquadFilter();
+
+            purrOsc1.type = 'triangle';
+            purrOsc1.frequency.setValueAtTime(65.4, now + 0.5); // C2
+            purrOsc2.type = 'sine';
+            purrOsc2.frequency.setValueAtTime(98.0, now + 0.5); // G2
+
+            purrFilter.type = 'lowpass';
+            purrFilter.frequency.setValueAtTime(240, now + 0.5);
+
+            // 22Hz Tremolo LFO for natural purr flutter
+            const lfo = AC.createOscillator();
+            const lfoGain = AC.createGain();
+            lfo.frequency.setValueAtTime(22, now + 0.5);
+            lfoGain.gain.setValueAtTime(0.12, now + 0.5);
+
+            lfo.connect(lfoGain);
+            lfoGain.connect(purrGain.gain);
+
+            purrGain.gain.setValueAtTime(0.001, now + 0.5);
+            purrGain.gain.linearRampToValueAtTime(0.22, now + 1.0);
+            purrGain.gain.exponentialRampToValueAtTime(0.0001, now + 3.2);
+
+            purrOsc1.connect(purrFilter);
+            purrOsc2.connect(purrFilter);
+            purrFilter.connect(purrGain);
+            purrGain.connect(mainGain);
+
+            lfo.start(now + 0.5);
+            purrOsc1.start(now + 0.5);
+            purrOsc2.start(now + 0.5);
+
+            lfo.stop(now + 3.3);
+            purrOsc1.stop(now + 3.3);
+            purrOsc2.stop(now + 3.3);
         }
 
-        // Synthesize dragon growl and explosive card crash sound
-        function playJabberwockySmashSound() {
+        // Vorpal Blade Strike Sound (Crystal Ping + Swift Whoosh)
+        function playVorpalSliceSound() {
             let AC;
             try {
                 AC = new (window.AudioContext || window.webkitAudioContext)();
@@ -1420,55 +1590,31 @@
 
             const now = AC.currentTime;
             const mainGain = AC.createGain();
-            mainGain.gain.setValueAtTime(0.35, now);
+            mainGain.gain.setValueAtTime(0.32, now);
             mainGain.connect(AC.destination);
 
-            // 1. Dragon Roar (Sawtooth with LFO flutter)
-            const roarOsc = AC.createOscillator();
-            const roarGain = AC.createGain();
-            roarOsc.type = 'sawtooth';
-            roarOsc.frequency.setValueAtTime(160, now);
-            roarOsc.frequency.exponentialRampToValueAtTime(65, now + 0.65);
+            // Resonant Crystal Blade Strike (Dual High Ping)
+            [1244.5, 1864.6].forEach(freq => {
+                const osc = AC.createOscillator();
+                const gain = AC.createGain();
 
-            const lfo = AC.createOscillator();
-            const lfoGain = AC.createGain();
-            lfo.frequency.value = 28;
-            lfoGain.gain.value = 20;
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, now);
+                osc.frequency.exponentialRampToValueAtTime(freq * 0.85, now + 0.5);
 
-            lfo.connect(lfoGain);
-            lfoGain.connect(roarOsc.frequency);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.6);
 
-            roarGain.gain.setValueAtTime(0.01, now);
-            roarGain.gain.linearRampToValueAtTime(0.35, now + 0.1);
-            roarGain.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
+                osc.connect(gain);
+                gain.connect(mainGain);
 
-            roarOsc.connect(roarGain);
-            roarGain.connect(mainGain);
+                osc.start(now);
+                osc.stop(now + 0.6);
+            });
 
-            lfo.start(now);
-            roarOsc.start(now);
-            lfo.stop(now + 0.65);
-            roarOsc.stop(now + 0.65);
-
-            // 2. Explosion Smash (Filtered white noise + sub punch)
-            const crashOsc = AC.createOscillator();
-            const crashGain = AC.createGain();
-            crashOsc.type = 'triangle';
-            crashOsc.frequency.setValueAtTime(90, now + 0.12);
-            crashOsc.frequency.linearRampToValueAtTime(25, now + 0.65);
-
-            crashGain.gain.setValueAtTime(0, now + 0.12);
-            crashGain.gain.linearRampToValueAtTime(0.45, now + 0.16);
-            crashGain.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
-
-            crashOsc.connect(crashGain);
-            crashGain.connect(mainGain);
-            crashOsc.start(now + 0.12);
-            crashOsc.stop(now + 0.65);
-
-            // Noise crash generator
+            // Swift Filtered Whoosh
             try {
-                const bufferSize = AC.sampleRate * 0.55;
+                const bufferSize = AC.sampleRate * 0.35;
                 const buffer = AC.createBuffer(1, bufferSize, AC.sampleRate);
                 const data = buffer.getChannelData(0);
                 for (let i = 0; i < bufferSize; i++) {
@@ -1480,49 +1626,21 @@
                 const noiseGain = AC.createGain();
                 const filter = AC.createBiquadFilter();
                 filter.type = 'bandpass';
-                filter.frequency.setValueAtTime(280, now + 0.12);
-                filter.Q.setValueAtTime(1.2, now);
+                filter.frequency.setValueAtTime(800, now);
+                filter.frequency.exponentialRampToValueAtTime(2400, now + 0.15);
+                filter.Q.setValueAtTime(2.5, now);
 
-                noiseGain.gain.setValueAtTime(0, now + 0.12);
-                noiseGain.gain.linearRampToValueAtTime(0.4, now + 0.15);
-                noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+                noiseGain.gain.setValueAtTime(0.01, now);
+                noiseGain.gain.linearRampToValueAtTime(0.25, now + 0.05);
+                noiseGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.35);
 
                 noiseNode.connect(filter);
                 filter.connect(noiseGain);
                 noiseGain.connect(mainGain);
 
-                noiseNode.start(now + 0.12);
-                noiseNode.stop(now + 0.65);
-            } catch (e) {
-                // Fallback buffer fail
-            }
-        }
-
-        // Synthesize rising spin pitch sweep
-        function playDizzySound() {
-            let AC;
-            try {
-                AC = new (window.AudioContext || window.webkitAudioContext)();
-            } catch (e) {
-                return;
-            }
-            if (AC.state === 'suspended') AC.resume();
-
-            const now = AC.currentTime;
-            const osc = AC.createOscillator();
-            const gain = AC.createGain();
-
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(220, now);
-            osc.frequency.exponentialRampToValueAtTime(1200, now + 0.6);
-
-            gain.gain.setValueAtTime(0.15, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
-
-            osc.connect(gain);
-            gain.connect(AC.destination);
-            osc.start(now);
-            osc.stop(now + 0.6);
+                noiseNode.start(now);
+                noiseNode.stop(now + 0.35);
+            } catch (e) {}
         }
 
         // Synthesize card snap landing pitch slide
@@ -1540,38 +1658,32 @@
             const gain = AC.createGain();
 
             osc.type = 'sine';
-            osc.frequency.setValueAtTime(400, now);
-            osc.frequency.exponentialRampToValueAtTime(120, now + 0.25);
+            osc.frequency.setValueAtTime(380, now);
+            osc.frequency.exponentialRampToValueAtTime(140, now + 0.2);
 
-            gain.gain.setValueAtTime(0.12, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+            gain.gain.setValueAtTime(0.1, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
 
             osc.connect(gain);
             gain.connect(AC.destination);
             osc.start(now);
-            osc.stop(now + 0.25);
+            osc.stop(now + 0.2);
         }
 
         // Alice scaling handlers (Eat Me / Drink Me)
         drinkMeBtn.addEventListener('click', () => {
             document.documentElement.style.setProperty('--scale-factor', '0.75');
-            hiddenMessage.textContent = "Shrunk! 🧪";
-            hiddenMessage.classList.add('revealed');
-            setTimeout(() => hiddenMessage.classList.remove('revealed'), 1200);
+            showHiddenMessage("Shrunk! 🧪", 4000, "2.4rem");
         });
 
         eatMeBtn.addEventListener('click', () => {
             document.documentElement.style.setProperty('--scale-factor', '1.2');
-            hiddenMessage.textContent = "Grown! 🍰";
-            hiddenMessage.classList.add('revealed');
-            setTimeout(() => hiddenMessage.classList.remove('revealed'), 1200);
+            showHiddenMessage("Grown! 🍰", 4000, "2.4rem");
         });
 
         resetSizeBtn.addEventListener('click', () => {
             document.documentElement.style.setProperty('--scale-factor', '1.0');
-            hiddenMessage.textContent = "Normal size 🍷";
-            hiddenMessage.classList.add('revealed');
-            setTimeout(() => hiddenMessage.classList.remove('revealed'), 1200);
+            showHiddenMessage("Normal size 🍷", 4000, "2.4rem");
         });
 
         // Easter egg: Title click shake, quote cycle & deck restoration
@@ -1600,21 +1712,13 @@
                 garden.innerHTML = '';
                 initCards();
 
-                hiddenMessage.textContent = "The realm has been restored! ✨";
-                hiddenMessage.style.fontSize = '2.4rem';
-                hiddenMessage.classList.add('revealed');
-                setTimeout(() => hiddenMessage.classList.remove('revealed'), 2000);
+                showHiddenMessage("The realm has been restored! ✨", 6000, "2.4rem");
                 return;
             }
 
             if (titleClickCount % 3 === 0) {
                 const quote = aliceQuotes[Math.floor(Math.random() * aliceQuotes.length)];
-                hiddenMessage.textContent = quote;
-                hiddenMessage.style.fontSize = quote.length > 25 ? '1.6rem' : '2.8rem';
-                hiddenMessage.classList.add('revealed');
-                setTimeout(() => {
-                    hiddenMessage.classList.remove('revealed');
-                }, 3200);
+                showHiddenMessage(quote, 6000, quote.length > 25 ? '1.8rem' : '2.8rem');
             }
         });
 

@@ -2,11 +2,11 @@
 
 > Top-level house brief for `webApps/portfolio/`. Read automatically at the
 > start of any session rooted here or in a subfolder. This is the **root**
-> file — deeper `CLAUDE.md` files (e.g. `games/CLAUDE.md`,
-> `games/InterpretiveNetworking/CLAUDE.md`) carry zone- and mission-specific
-> detail. Claude Code reads them hierarchically: this root file and any deeper
-> ones apply together, and the deepest file wins for anything inside its own
-> folder.
+> file — deeper `CLAUDE.md` files (e.g. `games/CLAUDE.md`, or a specific game
+> subfolder's own file while it's mid-build) carry zone- and
+> mission-specific detail. Claude Code reads them hierarchically: this root
+> file and any deeper ones apply together, and the deepest file wins for
+> anything inside its own folder.
 
 ## What this repo is
 
@@ -21,12 +21,12 @@ deploys to **GitHub Pages** (repo: `RosettasKeys/playground`).
 
 Each zone has its own landing page with a distinct voice:
 
-| Zone | Nearest index | Vibe |
-|---|---|---|
-| root hub | `index.html` (*Garden of Keys*) | explorative, botanical, faint edge |
-| `ecards/` | `card-index.html` (*Deck of Cards*) | whimsical, Wonderland |
-| `fidgetToy/` | `fidgetToy-index.html` (*Fidget Toy Garden*) | calm, sensory, soothing |
-| `games/` | `games-index.html` (*MISFIRE ARCADE*) | unhinged, glitchy chaos |
+| Zone         | Nearest index                                | Vibe                               |
+| ------------ | -------------------------------------------- | ---------------------------------- |
+| root hub     | `index.html` (*Garden of Keys*)              | explorative, botanical, faint edge |
+| `ecards/`    | `card-index.html` (*Deck of Cards*)          | whimsical, Wonderland              |
+| `fidgetToy/` | `fidgetToy-index.html` (*Fidget Toy Garden*) | calm, sensory, soothing            |
+| `games/`     | `games-index.html` (*MISFIRE ARCADE*)        | unhinged, glitchy chaos            |
 
 ## Easter-egg protocol → read `AGENTS.md`
 

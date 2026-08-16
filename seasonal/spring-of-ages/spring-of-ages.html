@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Spring of Ages</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap"
+        rel="stylesheet" />
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #0d0820;
+            font-family: 'Crimson Pro', Georgia, serif;
+            min-height: 100vh;
+        }
+
+        :root {
+            --gold: #c8922a;
+            --gold-light: #f0c060;
+            --panel-bg: rgba(15, 8, 30, 0.97);
+        }
+
+        #app {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: linear-gradient(180deg, #0d0820 0%, #1a1535 40%, #2a1a40 100%);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        #title-bar {
+            position: relative;
+            text-align: center;
+            padding: 18px 20px 10px;
+        }
+
+        .rose-back {
+            position: absolute;
+            top: 22px;
+            left: 22px;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            color: rgba(240, 192, 96, 0.72);
+            font-family: 'Cinzel', serif;
+            font-size: 10px;
+            letter-spacing: 0.08em;
+            text-decoration: none;
+            text-transform: uppercase;
+            transition: color 180ms ease, transform 180ms ease;
+        }
+
+        .rose-back:hover,
+        .rose-back:focus-visible {
+            color: var(--gold-light);
+            transform: translateX(-2px);
+        }
+
+        .rose-back:focus-visible {
+            outline: 1px solid var(--gold-light);
+            outline-offset: 5px;
+            border-radius: 2px;
+        }
+
+        #title-bar h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 26px;
+            color: var(--gold-light);
+            letter-spacing: 2px;
+            text-shadow: 0 0 20px rgba(200, 146, 42, 0.5);
+        }
+
+        #title-bar p {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.55);
+            margin-top: 4px;
+            font-style: italic;
+        }
+
+        #map-container {
+            position: relative;
+            width: 100%;
+            max-width: 1000px;
+            margin: 0 auto;
+            background-image: url('https://lh3.googleusercontent.com/pw/AP1GczPYiUxmJlLWRFa6YA9xgQBf5sCOqwXWk8ENl0WiS0P592_Uf69ssnc4dZ8ROZZok2ujLR8k3g0-p7ataYf4iYoa827c4zt8MbA4XkhnPlZH6HpFYdAr=w1430-h780-no');
+            background-size: cover;
+            background-position: center;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        /* Hide the old SVG paths while using the JPG background */
+        .continent,
+        .ocean {
+            display: none;
+        }
+
+        #map-svg {
+            background: transparent !important;
+        }
+
+        .pin-group {
+            cursor: pointer;
+        }
+
+        .pin-ring {
+            fill: none;
+            stroke-width: 1.5;
+            animation: pulse 2.5s ease-in-out infinite;
+        }
+
+        .pin-dot {
+            r: 5;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                r: 10;
+                opacity: 0.6;
+            }
+
+            50% {
+                r: 14;
+                opacity: 0.2;
+            }
+        }
+
+        .pin-label {
+            font-family: 'Cinzel', serif;
+            font-size: 9px;
+            /* Increased from 7px */
+            font-weight: bold;
+            /* Added bold */
+            fill: #ffffff;
+            text-anchor: middle;
+            pointer-events: none;
+            /* This adds a "halo" so the text is readable over the map colors */
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8), -1px -1px 2px rgba(0, 0, 0, 0.8);
+        }
+
+        #panel {
+            position: relative;
+            background: var(--panel-bg);
+            border-top: 1px solid rgba(200, 146, 42, 0.3);
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height 0.4s ease;
+        }
+
+        #panel.open {
+            max-height: 900px;
+        }
+
+        #panel-inner {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            min-height: 320px;
+        }
+
+        #panel-image-side {
+            position: relative;
+            min-height: 280px;
+            background: #0a0818;
+            overflow: hidden;
+        }
+
+        #panel-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center top;
+            display: block;
+            opacity: 0;
+            transition: opacity 0.6s ease;
+        }
+
+        #panel-img.loaded {
+            opacity: 1;
+        }
+
+        #img-placeholder {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.2);
+            font-size: 40px;
+        }
+
+        #panel-text-side {
+            padding: 20px 22px 16px;
+            overflow-y: auto;
+            max-height: 420px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        #panel-region {
+            font-family: 'Cinzel', serif;
+            font-size: 10px;
+            letter-spacing: 2px;
+            color: var(--gold);
+            text-transform: uppercase;
+        }
+
+        #panel-title {
+            font-family: 'Cinzel', serif;
+            font-size: 20px;
+            color: var(--gold-light);
+            line-height: 1.2;
+        }
+
+        .myth-bust {
+            background: #fff3c4;
+            border-left: 3px solid var(--gold);
+            border-radius: 4px;
+            padding: 8px 12px;
+            font-size: 13px;
+            color: #3a2000;
+            font-style: italic;
+            line-height: 1.5;
+        }
+
+        .myth-bust strong {
+            font-style: normal;
+            font-weight: 600;
+            color: #6a3800;
+            display: block;
+            margin-bottom: 3px;
+            font-size: 11px;
+            letter-spacing: 0.5px;
+        }
+
+        #narration-text {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.82);
+            line-height: 1.7;
+            flex: 1;
+        }
+
+        .sentence {
+            display: inline;
+            transition: background 0.2s, color 0.2s;
+            border-radius: 2px;
+            padding: 0 1px;
+        }
+
+        .sentence.active {
+            background: rgba(200, 146, 42, 0.35);
+            color: #fff;
+        }
+
+        #controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-top: 6px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            flex-wrap: wrap;
+        }
+
+        .ctrl-btn {
+            background: rgba(200, 146, 42, 0.15);
+            border: 1px solid rgba(200, 146, 42, 0.4);
+            color: var(--gold-light);
+            border-radius: 6px;
+            padding: 6px 14px;
+            font-family: 'Crimson Pro', serif;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .ctrl-btn:hover {
+            background: rgba(200, 146, 42, 0.3);
+        }
+
+        #voice-status {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.4);
+            font-style: italic;
+        }
+
+        #progress-bar-wrap {
+            height: 2px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 1px;
+            overflow: hidden;
+            flex: 1;
+            min-width: 60px;
+        }
+
+        #progress-bar {
+            height: 100%;
+            background: var(--gold);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        #nav-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 10px 16px 14px;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.3);
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .nav-pill {
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.7);
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-family: 'Crimson Pro', serif;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .nav-pill:hover,
+        .nav-pill.active {
+            background: rgba(200, 146, 42, 0.3);
+            border-color: var(--gold);
+            color: var(--gold-light);
+        }
+
+        #close-btn {
+            position: absolute;
+            top: 10px;
+            right: 14px;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 20px;
+            cursor: pointer;
+            z-index: 5;
+        }
+
+        #close-btn:hover {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        #myth-bust-box {
+            display: none;
+        }
+
+        @media(max-width:600px) {
+            .rose-back {
+                position: static;
+                margin: 0 auto 10px;
+            }
+
+            #panel-inner {
+                grid-template-columns: 1fr;
+            }
+
+            #panel-image-side {
+                min-height: 180px;
+                max-height: 220px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div id="title-bar">
+            <a class="rose-back" href="../seasonal-index.html" aria-label="Back to The Wandering Rose">← The Wandering Rose</a>
+            <h1>Spring of Ages</h1>
+            <p>Click a glowing dot to open a story — or use the buttons below</p>
+        </div>
+
+        <div id="map-container">
+            <svg id="map-svg" viewBox="0 0 800 380" preserveAspectRatio="xMidYMid meet"
+                xmlns="http://www.w3.org/2000/svg">
+                <rect width="800" height="380" class="ocean" />
+
+                <path class="continent"
+                    d="M60,40 L160,30 L200,50 L220,90 L200,140 L180,160 L160,180 L130,200 L100,190 L80,170 L60,140 L50,100 Z" />
+                <g class="pin-group" data-id="aztec" transform="translate(160, 190)">
+                    <circle class="pin-ring" r="10" stroke="#3dffdb" opacity="0.5" />
+                    <circle class="pin-dot" fill="#3dffdb" /><text class="pin-label" y="18">Aztec</text>
+                </g>
+                <g class="pin-group" data-id="inca" transform="translate(220, 270)">
+                    <circle class="pin-ring" r="10" stroke="#ff9585" opacity="0.5" />
+                    <circle class="pin-dot" fill="#ff9585" /><text class="pin-label" y="18">Inca</text>
+                </g>
+
+                <g class="pin-group" data-id="norse" transform="translate(395, 95)">
+                    <circle class="pin-ring" r="10" stroke="#68f1ff" opacity="0.5" />
+                    <circle class="pin-dot" fill="#68f1ff" /><text class="pin-label" y="18">Norse</text>
+                </g>
+                <g class="pin-group" data-id="ostara" transform="translate(410, 125)">
+                    <circle class="pin-ring" r="10" stroke="#64ff75" opacity="0.5" />
+                    <circle class="pin-dot" fill="#64ff75" /><text class="pin-label" y="18">Ostara</text>
+                </g>
+                <g class="pin-group" data-id="rome" transform="translate(405, 150)">
+                    <circle class="pin-ring" r="10" stroke="#f5b7ff" opacity="0.5" />
+                    <circle class="pin-dot" fill="#f5b7ff" /><text class="pin-label" y="18">Rome</text>
+                </g>
+                <g class="pin-group" data-id="greece" transform="translate(438, 150)">
+                    <circle class="pin-ring" r="10" stroke="#a2fe67" opacity="0.5" />
+                    <circle class="pin-dot" fill="#a2fe67" /><text class="pin-label" y="18">Greece</text>
+                </g>
+
+                <g class="pin-group" data-id="egypt" transform="translate(445, 190)">
+                    <circle class="pin-ring" r="10" stroke="#f5ff66" opacity="0.5" />
+                    <circle class="pin-dot" fill="#f5ff66" /><text class="pin-label" y="18">Egypt</text>
+                </g>
+                <g class="pin-group" data-id="babylon" transform="translate(475, 180)">
+                    <circle class="pin-ring" r="10" stroke="#78d9ff" opacity="0.5" />
+                    <circle class="pin-dot" fill="#78d9ff" /><text class="pin-label" y="18">Babylon</text>
+                </g>
+                <g class="pin-group" data-id="nowruz" transform="translate(510, 180)">
+                    <circle class="pin-ring" r="10" stroke="#e581e8" opacity="0.5" />
+                    <circle class="pin-dot" fill="#e581e8" /><text class="pin-label" y="18">Persia</text>
+                </g>
+                <g class="pin-group" data-id="yoruba" transform="translate(385, 220)">
+                    <circle class="pin-ring" r="10" stroke="#ffd53f" opacity="0.5" />
+                    <circle class="pin-dot" fill="#ffd53f" /><text class="pin-label" y="18">Yoruba</text>
+                </g>
+
+                <g class="pin-group" data-id="china" transform="translate(600, 170)">
+                    <circle class="pin-ring" r="10" stroke="#ff4629" opacity="0.5" />
+                    <circle class="pin-dot" fill="#ff4629" /><text class="pin-label" y="18">China</text>
+                </g>
+                <g class="pin-group" data-id="holi" transform="translate(545, 225)">
+                    <circle class="pin-ring" r="10" stroke="#f69f39" opacity="0.5" />
+                    <circle class="pin-dot" fill="#f69f39" /><text class="pin-label" y="18">India</text>
+                </g>
+                <g class="pin-group" data-id="songkran" transform="translate(600, 220)">
+                    <circle class="pin-ring" r="10" stroke="#11f0d2" opacity="0.5" />
+                    <circle class="pin-dot" fill="#11f0d2" /><text class="pin-label" y="18">Thailand</text>
+                </g>
+
+            </svg>
+        </div>
+
+        <div id="panel">
+            <button id="close-btn">&#x2715;</button>
+            <div id="panel-inner">
+                <div id="panel-image-side">
+                    <div id="img-placeholder">&#x2605;</div>
+                    <img id="panel-img" alt="" />
+                </div>
+                <div id="panel-text-side">
+                    <div id="panel-region"></div>
+                    <div id="panel-title"></div>
+                    <div id="myth-bust-box"></div>
+                    <div id="narration-text"></div>
+                    <div id="controls">
+                        <button class="ctrl-btn" id="play-btn">&#9654; Read to me</button>
+                        <div id="progress-bar-wrap">
+                            <div id="progress-bar"></div>
+                        </div>
+                        <span id="voice-status"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="nav-pills"></div>
+    </div>
+
+    <script>
+        const TRADITIONS = {
+            egypt: {
+                name: "Isis, Osiris & The Green Man",
+                region: "Ancient Egypt",
+                color: "#f0c060",
+                image: "https://lh3.googleusercontent.com/pw/AP1GczMQWymRoPXgd7qy_FKBdPgIs74k5VDBDIloeRGKV9gpgRdVBznGfL3-djLmKvoNh28dT2A85aaVp9z6JYZKiHf6etBvlSxugeyWYCkpG04w-SxbW1jj=w845-h461-no",
+                mythBust: null,
+                sentences: [
+                    "Greetings, young explorers! You've just landed in Ancient Egypt...",
+                    "The Egyptians didn't just see a river — they saw life itself.",
+                    "Each spring, the mighty Nile River would flood, covering the fields in black, rich soil.",
+                    "The image you are looking at is the first 'magic garden.'",
+                    "Ancient people believed that all life in the universe was a great, repeating cycle.",
+                    "They told a story about a god named Osiris, whom they called 'The Green Man'.",
+                    "When they buried a seed, they were burying Osiris.",
+                    "His wife, the wise goddess Isis, is the one with the great golden wings.",
+                    "In the story, she used her powerful magic to find Osiris and bring him back to life!",
+                    "When the spring floods came and the very first green sprouts broke through, the people would cheer!",
+                    "For thousands of years, the spring festival was a celebration that magic always finds a way to grow back.",
+                    "The Egyptians knew that every seed planted was a promise of future food.",
+                    "And in our modern gardens today, that promise is still true."
+                ]
+            },
+            babylon: {
+                name: "Ishtar & The Eight-Pointed Star",
+                region: "Ancient Babylon (Iraq)",
+                color: "#c080ff",
+                image: "https://lh3.googleusercontent.com/pw/AP1GczNEofL4QneOnrzlG8I16O75Ciywr61nAU8-yA2YHyu6ZiYOkA6CskF5dY2scDLnZYxNCHC86SGT1Q08N7Q5hn0Y2j8HO9csbEEmWs_xUsEOLzvCvrK9=w845-h461-no",
+                mythBust: {
+                    label: "Myth-Bust Corner!",
+                    text: "Some people on the internet say the word 'Easter' comes from 'Ishtar.' But that's not true! One is German, the other Babylonian."
+                },
+                sentences: [
+                    "Next stop: Babylon — in the Middle East, in a country we now call Iraq.",
+                    "Over 4,000 years ago, people worshipped a truly powerful goddess named Ishtar.",
+                    "Ishtar wasn't just 'Mother Earth'; she was a fierce goddess of war, love, and life.",
+                    "Her special symbol was an eight-pointed star.",
+                    "You can see it glowing in the picture!",
+                    "The Babylonians believed that star was Ishtar's eye watching over them.",
+                    "The Babylonians told one of the oldest spring stories ever written down.",
+                    "Ishtar had to travel deep, deep down into the Underworld to rescue someone she loved.",
+                    "While she was gone, everything on Earth got the 'Winter Bug.'",
+                    "Sound familiar? Just like Persephone — but much, much older!",
+                    "When Ishtar finally returned, everything on Earth unfroze. Flowers exploded back into color!",
+                    "The Babylonians loved her so much they built huge gateways covered in blue tiles.",
+                    "Whenever you see that star in old art, you are looking at one of the original inventors of the spring festival.",
+                    "She was here first."
+                ]
+            },
+            greece: {
+                name: "Persephone & The Returning Queen",
+                region: "ANCIENT GREECE",
+                color: "#9d81ba",
+                image: "https://lh3.googleusercontent.com/pw/AP1GczOXAjS4AI2g8XX4wF_oxOxCLB3TbEXZHgNyI5OFZSJT76n4DSuQPr71icCLaqwrYqO_ctCWFx7Gc-etiGkgxQDFTwFolhGH-NwJqJiel0uNZsOzDtJ6=w634-h346-no",
+                mythBust: null,
+                sentences: [
+                    "Okay, let’s hop across the sea from Ishtar’s Babylon to the sun-soaked hills of Greece and Rome!",
+                    "This is where people worshipped a goddess named Persephone (pronounced per-SEF-uh-nee).",
+                    "Her story is perhaps the most famous spring myth in the whole world!",
+                    "Just like the other stories we've told, this one is a classic.",
+                    "Persephone was the daughter of Demeter (pronounced dih-MEE-ter), the all-powerful 'Harvest Mother'.",
+                    "But one day, the King of the Underworld decided he wanted Persephone to live with him.",
+                    "While Persephone was gone, her mother, Demeter, was so sad that she simply stopped her 'Green Magic.'",
+                    "She said, 'If my daughter is not in the sun, nothing on this planet will be green!'",
+                    "The flowers wilted. The trees lost their leaves. This was the myth’s way of explaining why we have WINTER.",
+                    "But a powerful king (Zeus!) finally ruled that Persephone could return for part of every year.",
+                    "And in the picture, you see the magic moment!",
+                    "Whenever Persephone walks out of the dark chasm, the flowers literally 'spring up' wherever her feet touch.",
+                    "We are watching the 'Green Up' happen in real-time!",
+                    "People celebrated this as the 'Great Return.'",
+                    "For them, 'Easter' was the biological 'reboot' of the planet when Demeter was happy again.",
+                    "And every time the grass turns green in San Antonio, you can imagine Persephone just walked by!"
+                ]
+            },
+            ostara: {
+                name: "Ostara & The Spring Hare",
+                region: "GERMANIC & CELTIC EUROPE",
+                color: "#80ff80",
+                image: "https://lh3.googleusercontent.com/pw/AP1GczNGf18yWC2AtvOo_8_pvHz7BmkJhvL0OAh-Y12Bx1fuqllCbtMjB6FWfm4lal3Gro4RQ86Ex-npvrSnUi2Dm4GYew_bkJPCAybUWVwD4EV7lAfs9XGx=w845-h461-no",
+                mythBust: {
+                    label: "The Name Mystery!",
+                    text: "Did you know the word 'Easter' actually comes from the name 'Ostara'? It’s an old German word for the 'Dawn' or the 'East' where the sun rises!"
+                },
+                sentences: [
+                    "Okay, this is the one you’ve been waiting for!",
+                    "We’re traveling to the cold, misty forests of Germany and Northern Europe, where people worshipped a goddess named Ostara (pronounced Oh-STAR-uh).",
+                    "This is a great place to stop and learn a powerful truth: the word 'Easter' actually comes from her name!",
+                    "And for thousands of years, the 'holiday' was just her festival to celebrate the Vernal Equinox—the very first day of spring.",
+                    "Ostara was the 'Goddess of the Dawn.'",
+                    "Just as the sun rises in the morning to wake you up, Ostara 'rose' in the spring to wake up the sleeping earth.",
+                    "People told a truly wonderful story to explain why her 'Easter' celebration had both a bunny AND eggs.",
+                    "The myth says that once, Ostara was taking a walk and found a poor, frozen bird that had lost its wings in the deep winter.",
+                    "She loved animals so much that to save its life, she used her magic to transform it into a powerful HARE!",
+                    "But because it used to be a bird, it kept the ability to lay eggs.",
+                    "And to thank the goddess for saving its life, every spring, this magical 'bird-rabbit' would lay brightly colored eggs in a nest to give as gifts.",
+                    "When the Germanic people moved to America, they brought their 'Osterhase' (the Easter Hare) with them.",
+                    "Over time, he became the Easter Bunny we all know today!"
+                ]
+            },
+            nowruz: {
+                name: "Nowruz: The New Day",
+                region: "ANCIENT PERSIA (IRAN)",
+                color: "#ff9040",
+                image: "https://lh3.googleusercontent.com/pw/AP1GczMQuXuAGF4QPo2AEPFupYU8UfIRM5QITYpT-u1ccOS98vrC2BzD4ACDiEUDUOS89gJsriS4FqfG21pAyNhAkK_luYpzLlu71Ucq0SG1H-ByKur9w2uk=w845-h461-no", // Make sure your image name matches
+                mythBust: {
+                    label: "The Literal New Year!",
+                    text: "Nowruz (pronounced No-rooz) is perhaps the most literal 'New Day' celebration of the spring equinox still observed today. It originated in Ancient Persia and has been celebrated for over 3,000 years!"
+                },
+                sentences: [
+                    "Welcome to Ancient Persia!",
+                    "While other cultures were telling stories about goddesses, the people here created a beautiful tradition called Nowruz, which literally translates to 'New Day.'",
+                    "It happens at the exact second the Earth tilts toward the sun and spring begins!",
+                    "To celebrate, families set a special table called a Haft-Sin.",
+                    "'Haft' means seven, and 'Sin' is the letter 'S.'",
+                    "They put seven things on the table that start with 'S,' and each one is a 'data point' for the new year.",
+                    "Look at the picture—can you see the green grass in the middle? That is called Sabzeh.",
+                    "Families grow these wheat or lentil sprouts in a dish for two weeks before the holiday. It’s like a countdown clock!",
+                    "When the sprouts are tall and green, they know the 'New Day' has arrived.",
+                    "It represents rebirth and the energy of the sun.",
+                    "They also include other 'S' items: Sib (an apple for beauty), Sir (garlic for health), and Serkeh (vinegar for patience).",
+                    "They even put a mirror on the table to reflect the light of the new year and a bowl with goldfish to show that life is moving again!",
+                    "For 3,000 years, this hasn't been a religious holiday—it’s a Nature Holiday.",
+                    "It’s a way for people to sit down together and say, 'The winter is over, the light is back, and we are ready to plant again.'",
+                    "It’s the ultimate spring 'system update' for the whole family!"
+                ]
+            },
+            holi: {
+                name: "Holi: The Festival of Colors",
+                region: "INDIA",
+                color: "#ff60a0",
+                image: "https://lh3.googleusercontent.com/pw/AP1GczNR260cRX4EWeVRNi6GtMLRrwd9emCBHK0pfagNCncPApXTGd6eHcGuXFIRNmrDZrBRF0gnhkcpm1Tb-SxP99OJE2DF-HUct3BPar8t3faxbqPNVybASFzBnlSmlyx-jfygHq0_bx1B9GpYV0V50Ooz1Q=w845-h461-s-no-gm",
+                mythBust: {
+                    label: "The Plant-Power Secret!",
+                    text: "Holi (pronounced Hoh-lee) is an ancient Hindu festival from India. Long ago, the colorful powders weren't from a store—they were made from turmeric, crushed flowers, and ground leaves!"
+                },
+                sentences: [
+                    "Welcome to India! If you think our garden is getting colorful, wait until you see Holi!",
+                    "This is one of the oldest and most famous spring festivals in the world, often called the 'Festival of Colors.'",
+                    "The people of India noticed the same thing we do: winter is grey and brown, but spring is a total explosion of color.",
+                    "To celebrate, they don't just look at the colors—they become the colors!",
+                    "Families and friends go outside and throw brightly colored powders at each other until everyone looks like a walking rainbow.",
+                    "But there is a secret gardening 'data point' here!",
+                    "Long ago, these colors weren't made in a factory. They were made from plants.",
+                    "Yellow came from turmeric roots, red came from crushed flowers, and green came from ground-up leaves.",
+                    "It was a way to use the earth’s own 'ink' to celebrate that the earth was waking up.",
+                    "The festival tells a story about a trickster named Krishna who loved to play games, but the real meaning is about the victory of light over dark.",
+                    "It’s a way of saying, 'Winter tried to keep everything grey, but Spring won!'",
+                    "It’s the Earth’s way of turning the brightness and saturation all the way up to 100%!"
+                ]
+            },
+            china: {
+                name: "Xiwangmu & The Peach Garden",
+                region: "ANCIENT CHINA",
+                color: "#ff4040",
+                image: "https://lh3.googleusercontent.com/pw/AP1GczOjix1WtzQShL5YaLrktYW-HfKavWmAlcZ_rDYBFT_dNu9nskb4cQvTV82MildQmauE5KkSQNlgU3gOHoFsQ4MXjPP5LfL103JG86FS4rqfEAmnhzke=w845-h461-no",
+                mythBust: {
+                    label: "The Immortal Fruit!",
+                    text: "Xiwangmu (pronounced Shee-wang-moo) is the 'Queen Mother of the West.' In Chinese culture, the peach is the ultimate symbol of spring and living a long, healthy life because it blooms so early!"
+                },
+                sentences: [
+                    "Welcome to Ancient China!",
+                    "For over 3,000 years, people here have told a story about a powerful goddess who lives in a mystical mountain palace.",
+                    "Her name is Xiwangmu, which means 'The Queen Mother of the West.'",
+                    "Xiwangmu isn't just a goddess of spring; she is the guardian of the original Tree of Life.",
+                    "This isn't just any tree—it’s a massive, ancient peach tree that grows peaches that taste sweeter than any fruit on Earth.",
+                    "And they are magical! If you eat just one, you can live forever.",
+                    "But there is a catch! This special peach tree only blooms and has ripe fruit once every 3,000 years!",
+                    "The myth was the Chinese people’s way of saying that the powerful 'magic' of rebirth is always waiting, but it only happens when the timing is perfect.",
+                    "When the peach trees do ripen, Xiwangmu throws a gigantic party called the 'Peaches of Immortality Feast,' just like the one you see in the picture!",
+                    "Every spring, people celebrated the blossoming of the peach as the signal that the great 'life-magic' has returned.",
+                    "This is one of the oldest spring 'reboots' ever written down—it was all about using the energy of the sun to 'plug back in' to life!"
+                ]
+            },
+            songkran: {
+                name: "Songkran: The Water Festival",
+                region: "THAILAND & SOUTHEAST ASIA",
+                color: "#40e0d0",
+                image: "https://lh3.googleusercontent.com/pw/AP1GczPt4YoFu0yJMq-Zt4zDCd4bc-SNnjjMhYykIFkibRHGQ4qdG1gBGJARhwOHq21FAK_v4971wtlNvZe4V6ElB9onwAyv_1VT1W7JQtg5ylcs1mSucwXL=w845-h461-no",
+                mythBust: {
+                    label: "The Ultimate Spring Cleaning!",
+                    text: "Songkran (pronounced Song-kran) is the traditional Thai New Year. It happens during the hottest part of the year, making it the perfect time for the world's biggest water fight to celebrate the coming rains!"
+                },
+                sentences: [
+                    "Welcome to Thailand! If you think spring is just about flowers, put on your swimsuit!",
+                    "Because here, the 'New Year' is a giant water festival called Songkran!",
+                    "In Thailand, spring is the hottest time of the year. The earth gets very thirsty!",
+                    "So, for over 500 years, people have celebrated by throwing water.",
+                    "It started as a beautiful, quiet tradition: families would gently pour water over the hands of their elders to 'wash away' bad luck from the winter.",
+                    "But over time, it turned into the world's biggest water fight!",
+                    "Why? Because water is the 'Source Code' for life.",
+                    "Without it, your peppers and potatoes wouldn't grow, and the earth would stay brown.",
+                    "By splashing each other, people are celebrating the rain that is coming to wake up the trees and the rice fields.",
+                    "It’s the ultimate 'Spring Cleaning.' They aren't just cleaning their houses; they are 'rebooting' their spirits with cold, fresh water.",
+                    "It’s a way of saying, 'The old year is washed away, and we are starting fresh and hydrated for the new growing season!'"
+                ]
+            },
+            yoruba: {
+                name: "Oshun & The River of Gold",
+                region: "YORUBA WEST AFRICA",
+                color: "#ffd700",
+                image: "https://lh3.googleusercontent.com/pw/AP1GczMikuKUhMSzQYFnxFLhugSxHthCyy0_l4M-uSCb0SuuhGgXGRX2meP18qnKECmwYnlM3q-BG06fjrU7yS3Vpjn610s-nhGKUgKu_28r2bRWe0NBhx-Z=w845-h461-no",
+                mythBust: {
+                    label: "The Orisha of Fresh Water!",
+                    text: "Oshun (pronounced Oh-shun) is the Orisha of the Yoruba people. In this tradition, 'Spring' isn't just a season; it's the constant, golden flow of the river that keeps life and agriculture running!"
+                },
+                sentences: [
+                    "Welcome to West Africa!",
+                    "While other cultures were waiting for winter to end, the people here—the Yoruba—celebrated a very powerful goddess who controls the most important ingredient for life: fresh water.",
+                    "Her name is Oshun, and she is the beautiful, powerful Orisha of fresh rivers, love, and fertility.",
+                    "For thousands of years, people have worshipped her as the 'River of Gold' because she is the 'Spring' that makes life possible.",
+                    "In the picture, you can see her sacred grove. This isn't just a garden; it's a place where the water is so clean and pure that it glows golden in the sunlight.",
+                    "In this story, spring isn’t about waiting for flowers to bloom; it’s about thanking Oshun for the constant flow of the river that waters the yams, the corn, and the cotton fields.",
+                    "People celebrated this as the ultimate 'Fresh Start.'",
+                    "Every spring, they would have huge festivals with music, dancing, and beautiful yellow and gold clothes to thank her.",
+                    "It was a way of saying, 'The river is still flowing, the water is still clean, and our system is fully charged to grow food for another year!'"
+                ]
+            },
+
+            aztec: {
+                name: "Xochipilli & The Flower Prince",
+                region: "AZTEC MEXICO",
+                color: "#ff6020",
+                image: "https://lh3.googleusercontent.com/pw/AP1GczP0sgJK6mBsH0kSHO2DnT_fF80uJKNTV7gPF355vbcjNbw2l_mv1BuD4w1Uh8DJwOY3KlBiF7MgHhH1hJXU7UdtE6Sk2nZg5n0_C5IWH0M_btHwUddv=w845-h461-no",
+                mythBust: {
+                    label: "The Prince of Flowers!",
+                    text: "Xochipilli (pronounced Sho-chee-pee-lee) is the Aztec god of flowers, music, and dance. His name literally means 'Flower Prince,' and he reminds us that the goal of a good garden is beauty and joy!"
+                },
+                sentences: [
+                    "Okay, next stop: Ancient Mexico!",
+                    "Here, the Aztec people worshipped a god that your garden would absolutely love.",
+                    "His name is Xochipilli, which literally means 'The Flower Prince.'",
+                    "He wasn't a god of serious, hard farming; he was the god of FLOWERS, MUSIC, ART, and JOY!",
+                    "The Aztecs believed that Xochipilli didn't just 'allow' plants to grow; he was the reason they were beautiful and why the corn tasted so sweet.",
+                    "Look at the picture! See how he is surrounded by color and musicians?",
+                    "The Flower Prince was the one who made the system run smoothly so that the people had plenty of food and time to celebrate.",
+                    "For the Aztecs, 'Easter' was about the profound connection between life’s work and life’s beauty.",
+                    "It was a way of thanking the Morning Sun and the unique magic that turns dark soil and water into vibrant flowers and nutritious corn.",
+                    "Whenever you see your first pepper bloom or your first potato sprout, that’s Xochipilli’s secret magic at work!",
+                    "It is a reminder that a successful harvest isn’t just about survival, it’s about abundance and happiness!"
+                ]
+            },
+            inca: {
+                name: "Inti Raymi: Festival of the Sun",
+                region: "INCA EMPIRE (PERU)",
+                color: "#a0ff60",
+                image: "https://lh3.googleusercontent.com/pw/AP1GczN51XnKnCvGjYtN7uEy47XWrMIQnLBQgBM8GAxt-UnmInkENZTG7NJeMKtx__QIFB9geOTLnLJ1yj3v5hkahJHfkx_MjL2GpqR3LLDOwu8144bMsabf=w826-h461-no",
+                mythBust: {
+                    label: "The Backward Spring!",
+                    text: "Inti Raymi (pronounced In-tee Rye-mee) happens in June. Because the Inca lived below the Equator, their seasons are the opposite of ours in San Antonio! When we have Summer, they have Winter—but the 'Sun Magic' is the same!"
+                },
+                sentences: [
+                    "Okay, final stop! We are leaving the Northern Hemisphere and traveling far, far south to the massive Andes mountains in South America.",
+                    "Here, the great Inca Empire had the Festival of the Sun, which they called Inti Raymi.",
+                    "This is a great place to learn a powerful truth: the whole planet celebrates the same thing!",
+                    "But because the Inca were below the equator, their seasons were backward.",
+                    "While we were celebrating spring in June, they were celebrating their shortest day of the year.",
+                    "BUT their celebration was still about the Sun winning the war against the dark!",
+                    "For them, Inti Raymi was the biological 'reboot' when the Sun finally agreed to return and warm the Earth.",
+                    "Look at the picture! See the huge, circular GOLDEN SUN-DISK?",
+                    "The Inca believed the Sun was their father, a god named Inti. They worried he might get tired and not come back.",
+                    "To help him 'recharge,' the Emperor would lead a giant celebration at dawn in front of their most sacred, gold-covered temple.",
+                    "They didn't have a 'Green Man,' but they had a 'Golden Man' who protected the potato and maize crops.",
+                    "You can see the terraces full of them in the picture!",
+                    "For thousands of years, 'Easter' wasn't just a holiday; it was an agricultural 'contract.'",
+                    "The Inca would give the sun great offerings to say, 'We are ready to plant again!'",
+                    "Please, Golden Inti, plug back in and feed our world for another year!"
+                ]
+            },
+
+            norse: {
+                name: "Freya & The First Thaw",
+                region: "ANCIENT SCANDINAVIA",
+                color: "#a0c0ff",
+                image: "https://lh3.googleusercontent.com/pw/AP1GczNxf8DBRCPLpLLInGCuFOBngemqDBgPgZETqNyAfe17M4gBnHo_hLQtH_13SDNQt_hzZZUl_a3Zleh_fD5OVq42YYt2VZTc5ODI-uNM56_T8h2Ftqkx=w845-h461-no",
+                mythBust: {
+                    label: "The Golden Tears!",
+                    text: "Freya (pronounced Frey-uh) is a Norse goddess of love and fire. Legend says her tears were so precious they turned into gold and amber when they touched the earth, becoming the first treasures of spring!"
+                },
+                sentences: [
+                    "Welcome to Ancient Scandinavia! This is the home of the Vikings and one of the oldest spring stories ever written down.",
+                    "The people here tell a wonderful story about a truly powerful goddess named Freya.",
+                    "Freya wasn't just 'Mother Earth'; she was a fierce goddess of love, beauty, and life.",
+                    "Her special symbol was an amazing, golden amber necklace called Brisingamen, which was said to glow like the morning sun.",
+                    "The Vikings believed that when the sun touched the frozen ground in spring, it was the warmth of Freya's magic waking up the world.",
+                    "The story says that once, Freya had to travel deep into the mountains to find her lost husband.",
+                    "While she was gone, the world grew cold and grey. This was the 'Winter Bug'—the flowers wilted and the animals went into hiding.",
+                    "Sound familiar? It’s just like the stories of Persephone and Ishtar!",
+                    "When Freya finally returned, she didn't come back quietly. She rode in an amazing chariot pulled by two giant, fluffy forest cats!",
+                    "You can see her 'Persona-ble' cats in the picture right now!",
+                    "She used her special 'Fire-Magic' to cause the FIRST THAW—the exact moment when the snow turns back into life-giving water.",
+                    "For the Vikings, Freya was the 'System Reboot' for the frozen north. She proved that no matter how deep the snow gets, the fire of life is stronger!"
+                ]
+            },
+            rome: {
+                name: "Flora & The Flower Games",
+                region: "ANCIENT ROME",
+                color: "#e0a060",
+                image: "https://lh3.googleusercontent.com/pw/AP1GczNYdMZBKnb8stTCNl6Zl33kMYIqwu-mmN4BniZK_Zh9GmoZCttW42YTNfoLXM9lVeWG0E38YksRRr9w7d5MKqzjl5hhUJ7QUoaW-IEldl5ZRCNZMsjWzufboM47wn0zxN6gDihMT0KtkcBxSZ-GwsfSzA=w985-h538-s-no-gm",
+                mythBust: {
+                    label: "The Flower Games!",
+                    text: "In Ancient Rome, the 'Floralia' was a six-day festival where people wore the brightest colors imaginable. Instead of serious sports, they had 'Flower Games' to celebrate everything that blooms!"
+                },
+                sentences: [
+                    "Welcome to Ancient Rome! We’ve seen how the seeds start and how the water flows, but now it’s time for the ultimate party: The Floralia!",
+                    "For over 2,000 years, the Romans worshipped a goddess named Flora.",
+                    "Her job was very specific: she was the 'System Administrator' in charge of Blossoms.",
+                    "The Romans knew that without a flower, you can't have a fruit or a vegetable. Flora was the one who made sure the 'Source Code' of the garden actually worked.",
+                    "To celebrate, the Romans threw a six-day festival.",
+                    "They didn't wear boring clothes; they wore the brightest, most 'neon' colors they could find to match the flowers.",
+                    "They would fill their massive stadiums with roses and lilies, and celebrate the wild energy of new life.",
+                    "Look closely at the picture—do you see the people dressed like wolves and goats?",
+                    "The Romans believed that spring was the time when the boundary between humans and nature disappeared.",
+                    "They would release hares and goats into the streets to celebrate the energy of the world waking up.",
+                    "It was their way of saying, 'The Earth is alive, it's colorful, and it's time to play!'",
+                    "Whenever you see your greenhouse full of color, you’re seeing Flora’s hard work in action!"
+                ]
+            },
+            // Add other traditions here following the same structure
+        };
+
+        let currentId = null;
+        let speaking = false;
+        let sentenceEls = [];
+
+        function buildNavPills() {
+            const container = document.getElementById('nav-pills');
+            Object.keys(TRADITIONS).forEach(id => {
+                const item = TRADITIONS[id];
+                const pill = document.createElement('button');
+                pill.className = 'nav-pill';
+                pill.dataset.id = id;
+                pill.textContent = item.name;
+                pill.style.borderColor = item.color + '55';
+                pill.addEventListener('click', () => openPanel(id));
+                container.appendChild(pill);
+            });
+        }
+
+        function openPanel(id) {
+            stopSpeaking();
+            currentId = id;
+            const t = TRADITIONS[id];
+
+            // Update UI State
+            document.querySelectorAll('.nav-pill').forEach(p => p.classList.toggle('active', p.dataset.id === id));
+
+            // Sync Map Dots
+            document.querySelectorAll('.pin-group').forEach(g => {
+                const dot = g.querySelector('.pin-dot');
+                const ring = g.querySelector('.pin-ring');
+                if (g.dataset.id === id) {
+                    dot.setAttribute('r', '7');
+                    ring.style.strokeWidth = '2.5';
+                } else {
+                    dot.setAttribute('r', '5');
+                    ring.style.strokeWidth = '1.5';
+                }
+            });
+
+            // Fill Panel Content
+            document.getElementById('panel-region').textContent = t.region;
+            document.getElementById('panel-title').textContent = t.name;
+
+            const mb = document.getElementById('myth-bust-box');
+            if (t.mythBust) {
+                mb.style.display = 'block';
+                mb.innerHTML = `<div class="myth-bust"><strong>&#x2605; ${t.mythBust.label}</strong>${t.mythBust.text}</div>`;
+            } else {
+                mb.style.display = 'none';
+            }
+
+            const narEl = document.getElementById('narration-text');
+            narEl.innerHTML = '';
+            sentenceEls = [];
+
+            t.sentences.forEach((s, i) => {
+                const span = document.createElement('span');
+                span.className = 'sentence';
+                span.dataset.idx = i;
+                span.textContent = s + ' ';
+                narEl.appendChild(span);
+                sentenceEls.push(span);
+            });
+
+            // Reset Audio/Progress
+            document.getElementById('progress-bar').style.width = '0%';
+            document.getElementById('voice-status').textContent = '';
+            document.getElementById('play-btn').textContent = '\u25B6 Read to me';
+
+            // Handle Image
+            const imgEl = document.getElementById('panel-img');
+            const ph = document.getElementById('img-placeholder');
+            imgEl.classList.remove('loaded');
+
+            if (t.image) {
+                ph.style.display = 'none';
+                imgEl.src = t.image + '?t=' + Date.now();
+                imgEl.onload = () => imgEl.classList.add('loaded');
+            } else {
+                imgEl.src = '';
+                ph.style.display = 'flex';
+                ph.innerHTML = '<span style="font-size:14px;color:rgba(255,255,255,0.3)">Image coming soon</span>';
+            }
+
+            const panel = document.getElementById('panel');
+            panel.classList.add('open');
+            setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 100);
+        }
+
+        function getVoice() {
+            const voices = speechSynthesis.getVoices();
+            // These are the "Premium" sounding voices in Chrome and Windows
+            const preferred = [
+                'Google US English',
+                'Microsoft Natural',
+                'Microsoft Aria Online',
+                'Microsoft Guy Online',
+                'Microsoft David Desktop'
+            ];
+
+            for (const name of preferred) {
+                const v = voices.find(v => v.name.includes(name));
+                if (v) return v;
+            }
+            return voices.find(v => v.lang.startsWith('en')) || voices[0];
+        }
+
+        function stopSpeaking() {
+            speechSynthesis.cancel();
+            speaking = false;
+            sentenceEls.forEach(el => el.classList.remove('active'));
+            document.getElementById('play-btn').textContent = '\u25B6 Read to me';
+            document.getElementById('voice-status').textContent = '';
+        }
+
+        function startSpeaking() {
+            if (!currentId) return;
+            const t = TRADITIONS[currentId];
+            speaking = true;
+            document.getElementById('play-btn').textContent = '\u23F8 Stop';
+            document.getElementById('voice-status').textContent = 'Speaking...';
+
+            function speakNext(idx) {
+                if (idx >= t.sentences.length || !speaking) {
+                    stopSpeaking();
+                    document.getElementById('voice-status').textContent = 'Done!';
+                    document.getElementById('progress-bar').style.width = '100%';
+                    return;
+                }
+
+                // Highlight sentence
+                sentenceEls.forEach((el, i) => el.classList.toggle('active', i === idx));
+                document.getElementById('progress-bar').style.width = Math.round(((idx + 1) / t.sentences.length) * 100) + '%';
+
+                const utt = new SpeechSynthesisUtterance(t.sentences[idx]);
+                const voice = getVoice();
+                if (voice) utt.voice = voice;
+                utt.rate = 0.85;  // Slightly slower than normal (1.0) for clarity
+                utt.pitch = 1.1; // A tiny bit higher to sound more friendly/energetic
+                utt.onend = () => { if (speaking) speakNext(idx + 1); };
+                speechSynthesis.speak(utt);
+            }
+
+            speechSynthesis.cancel();
+            setTimeout(() => speakNext(0), 100);
+        }
+
+        // Event Listeners
+        document.getElementById('play-btn').addEventListener('click', () => {
+            if (speaking) stopSpeaking(); else startSpeaking();
+        });
+
+        document.getElementById('close-btn').addEventListener('click', () => {
+            stopSpeaking();
+            document.getElementById('panel').classList.remove('open');
+            currentId = null;
+            document.querySelectorAll('.nav-pill').forEach(p => p.classList.remove('active'));
+        });
+
+        document.querySelectorAll('.pin-group').forEach(g => {
+            g.addEventListener('click', () => openPanel(g.dataset.id));
+        });
+
+        // Initialize
+        buildNavPills();
+        window.addEventListener('beforeunload', () => speechSynthesis.cancel());
+    </script>
+</body>
+
+</html>

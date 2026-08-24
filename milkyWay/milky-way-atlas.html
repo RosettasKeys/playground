@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>The Long Field — an atlas of the Milky Way</title>
+  <meta name="description"
+    content="An interactive atlas of the Milky Way and the Solar System: 70 points of interest, recent findings through 2026, and a source for every claim.">
+  <link rel="icon" type="image/png" href="../favicon/RosettasKeysLogoFavi2-512x402.png">
+
+  <!-- ═══════════════════════════════════════════════════════════
+       Same two faces as the hub: EB Garamond carries names,
+       Space Mono carries measurements.
+  ═══════════════════════════════════════════════════════════ -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Space+Mono:wght@400;700&display=swap"
+    rel="stylesheet">
+
+  <link rel="stylesheet" href="atlas.css">
+</head>
+
+<body>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       THE MAP
+  ═══════════════════════════════════════════════════════════ -->
+  <div id="stage">
+    <canvas id="sky" role="img"
+      aria-label="Interactive plan-view map of the Milky Way galaxy. Use the search field and the point-of-interest list to read entries without the map."></canvas>
+  </div>
+  <div id="vignette"></div>
+
+
+  <!-- ═══════════════════════════════════════════════════════════
+       MASTHEAD
+  ═══════════════════════════════════════════════════════════ -->
+  <header id="masthead">
+    <p class="eyebrow"><span>+</span> The Long Field · an atlas in two scales</p>
+    <h1><button id="map-title" type="button" title="Read the entry for this whole scene">The <em>Milky Way</em></button></h1>
+    <p id="scale-readout">charting&hellip;</p>
+    <a id="home-link" href="../index.html">← Garden of Keys</a>
+  </header>
+
+
+  <!-- ═══════════════════════════════════════════════════════════
+       CONTROL RAIL
+  ═══════════════════════════════════════════════════════════ -->
+  <div id="rail">
+
+    <div class="rail-row" id="chips"><!-- category filters, built by atlas.js --></div>
+
+    <div class="rail-row">
+      <span id="search-wrap">
+        <label class="visually-hidden" for="search">Search points of interest</label>
+        <input id="search" type="search" autocomplete="off" spellcheck="false"
+          placeholder="Search — press /">
+        <div id="suggest" class="hidden" role="listbox" aria-label="Search results"></div>
+      </span>
+      <button class="chip primary" type="button" id="btn-scene">↓ Into the Solar System</button>
+    </div>
+
+    <div class="rail-row">
+      <button class="chip" type="button" id="btn-labels">Labels: key</button>
+      <button class="chip hidden" type="button" id="btn-scale">Scale: compressed</button>
+      <button class="chip" type="button" id="btn-reset">Reset view</button>
+      <button class="chip" type="button" id="btn-sources">Sources &amp; method</button>
+    </div>
+
+    <div class="rail-row hidden" id="timebar">
+      <label for="time-rate">Time</label>
+      <input id="time-rate" type="range" min="-8" max="8" step="0.1" value="1.65"
+        aria-label="Rate at which the orrery advances">
+      <span id="date-readout">—</span>
+      <button class="chip" type="button" id="btn-now">Now</button>
+    </div>
+
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════════════
+       INFO PANEL
+  ═══════════════════════════════════════════════════════════ -->
+  <aside id="panel" aria-live="polite" aria-label="Point of interest detail">
+    <button id="panel-close" type="button" aria-label="Close panel">×</button>
+    <div id="panel-body"></div>
+  </aside>
+
+
+  <!-- Hover label -->
+  <div id="tip" class="hidden" aria-hidden="true"></div>
+
+
+  <!-- Scene-change veil -->
+  <div id="veil"><span class="veil-text"></span></div>
+
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SOURCES & METHOD
+  ═══════════════════════════════════════════════════════════ -->
+  <div id="sources-overlay" class="hidden" role="dialog" aria-modal="true" aria-label="Sources and method">
+    <button id="sources-close" type="button">Close</button>
+    <div id="sources-inner">
+
+      <h2>Sources &amp; method</h2>
+      <p class="lede">
+        Every measurement, date and claim in this atlas traces to something below. Where a finding is
+        recent enough to still be argued about, the entry says so and the reader is pointed at the paper
+        rather than a summary of it. Nothing here is asserted from memory, and where a number could not
+        be sourced, the field was left out rather than filled in.
+      </p>
+
+      <h3>How to read the map</h3>
+      <ul class="src-list">
+        <li><b>The painted galaxy is procedural, the markers are data.</b>
+          <span class="c-meta">The star field is generated from a seeded model of four logarithmic spiral
+            arms — it is an illustration of the Milky Way's structure, not a photograph, and no marker is
+            ever placed by eye. Every point of interest is projected from its catalogue galactic longitude,
+            latitude and distance at the moment it is drawn, so the picture and the panel cannot disagree.</span>
+        </li>
+        <li><b>The Sun sits 26,700 light-years from the Galactic Centre.</b>
+          <span class="c-meta">Marker positions use x = −d·cos(b)·sin(l), y = −26,700 + d·cos(b)·cos(l).
+            This is a plan view: the vertical component of each object's position is not drawn, so two
+            objects that look adjacent may be far apart above and below the disc.</span>
+        </li>
+        <li><b>Planet positions are computed, not animated.</b>
+          <span class="c-meta">The eight major planets use JPL's Keplerian elements for approximate
+            positions (epoch J2000, rates per century, valid 1800–2050), solved through Kepler's equation
+            each frame. Dwarf planets, small bodies and 3I/ATLAS use published osculating elements; where
+            the phase along the orbit could not be verified, the entry says the position is approximate.</span>
+        </li>
+        <li><b>Radial distance in the Solar System view is compressed by default.</b>
+          <span class="c-meta">Screen radius is the real distance raised to the power 0.34, so Mercury at
+            0.39 au and the Oort Cloud at 100,000 au can occupy one view. The scale control switches this
+            off. Body diameters are compressed logarithmically for the same reason and are never to
+            scale against the orbits.</span>
+        </li>
+        <li><b>"Recently" blocks are findings from roughly the last two years.</b>
+          <span class="c-meta">They are the reason this atlas exists. Several of them overturn something
+            a textbook still says — the Andromeda collision, the Planet Nine evidence, and the number of
+            moons Saturn has, among others.</span>
+        </li>
+      </ul>
+
+      <div id="src-groups"><!-- built by atlas.js from sources.js --></div>
+
+      <h3>Corrections</h3>
+      <ul class="src-list">
+        <li>Astronomy moves. If something here has been superseded, the paper linked beside it is the
+          thing to check first — a claim in this atlas is only ever as current as the source under it.
+          <span class="c-meta">Compiled August 2026.</span></li>
+      </ul>
+
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════════════
+       FIRST RUN
+  ═══════════════════════════════════════════════════════════ -->
+  <div id="intro">
+    <div id="intro-card">
+      <p class="eyebrow">+ Two scales, one map</p>
+      <h2>You are inside the <em>thing you are mapping</em>.</h2>
+      <p>
+        That is the whole difficulty. Everything on this map was measured from one moving point
+        two-thirds of the way out from the centre, through dust, from inside the disc — which is why so
+        much of it has been revised in the last five years, and why the gold rings mark the entries where
+        something changed recently.
+      </p>
+      <p>
+        Forty points of interest at galactic scale. Thirty more inside the Solar System, on orbits solved
+        from published elements. Every claim carries its source.
+      </p>
+      <ul class="keys">
+        <li><b>Drag</b> pan the field</li>
+        <li><b>Scroll / pinch</b> zoom</li>
+        <li><b>Click a marker</b> open its entry</li>
+        <li><b>Gold ring</b> a finding from the last two years</li>
+        <li><b>/</b> jump to search</li>
+      </ul>
+      <button class="chip primary" type="button" id="intro-enter" style="padding:12px 20px;">
+        Open the field →
+      </button>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════════════
+       SCRIPTS — classic tags, no modules, so the file opens straight
+       from disk without a server. Data first, engine last.
+  ═══════════════════════════════════════════════════════════ -->
+  <script src="sources.js"></script>
+  <script src="data-galaxy.js"></script>
+  <script src="data-solar.js"></script>
+  <script src="atlas.js"></script>
+
+</body>
+
+</html>

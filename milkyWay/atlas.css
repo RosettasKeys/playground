@@ -1,0 +1,480 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   atlas.css — The Long Field
+   Palette and type inherited from the Garden of Keys hub so this reads as
+   the same house: night ground, ivory text, gold for anything the reader
+   can act on. EB Garamond carries names, Space Mono carries measurements.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+:root {
+  --night:      #030610;
+  --deeper:     #01030a;
+  --ivory:      #cddeff;
+  --body-text:  #c7cfe6;
+  --muted:      #8b93ac;
+  --dim:        #5d6579;
+  --faint:      rgba(205, 222, 255, 0.10);
+  --fainter:    rgba(205, 222, 255, 0.05);
+  --gold:       #d4af37;
+  --gold-dark:  #aa841c;
+  --panel-bg:   rgba(4, 8, 20, 0.94);
+
+  /* Category keys — also used for map markers, so they must stay legible
+     against both the black halo and the bright bulge. */
+  --c-core:         #ff9a5c;
+  --c-structure:    #7fc8e8;
+  --c-nebula:       #e084c8;
+  --c-cluster:      #ffd98a;
+  --c-compact:      #b48cff;
+  --c-star:         #9fd4ff;
+  --c-exo:          #6ce0b0;
+  --c-satellite:    #ff7f9a;
+  --c-home:         #ffe89a;
+  --c-planet:       #9fd4ff;
+  --c-dwarf:        #c9a68a;
+  --c-smallbody:    #b08d5e;
+  --c-region:       #7fa8c8;
+  --c-interstellar: #5ce6c8;
+  --c-craft:        #f0e6c8;
+  --c-hypothetical: #a08cd8;
+}
+
+html, body {
+  margin: 0; padding: 0; height: 100%;
+  background: var(--deeper);
+  overflow: hidden;
+}
+
+body {
+  color: var(--body-text);
+  font-family: 'Space Mono', ui-monospace, monospace;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+button, input, select { font: inherit; color: inherit; }
+a { color: var(--gold); }
+
+::selection { background: var(--gold); color: #1a1200; }
+
+.hidden { display: none !important; }
+
+/* Screen-reader-only text that stays focusable. */
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px;
+  margin: -1px; padding: 0; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   THE MAP SURFACE
+═══════════════════════════════════════════════════════════ */
+
+#stage {
+  position: fixed; inset: 0;
+  touch-action: none;
+  cursor: grab;
+}
+#stage.dragging { cursor: grabbing; }
+#stage.over-poi { cursor: pointer; }
+
+#sky { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+/* Vignette — pulls the eye to the middle and hides the tile seams at the
+   edge of the prerendered galaxy bitmap. Pointer-transparent. */
+#vignette {
+  position: fixed; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse at center,
+    transparent 45%, rgba(1, 3, 10, 0.45) 78%, rgba(1, 3, 10, 0.88) 100%);
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   MASTHEAD
+═══════════════════════════════════════════════════════════ */
+
+#masthead {
+  position: fixed; top: 0; left: 0; right: 0;
+  padding: 16px 22px 26px;
+  pointer-events: none;
+  background: linear-gradient(rgba(1, 3, 10, 0.82), transparent);
+  z-index: 20;
+}
+
+#masthead .eyebrow {
+  margin: 0 0 4px;
+  font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase;
+  color: var(--dim);
+}
+#masthead .eyebrow span { color: var(--gold-dark); }
+
+#masthead h1 { margin: 0; }
+
+#map-title {
+  pointer-events: auto;
+  display: block;
+  padding: 0; background: none; border: 0;
+  border-bottom: 1px solid transparent;
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: clamp(20px, 3.4vw, 30px);
+  font-weight: 400; letter-spacing: 0.02em;
+  color: var(--ivory);
+  cursor: pointer; text-align: left;
+  transition: border-color .2s;
+}
+#map-title em { font-style: italic; color: var(--gold); }
+#map-title:hover, #map-title:focus-visible { border-bottom-color: var(--gold-dark); }
+
+#scale-readout {
+  margin: 6px 0 0;
+  font-size: 10.5px; letter-spacing: 0.16em;
+  color: var(--muted);
+}
+#scale-readout b { color: var(--ivory); font-weight: 400; }
+
+#home-link {
+  pointer-events: auto;
+  position: absolute; top: 18px; right: 22px;
+  font-size: 10.5px; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--muted); text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: color .2s, border-color .2s;
+}
+#home-link:hover, #home-link:focus-visible { color: var(--gold); border-color: var(--gold-dark); }
+
+
+/* ═══════════════════════════════════════════════════════════
+   CONTROL RAIL (bottom left)
+═══════════════════════════════════════════════════════════ */
+
+#rail {
+  position: fixed; left: 22px; bottom: 22px;
+  display: flex; flex-direction: column; gap: 10px;
+  z-index: 20; max-width: min(420px, calc(100vw - 44px));
+}
+
+.rail-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+
+.chip {
+  padding: 5px 11px;
+  background: rgba(6, 11, 24, 0.8);
+  border: 1px solid var(--faint);
+  color: var(--muted);
+  font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+  cursor: pointer;
+  transition: color .18s, border-color .18s, background .18s;
+  display: inline-flex; align-items: center; gap: 6px;
+  white-space: nowrap;
+}
+.chip:hover, .chip:focus-visible { color: var(--ivory); border-color: rgba(205, 222, 255, 0.28); }
+.chip[aria-pressed="true"] { color: var(--ivory); border-color: var(--gold-dark); background: rgba(212, 175, 55, 0.09); }
+.chip .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex: none; }
+.chip.primary { color: var(--gold); border-color: var(--gold-dark); }
+.chip.primary:hover { background: rgba(212, 175, 55, 0.14); }
+
+#search-wrap { position: relative; }
+#search {
+  width: 210px; padding: 6px 10px;
+  background: rgba(6, 11, 24, 0.86);
+  border: 1px solid var(--faint);
+  color: var(--ivory);
+  font-size: 11px; letter-spacing: 0.06em;
+  outline: none;
+}
+#search:focus { border-color: var(--gold-dark); }
+#search::placeholder { color: var(--dim); letter-spacing: 0.12em; }
+
+#suggest {
+  position: absolute; bottom: calc(100% + 5px); left: 0;
+  width: 260px; max-height: 260px; overflow-y: auto;
+  background: var(--panel-bg);
+  border: 1px solid var(--faint);
+  z-index: 30;
+}
+#suggest button {
+  display: block; width: 100%; text-align: left;
+  padding: 7px 11px; background: none; border: 0;
+  border-bottom: 1px solid var(--fainter);
+  font-size: 11px; color: var(--body-text); cursor: pointer;
+}
+#suggest button:last-child { border-bottom: 0; }
+#suggest button:hover, #suggest button.active { background: rgba(212, 175, 55, 0.13); color: var(--ivory); }
+#suggest .s-sub { display: block; font-size: 9px; letter-spacing: 0.13em; text-transform: uppercase; color: var(--dim); margin-top: 2px; }
+
+
+/* ═══════════════════════════════════════════════════════════
+   TIME CONTROL (solar system only)
+═══════════════════════════════════════════════════════════ */
+
+#timebar {
+  display: flex; align-items: center; gap: 9px;
+  padding: 7px 11px;
+  background: rgba(6, 11, 24, 0.8);
+  border: 1px solid var(--faint);
+}
+#timebar label { font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dim); }
+#timebar input[type=range] { width: 120px; accent-color: var(--gold); }
+#date-readout { font-size: 10.5px; color: var(--ivory); min-width: 96px; letter-spacing: 0.05em; }
+
+
+/* ═══════════════════════════════════════════════════════════
+   INFO PANEL
+═══════════════════════════════════════════════════════════ */
+
+#panel {
+  position: fixed; top: 0; right: 0; bottom: 0;
+  width: min(460px, 100vw);
+  background: var(--panel-bg);
+  border-left: 1px solid var(--faint);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+  overflow-y: auto; overscroll-behavior: contain;
+  z-index: 40;
+  transform: translateX(100%);
+  transition: transform .38s cubic-bezier(.22, .8, .3, 1);
+}
+#panel.open { transform: none; }
+
+#panel-close {
+  position: sticky; top: 0; float: right;
+  margin: 12px 14px 0 0;
+  width: 30px; height: 30px;
+  background: rgba(6, 11, 24, 0.9); border: 1px solid var(--faint);
+  color: var(--muted); cursor: pointer; line-height: 1;
+  z-index: 2;
+}
+#panel-close:hover { color: var(--gold); border-color: var(--gold-dark); }
+
+#panel-body { padding: 26px 30px 60px; }
+
+.p-cat {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 9.5px; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 10px;
+}
+.p-cat .dot { width: 8px; height: 8px; border-radius: 50%; }
+
+#panel h2 {
+  margin: 0 0 3px;
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 30px; font-weight: 400; line-height: 1.12;
+  color: var(--ivory);
+}
+.p-alt { margin: 0 0 3px; font-family: 'EB Garamond', Georgia, serif; font-style: italic; font-size: 16px; color: var(--muted); }
+.p-type { margin: 0 0 18px; font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold-dark); }
+
+/* Fact table — measurements live here, prose lives below. */
+.p-facts { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+.p-facts th, .p-facts td {
+  text-align: left; padding: 6px 0;
+  border-bottom: 1px solid var(--fainter);
+  vertical-align: top; font-weight: 400;
+}
+.p-facts th { font-size: 9.5px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--dim); width: 45%; padding-right: 14px; }
+.p-facts td { font-size: 12.5px; color: var(--ivory); }
+
+.p-desc { font-size: 13.5px; line-height: 1.72; color: var(--body-text); }
+.p-desc p { margin: 0 0 14px; }
+
+/* "Recently" block — the whole point of the atlas, so it gets the gold. */
+.p-fresh {
+  margin: 22px 0;
+  padding: 16px 18px;
+  border: 1px solid rgba(212, 175, 55, 0.3);
+  background: rgba(212, 175, 55, 0.05);
+}
+.p-fresh .fresh-head {
+  display: flex; align-items: baseline; gap: 9px; margin-bottom: 9px;
+  font-size: 9.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gold);
+}
+.p-fresh .fresh-year { color: var(--ivory); letter-spacing: 0.1em; }
+.p-fresh p { margin: 0; font-size: 13px; line-height: 1.72; color: var(--body-text); }
+.p-fresh em { color: var(--ivory); font-style: italic; }
+
+.p-moons { margin: 4px 0 20px; padding: 0; list-style: none; }
+.p-moons li { padding: 10px 0; border-bottom: 1px solid var(--fainter); font-size: 12.5px; line-height: 1.62; }
+.p-moons b { color: var(--ivory); font-weight: 400; font-family: 'EB Garamond', Georgia, serif; font-size: 15px; display: block; margin-bottom: 3px; }
+
+.p-sub {
+  margin: 26px 0 10px;
+  font-size: 9.5px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--dim);
+  padding-bottom: 6px; border-bottom: 1px solid var(--faint);
+}
+
+.p-cites { margin: 0; padding: 0; list-style: none; }
+.p-cites li { margin-bottom: 11px; font-size: 11.5px; line-height: 1.6; }
+.p-cites a { color: var(--ivory); text-decoration: none; border-bottom: 1px solid var(--gold-dark); }
+.p-cites a:hover { color: var(--gold); }
+.p-cites .c-meta { display: block; color: var(--dim); font-size: 10px; letter-spacing: 0.07em; margin-top: 2px; }
+
+.kind-tag {
+  display: inline-block; padding: 1px 6px; margin-right: 6px;
+  border: 1px solid var(--faint); font-size: 8.5px;
+  letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted);
+}
+.kind-tag.paper { color: var(--gold); border-color: var(--gold-dark); }
+
+.p-note {
+  margin-top: 20px; padding: 11px 13px;
+  border-left: 2px solid var(--faint);
+  font-size: 11px; line-height: 1.62; color: var(--muted);
+}
+
+.p-action {
+  display: block; width: 100%; margin: 22px 0 4px; padding: 13px;
+  background: rgba(212, 175, 55, 0.09);
+  border: 1px solid var(--gold-dark);
+  color: var(--gold);
+  font-size: 10.5px; letter-spacing: 0.22em; text-transform: uppercase;
+  cursor: pointer; transition: background .2s;
+}
+.p-action:hover { background: rgba(212, 175, 55, 0.19); }
+
+
+/* ═══════════════════════════════════════════════════════════
+   HOVER LABEL
+═══════════════════════════════════════════════════════════ */
+
+#tip {
+  position: fixed; pointer-events: none; z-index: 35;
+  padding: 5px 10px;
+  background: rgba(3, 6, 16, 0.94);
+  border: 1px solid var(--faint);
+  font-size: 11px; color: var(--ivory);
+  white-space: nowrap;
+  transform: translate(12px, -50%);
+}
+#tip .t-sub { color: var(--dim); font-size: 9.5px; letter-spacing: 0.13em; text-transform: uppercase; margin-left: 8px; }
+
+
+/* ═══════════════════════════════════════════════════════════
+   SOURCES OVERLAY
+═══════════════════════════════════════════════════════════ */
+
+#sources-overlay {
+  position: fixed; inset: 0; z-index: 60;
+  background: rgba(1, 3, 10, 0.96);
+  overflow-y: auto;
+  padding: 60px 26px 90px;
+}
+#sources-inner { max-width: 860px; margin: 0 auto; }
+#sources-inner h2 {
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: clamp(26px, 4vw, 38px); font-weight: 400; color: var(--ivory);
+  margin: 0 0 10px;
+}
+#sources-inner .lede { font-size: 13px; line-height: 1.75; color: var(--muted); max-width: 62ch; margin: 0 0 34px; }
+#sources-inner h3 {
+  margin: 34px 0 12px; padding-bottom: 7px;
+  border-bottom: 1px solid var(--faint);
+  font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--gold);
+  font-weight: 400;
+}
+.src-list { margin: 0; padding: 0; list-style: none; }
+.src-list li { padding: 12px 0; border-bottom: 1px solid var(--fainter); font-size: 12.5px; line-height: 1.62; }
+.src-list a { color: var(--ivory); text-decoration: none; border-bottom: 1px solid var(--gold-dark); }
+.src-list a:hover { color: var(--gold); }
+.src-list .c-meta { display: block; color: var(--dim); font-size: 10.5px; letter-spacing: 0.06em; margin-top: 3px; }
+
+#sources-close {
+  position: fixed; top: 20px; right: 24px;
+  padding: 8px 14px; background: rgba(6, 11, 24, 0.9);
+  border: 1px solid var(--faint); color: var(--muted); cursor: pointer;
+  font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+}
+#sources-close:hover { color: var(--gold); border-color: var(--gold-dark); }
+
+
+/* ═══════════════════════════════════════════════════════════
+   TRANSITION VEIL — covers the galaxy→orrery scale change
+═══════════════════════════════════════════════════════════ */
+
+#veil {
+  position: fixed; inset: 0; z-index: 50; pointer-events: none;
+  background: var(--deeper); opacity: 0;
+  transition: opacity .42s ease;
+}
+#veil.on { opacity: 1; }
+#veil .veil-text {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  font-family: 'EB Garamond', Georgia, serif; font-style: italic;
+  font-size: clamp(17px, 3vw, 25px); color: var(--gold);
+  letter-spacing: 0.04em; white-space: nowrap; text-align: center;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   FIRST-RUN CARD
+═══════════════════════════════════════════════════════════ */
+
+#intro {
+  position: fixed; inset: 0; z-index: 70;
+  display: grid; place-items: center;
+  background: rgba(1, 3, 10, 0.9);
+  padding: 24px;
+}
+#intro-card {
+  max-width: 560px;
+  background: var(--panel-bg);
+  border: 1px solid var(--faint);
+  padding: 38px 40px;
+}
+#intro-card .eyebrow { font-size: 9.5px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--gold-dark); margin: 0 0 12px; }
+#intro-card h2 {
+  margin: 0 0 16px;
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: clamp(26px, 4.4vw, 36px); font-weight: 400; line-height: 1.15; color: var(--ivory);
+}
+#intro-card h2 em { font-style: italic; color: var(--gold); }
+#intro-card p { font-size: 13px; line-height: 1.75; color: var(--body-text); margin: 0 0 14px; }
+#intro-card .keys { margin: 20px 0 24px; padding: 0; list-style: none; }
+#intro-card .keys li { display: flex; gap: 12px; padding: 5px 0; font-size: 11.5px; color: var(--muted); }
+#intro-card .keys b {
+  flex: none; min-width: 108px; color: var(--ivory); font-weight: 400;
+  font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+}
+
+
+/* ═══════════════════════════════════════════════════════════
+   SMALL SCREENS
+═══════════════════════════════════════════════════════════ */
+
+@media (max-width: 720px) {
+  #masthead { padding: 12px 16px 20px; }
+  /* The eyebrow and the home link were landing on top of each other. */
+  #masthead .eyebrow { display: none; }
+  #masthead h1 { font-size: 19px; }
+  #home-link { top: 15px; right: 16px; font-size: 9px; }
+  #scale-readout { font-size: 9.5px; letter-spacing: 0.1em; }
+  #rail { left: 14px; right: 14px; bottom: 14px; max-width: none; }
+  #search { width: 100%; }
+  #search-wrap { flex: 1 1 100%; }
+  #suggest { width: 100%; }
+  #panel { width: 100vw; }
+  #panel-body { padding: 22px 20px 60px; }
+  #panel h2 { font-size: 25px; }
+  #intro-card { padding: 26px 22px; }
+  #intro-card .keys b { min-width: 90px; }
+  /* The rail must not clip: an `overflow` here becomes a clipping ancestor
+     for the search dropdown, which is positioned above its own row and so
+     ends up half-hidden behind the canvas. Keep the rail short instead by
+     scrolling the category chips sideways on one line. */
+  #chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 3px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  #chips::-webkit-scrollbar { display: none; }
+
+  #suggest { max-height: 46vh; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #panel, #veil { transition-duration: .01ms; }
+}

@@ -1263,6 +1263,143 @@
       opacity: 1;
     }
 
+    /* ── The Long Field — a brass plate under glass. The one door
+          that is an instrument rather than a toy: thin gold rules,
+          an orrery turning behind the copy, nothing bouncing.
+          It has no sigil on purpose — see the note on the card. ── */
+
+    .project-card.accent-atlas {
+      --accent: #d4af37;
+      grid-column: 1 / -1;
+      min-height: 260px;
+      grid-template-columns: 30% 70%;
+      background:
+        radial-gradient(ellipse at 18% 50%, rgba(60, 78, 130, 0.30), transparent 62%),
+        linear-gradient(180deg, #060a18, #02040c 70%);
+      border: 1px solid rgba(212, 175, 55, 0.28);
+      border-radius: 3px;
+    }
+
+    .project-card.accent-atlas:hover,
+    .project-card.accent-atlas:focus-visible {
+      border-color: rgba(212, 175, 55, 0.62);
+    }
+
+    /* A hairline inner rule, the way a plate is scribed. */
+    .project-card.accent-atlas::before {
+      content: '';
+      position: absolute;
+      inset: 7px;
+      border: 1px solid rgba(212, 175, 55, 0.13);
+      border-radius: 2px;
+      pointer-events: none;
+    }
+
+    .accent-atlas .card-copy h3 {
+      font-family: 'EB Garamond', Georgia, serif;
+      font-size: 30px;
+      font-weight: 400;
+      color: #e6ecff;
+      letter-spacing: 0.01em;
+    }
+
+    .accent-atlas .card-copy>p:first-child {
+      color: var(--gold-dark);
+    }
+
+    /* This card is full-width, so its copy gets more room than the
+       narrow four; otherwise the right half reads as unfinished. */
+    .accent-atlas .project-description,
+    .accent-atlas .project-detail { max-width: 560px; }
+
+    .accent-atlas .project-description { color: #c7cfe6; }
+    .accent-atlas .project-detail { color: #7f8aa6; }
+    .accent-atlas .card-copy h3 { max-width: none; }
+
+    .accent-atlas .project-number {
+      color: var(--gold-dark);
+      font: 10px/1.4 'Space Mono', monospace;
+      letter-spacing: 0.18em;
+      padding-top: 5px;
+    }
+
+    /* ── The orrery. Three rings on a common centre, each turning at
+          its own rate, with one lit marker riding the middle one —
+          the Sun, two-thirds of the way out. ── */
+
+    .visual-atlas {
+      margin: 46px 0 18px 16px;
+      min-height: 180px;
+    }
+
+    .orrery-ring {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      border: 1px solid rgba(159, 200, 255, 0.16);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .orrery-ring.ring-a { width: 62px; height: 62px; }
+    .orrery-ring.ring-b { width: 122px; height: 122px; border-color: rgba(212, 175, 55, 0.26); }
+    .orrery-ring.ring-c { width: 186px; height: 186px; border-style: dashed; border-color: rgba(159, 200, 255, 0.10); }
+
+    /* Each carrier is a full-width bar pinned to the centre; the dot
+       sits at one end, so rotating the carrier walks the dot round
+       its ring. One transform, no keyframed paths. */
+    .orrery-carrier {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      height: 0;
+      transform-origin: 0 0;
+    }
+
+    .orrery-carrier i {
+      position: absolute;
+      display: block;
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      background: #9fc8ff;
+    }
+
+    .carrier-a { width: 31px; animation: orrery-turn 9s linear infinite; }
+    .carrier-b { width: 61px; animation: orrery-turn 21s linear infinite; }
+    .carrier-c { width: 93px; animation: orrery-turn 44s linear infinite; }
+
+    .carrier-a i { left: 31px; background: #e084c8; }
+    .carrier-b i {
+      left: 61px;
+      width: 7px;
+      height: 7px;
+      background: var(--gold);
+      box-shadow: 0 0 12px rgba(212, 175, 55, 0.75);
+    }
+    .carrier-c i { left: 93px; background: #6ce0b0; }
+
+    /* The core. */
+    .orrery-core {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(circle, #fff6dc 0 32%, rgba(255, 206, 110, 0.55) 55%, transparent 72%);
+    }
+
+    @keyframes orrery-turn {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .carrier-a, .carrier-b, .carrier-c { animation: none; }
+    }
+
     .accent-games .project-number {
       color: #5d7a62;
       font: 10px/1.4 'Space Mono', monospace;
@@ -1927,8 +2064,9 @@
       <div class="hero-copy">
         <p class="eyebrow"><span>+</span> A garden that occasionally bites</p>
         <h1>Every door here<br>has its own <em>key</em>.<br>Wander in.</h1>
-        <p class="hero-intro">Four small worlds, each grown from its own soil — a fidget garden, a deck that won't
-          sit still, expeditions into cultures and traditions, and an arcade that shouldn't exist yet.</p>
+        <p class="hero-intro">Five small worlds, each grown from its own soil — a fidget garden, a deck that won't
+          sit still, expeditions into cultures and traditions, an arcade that shouldn't exist yet, and a
+          map of the galaxy you are standing in.</p>
         <div class="hero-actions">
           <a class="primary-action" href="#cards">Enter the garden <span>→</span></a>
           <button class="text-action" type="button" id="surprise-btn">Pick a key for me <span>↗</span></button>
@@ -1947,7 +2085,7 @@
         <span class="keyhole-hint hidden" id="keyhole-hint" aria-hidden="true">the lock is open</span>
         <span class="coordinate coord-one" aria-hidden="true">40</span>
         <span class="coordinate coord-two" aria-hidden="true">&minus;20</span>
-        <span class="readout" aria-hidden="true">KEY.COUNT&nbsp;&nbsp;04<br>LOCK&nbsp;&nbsp;&nbsp;0x7A3F</span>
+        <span class="readout" aria-hidden="true">KEY.COUNT&nbsp;&nbsp;05<br>LOCK&nbsp;&nbsp;&nbsp;0x7A3F</span>
       </div>
     </section>
 
@@ -1955,15 +2093,15 @@
     <!-- ═══════════════════════════════════════════════════════════
          PROJECT CARDS
 
-         Four cards, four objects — not one component in four colors.
-         A silicone pad, a playing card, a pressed folio, a CRT.
+         Five cards, five objects — not one component in five colors.
+         A silicone pad, a playing card, a pressed folio, a CRT, a brass plate.
          Each sigil is built from its own zone's materials.
          Sigils and the LOCK OPENS egg: Claude Opus 5, via Claude Code.
     ═══════════════════════════════════════════════════════════ -->
     <section class="cards-section" id="cards">
       <div class="section-heading">
         <div>
-          <p class="eyebrow"><span>02</span> Four keys, four doors</p>
+          <p class="eyebrow"><span>02</span> Five keys, five doors</p>
           <h2>Pick a key. See what it opens.</h2>
         </div>
       </div>
@@ -2059,6 +2197,35 @@
           </div>
         </a>
 
+        <!-- THE LONG FIELD — an instrument, not a toy.
+             Deliberately carries no .sigil-glyph: the lock spells
+             0x7A3F across four sigils, and this door came after the
+             lock was cut. The dwell handler skips any card without
+             one, so the puzzle still needs all four originals. -->
+        <a class="project-card accent-atlas" href="milkyWay/milky-way-atlas.html">
+          <div class="card-meta">
+            <span class="project-number" aria-hidden="true">V · 26,700 ly</span>
+            <span class="project-status"><i></i>Live</span>
+          </div>
+          <div class="project-visual visual-atlas" aria-hidden="true">
+            <span class="orrery-ring ring-a"></span>
+            <span class="orrery-ring ring-b"></span>
+            <span class="orrery-ring ring-c"></span>
+            <span class="orrery-carrier carrier-a"><i></i></span>
+            <span class="orrery-carrier carrier-b"><i></i></span>
+            <span class="orrery-carrier carrier-c"><i></i></span>
+            <span class="orrery-core"></span>
+          </div>
+          <div class="card-copy">
+            <p>an atlas in two scales</p>
+            <h3>The Long Field</h3>
+            <span class="card-arrow" aria-hidden="true">→</span>
+            <p class="project-description">You are inside the thing you are mapping.</p>
+            <p class="project-detail">Seventy points of interest across the Milky Way and the
+              Solar System — and a source for every claim.</p>
+          </div>
+        </a>
+
       </div>
     </section>
 
@@ -2072,8 +2239,8 @@
         <h2>Grown, not built.</h2>
         <div>
           <p>Everything here started as something small and a little strange — a toy for restless hands, a deck
-            that refuses to hold still, a story about spring, an arcade that got out of hand. Some of it is useful.
-            All of it is meant to be poked at.</p>
+            that refuses to hold still, a story about spring, an arcade that got out of hand, an atlas of a
+            galaxy nobody can stand outside of. Some of it is useful. All of it is meant to be poked at.</p>
           <p class="about-note">Nothing here is finished. That's the point of a garden.</p>
         </div>
       </div>
@@ -2326,7 +2493,13 @@
     const DWELL_MS = 3000;
     const awakened = new Set();
 
-    document.querySelectorAll('.project-card').forEach((card) => {
+    // Only cards that actually carry a sigil take part. The Long Field
+    // was added after the lock was cut and has none, so it must not be
+    // able to count toward the four.
+    const sigilCards = [...document.querySelectorAll('.project-card')]
+      .filter((card) => card.querySelector('.sigil-glyph'));
+
+    sigilCards.forEach((card) => {
       let dwellTimer = null;
 
       const rest = () => {
@@ -2358,7 +2531,7 @@
 
       const readout = document.querySelector('.readout');
       readout.classList.add('unlocked');
-      readout.innerHTML = 'KEY.COUNT&nbsp;&nbsp;04<br>LOCK&nbsp;&nbsp;&nbsp;OPEN';
+      readout.innerHTML = 'KEY.COUNT&nbsp;&nbsp;05<br>LOCK&nbsp;&nbsp;&nbsp;OPEN';
 
       try {
         localStorage.setItem('garden-lock', 'open');

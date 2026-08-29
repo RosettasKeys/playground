@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tornado Lab — an interactive severe-weather console</title>
+  <meta name="description"
+    content="Build a tornado, run it across six landscapes, and read the damage afterward. An educational approximation with the physics kept honest — the EF rating comes from what broke, not from the wind you dialled in.">
+  <meta name="theme-color" content="#05070d">
+  <link rel="icon" type="image/png" href="../../favicon/RosettasKeysLogoFavi2-512x402.png">
+
+  <!-- Same two faces as the hub: EB Garamond carries names,
+       Space Mono carries measurements. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Space+Mono:wght@400;700&display=swap"
+    rel="stylesheet">
+
+  <link rel="stylesheet" href="lab.css">
+</head>
+
+<body>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       STAGE — the Three.js scene, with a 2D canvas over it for the
+       field overlays (vectors, pressure, vorticity) that are easier
+       to draw honestly in screen space than as geometry.
+  ═══════════════════════════════════════════════════════════ -->
+  <div id="stage">
+    <canvas id="scene" aria-label="Three-dimensional view of a simulated tornado crossing a landscape. All of its measurements are also reported as text in the instrument panel."></canvas>
+    <canvas id="overlay" aria-hidden="true"></canvas>
+  </div>
+
+  <div id="boot">
+    <div class="inner">
+      <h1>Tornado Lab</h1>
+      <p>An educational approximation, not a fluid model.</p>
+      <p id="bootmsg">Loading the renderer&hellip;</p>
+      <div class="bar"><i></i></div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════════════
+       MASTHEAD
+  ═══════════════════════════════════════════════════════════ -->
+  <header id="masthead">
+    <div>
+      <p class="eyebrow">Severe-weather console · educational approximation</p>
+      <h1>Tornado <em>Lab</em></h1>
+    </div>
+    <a href="../../index.html">← Garden of Keys</a>
+  </header>
+
+
+  <!-- ═══════════════════════════════════════════════════════════
+       CONSOLE — left rail
+  ═══════════════════════════════════════════════════════════ -->
+  <aside id="console" class="panel">
+    <div class="tabs" role="tablist" aria-label="Console sections">
+      <button role="tab" id="tab-storm" aria-controls="pane-storm" aria-selected="true">Tornado</button>
+      <button role="tab" id="tab-air" aria-controls="pane-air" aria-selected="false">Atmosphere</button>
+      <button role="tab" id="tab-view" aria-controls="pane-view" aria-selected="false">Layers</button>
+    </div>
+
+    <div class="tabpanes">
+
+      <!-- ── Tornado ──────────────────────────────────────────── -->
+      <section class="tabpane" id="pane-storm" role="tabpanel" aria-labelledby="tab-storm">
+
+        <div class="group">
+          <h3>Landscape</h3>
+          <select id="env-select" aria-label="Landscape"></select>
+          <p id="env-blurb" style="font-size:10.5px;color:var(--muted);margin:.45rem 0 0;line-height:1.5"></p>
+        </div>
+
+        <div class="group">
+          <h3>Presets</h3>
+          <div class="chipgrid" id="presets"></div>
+        </div>
+
+        <div class="group">
+          <h3>The vortex</h3>
+          <div id="ctl-vortex"></div>
+        </div>
+
+        <div class="group">
+          <h3>Track</h3>
+          <div id="ctl-track"></div>
+        </div>
+
+        <div class="group">
+          <h3>Structure &amp; appearance</h3>
+          <div id="ctl-look"></div>
+        </div>
+
+        <div class="group">
+          <h3>Run</h3>
+          <div class="btn-row">
+            <button class="btn primary" id="btn-launch">Launch</button>
+            <button class="btn" id="btn-reseed" title="Same settings, different roll of the dice">Reseed</button>
+          </div>
+          <p style="font-size:10px;color:var(--dim);margin:.5rem 0 0;line-height:1.5">
+            Seed <span id="seedval" style="color:var(--muted)"></span> — the whole run is reproducible from it.
+          </p>
+        </div>
+
+      </section>
+
+      <!-- ── Atmosphere ───────────────────────────────────────── -->
+      <section class="tabpane" id="pane-air" role="tabpanel" aria-labelledby="tab-air" hidden>
+
+        <div class="group">
+          <h3>Mode</h3>
+          <div class="chipgrid">
+            <button class="chip" id="mode-direct" aria-pressed="true">Direct control
+              <small>You set the tornado</small></button>
+            <button class="chip" id="mode-derived" aria-pressed="false">Environment-driven
+              <small>The air decides</small></button>
+          </div>
+          <p id="mode-note" style="font-size:10.5px;color:var(--muted);margin:.55rem 0 0;line-height:1.55"></p>
+        </div>
+
+        <div class="group">
+          <h3>Boundary layer</h3>
+          <div id="ctl-surface"></div>
+        </div>
+
+        <div class="group">
+          <h3>Instability &amp; shear</h3>
+          <div id="ctl-shear"></div>
+        </div>
+
+        <div class="group">
+          <h3>Derived</h3>
+          <dl class="ro" id="derived-readout"></dl>
+        </div>
+
+        <div class="group" id="draw-group">
+          <h3>This attempt</h3>
+          <div id="draw-readout"></div>
+          <button class="btn" id="btn-reroll" style="margin-top:.5rem">Re-roll this environment</button>
+        </div>
+
+      </section>
+
+      <!-- ── Layers ───────────────────────────────────────────── -->
+      <section class="tabpane" id="pane-view" role="tabpanel" aria-labelledby="tab-view" hidden>
+
+        <div class="group">
+          <h3>Visualisation layers</h3>
+          <div class="layers" id="layers"></div>
+        </div>
+
+        <div class="group">
+          <h3>Radar site</h3>
+          <div id="ctl-radar"></div>
+        </div>
+
+        <div class="group">
+          <h3>Scene</h3>
+          <div id="ctl-scene"></div>
+        </div>
+
+        <div class="group">
+          <h3>About this model</h3>
+          <p style="font-size:10.5px;color:var(--muted);line-height:1.6;margin:0 0 .6rem">
+            Every claim in this console carries a tag saying how much weight it can bear.
+          </p>
+          <p style="font-size:10.5px;line-height:1.9;margin:0">
+            <span class="tag established">established</span> — well supported by observation.<br>
+            <span class="tag simplified">simplified here</span> — real, but modelled crudely.<br>
+            <span class="tag open">open question</span> — actively researched.
+          </p>
+          <button class="btn" id="btn-explain" style="margin-top:.8rem">Explain this tornado</button>
+        </div>
+
+      </section>
+
+    </div>
+  </aside>
+
+
+  <!-- ═══════════════════════════════════════════════════════════
+       INSTRUMENTS — right rail
+  ═══════════════════════════════════════════════════════════ -->
+  <aside id="instruments" class="panel">
+
+    <dl class="readouts" id="readouts"></dl>
+
+    <div id="radarwrap">
+      <div class="rhead">
+        <span>Radar</span>
+        <button id="radar-mode" aria-label="Switch radar product">reflectivity</button>
+      </div>
+      <canvas id="radar" width="280" height="280"></canvas>
+      <p id="radarnote"></p>
+    </div>
+
+    <div id="feed">
+      <h3>Observations</h3>
+      <div id="notes"></div>
+    </div>
+
+  </aside>
+
+
+  <!-- ═══════════════════════════════════════════════════════════
+       TRANSPORT
+  ═══════════════════════════════════════════════════════════ -->
+  <footer id="transport">
+    <div class="trow">
+      <button class="tbtn" id="t-play">▶ Play</button>
+      <button class="tbtn" id="t-restart">↺ Restart</button>
+      <div class="tsep"></div>
+      <button class="tbtn" id="t-slow" data-rate="0.25">¼×</button>
+      <button class="tbtn" id="t-half" data-rate="0.5">½×</button>
+      <button class="tbtn" id="t-1x" data-rate="1" aria-pressed="true">1×</button>
+      <button class="tbtn" id="t-4x" data-rate="4">4×</button>
+      <button class="tbtn" id="t-12x" data-rate="12">12×</button>
+      <div class="tsep"></div>
+      <span id="clock">00:00 / 00:00</span>
+      <span id="phase">—</span>
+      <div class="tspacer"></div>
+      <button class="tbtn" id="btn-report">Post-storm analysis</button>
+      <button class="tbtn" id="btn-whatif">What if?</button>
+    </div>
+    <div class="trow">
+      <input type="range" id="scrub" min="0" max="0" value="0" step="1" aria-label="Timeline">
+      <div class="tsep"></div>
+      <button class="tbtn" id="v-chase" aria-pressed="true">Chaser</button>
+      <button class="tbtn" id="v-ground">Ground</button>
+      <button class="tbtn" id="v-aerial">Aerial</button>
+      <button class="tbtn" id="v-orbit">Orbit</button>
+      <button class="tbtn" id="v-plan">Plan</button>
+    </div>
+  </footer>
+
+
+  <!-- Popovers -->
+  <div id="tooltip" role="tooltip"></div>
+  <div id="inspector" class="hidden"></div>
+  <div id="report" class="hidden"></div>
+  <div id="ghost" class="hidden"><div class="paper"></div></div>
+
+
+  <!-- ═══════════════════════════════════════════════════════════
+       Three.js r160 — the last release shipping a classic (UMD)
+       build. Deliberate: an ES-module importmap would break opening
+       this file straight from disk, and nothing here needs anything
+       newer. Global THREE.
+  ═══════════════════════════════════════════════════════════ -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+
+  <!-- The simulation layer. No DOM, no THREE — it must stay renderer
+       agnostic, so load order is sim first, renderers second. -->
+  <script src="sim-core.js"></script>
+  <script src="sim-env.js"></script>
+  <script src="sim-damage.js"></script>
+  <script src="sim-debris.js"></script>
+  <script src="data-terrain.js"></script>
+  <script src="data-content.js"></script>
+
+  <!-- Renderers read sim state and never write it. -->
+  <script src="render-scene.js"></script>
+  <script src="render-overlays.js"></script>
+  <script src="render-radar.js"></script>
+
+  <script src="ui.js"></script>
+
+</body>
+
+</html>

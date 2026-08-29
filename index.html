@@ -1400,6 +1400,139 @@
       .carrier-a, .carrier-b, .carrier-c { animation: none; }
     }
 
+    /* ── Tornado Lab — the second instrument on the shelf. Where the
+          Long Field is a brass plate, this is a lit console: amber
+          rules, a radar sweeping behind the copy, one hook echo
+          coming round with it. No sigil here either — same reason
+          as the Long Field, the lock was cut before this door. ── */
+
+    .project-card.accent-storm {
+      --accent: #f0b429;
+      grid-column: 1 / -1;
+      min-height: 260px;
+      grid-template-columns: 30% 70%;
+      background:
+        radial-gradient(ellipse at 18% 50%, rgba(96, 84, 44, 0.30), transparent 62%),
+        linear-gradient(180deg, #0a0c12, #04060c 70%);
+      border: 1px solid rgba(240, 180, 41, 0.26);
+      border-radius: 3px;
+    }
+
+    .project-card.accent-storm:hover,
+    .project-card.accent-storm:focus-visible {
+      border-color: rgba(240, 180, 41, 0.60);
+    }
+
+    .project-card.accent-storm::before {
+      content: '';
+      position: absolute;
+      inset: 7px;
+      border: 1px solid rgba(240, 180, 41, 0.12);
+      border-radius: 2px;
+      pointer-events: none;
+    }
+
+    .accent-storm .card-copy h3 {
+      font-family: 'EB Garamond', Georgia, serif;
+      font-size: 30px;
+      max-width: none;
+      color: #e6ecf7;
+    }
+
+    .accent-storm .card-copy > p:first-child { color: #8e7a3f; }
+    .accent-storm .project-description,
+    .accent-storm .project-detail { max-width: 560px; }
+    .accent-storm .project-description { color: #c7cfe6; }
+    .accent-storm .project-detail { color: #7f8aa6; }
+    .accent-storm .card-arrow { color: #f0b429; }
+
+    .accent-storm .project-number {
+      color: #8e7a3f;
+      letter-spacing: 0.14em;
+    }
+
+    /* ── The scope. Range rings, a sweep going round, and one hook
+          echo riding with it — the shape everyone learns to dread. ── */
+
+    .visual-storm {
+      margin: 46px 0 18px 16px;
+      min-height: 180px;
+    }
+
+    .scope-ring {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      border: 1px solid rgba(240, 180, 41, 0.14);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .scope-ring.ring-1 { width: 58px; height: 58px; }
+    .scope-ring.ring-2 { width: 116px; height: 116px; }
+    .scope-ring.ring-3 { width: 174px; height: 174px; border-style: dashed;
+      border-color: rgba(159, 200, 255, 0.10); }
+
+    .scope-sweep {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 174px;
+      height: 174px;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      background: conic-gradient(from 0deg,
+        rgba(88, 224, 138, 0.30) 0deg,
+        rgba(88, 224, 138, 0.05) 34deg,
+        transparent 62deg, transparent 360deg);
+      animation: scope-turn 4.6s linear infinite;
+    }
+
+    /* The hook rides the sweep at the same rate, so it is lit as the
+       beam passes it and fades behind — which is how it actually looks. */
+    .scope-hook {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 116px;
+      height: 116px;
+      transform: translate(-50%, -50%);
+      animation: scope-turn 4.6s linear infinite;
+    }
+
+    .scope-hook i {
+      position: absolute;
+      left: 50%;
+      top: 4px;
+      width: 26px;
+      height: 13px;
+      margin-left: -6px;
+      border-radius: 60% 40% 45% 55% / 70% 60% 40% 30%;
+      background: radial-gradient(circle at 34% 40%,
+        rgba(255, 209, 102, 0.80) 0 26%,
+        rgba(255, 111, 74, 0.42) 52%,
+        transparent 78%);
+    }
+
+    .scope-core {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(circle, #fff2cf 0 30%, rgba(240, 180, 41, 0.5) 56%, transparent 74%);
+    }
+
+    @keyframes scope-turn {
+      to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .scope-sweep, .scope-hook { animation: none; }
+    }
+
     .accent-games .project-number {
       color: #5d7a62;
       font: 10px/1.4 'Space Mono', monospace;
@@ -2223,6 +2356,34 @@
             <p class="project-description">You are inside the thing you are mapping.</p>
             <p class="project-detail">Seventy points of interest across the Milky Way and the
               Solar System — and a source for every claim.</p>
+          </div>
+        </a>
+
+        <!-- TORNADO LAB — the second instrument. Also carries no
+             .sigil-glyph, for the same reason as the Long Field above:
+             the lock spells 0x7A3F across the four original sigils and
+             this door came after it was cut. -->
+        <a class="project-card accent-storm" href="semi-educational/tornadoSim/tornado-lab.html">
+          <div class="card-meta">
+            <span class="project-number" aria-hidden="true">VI &middot; 65&ndash;200 mph</span>
+            <span class="project-status"><i></i>Live</span>
+          </div>
+          <div class="project-visual visual-storm" aria-hidden="true">
+            <span class="scope-ring ring-1"></span>
+            <span class="scope-ring ring-2"></span>
+            <span class="scope-ring ring-3"></span>
+            <span class="scope-sweep"></span>
+            <span class="scope-hook"><i></i></span>
+            <span class="scope-core"></span>
+          </div>
+          <div class="card-copy">
+            <p>a console, not a cabinet</p>
+            <h3>Tornado Lab</h3>
+            <span class="card-arrow" aria-hidden="true">&rarr;</span>
+            <p class="project-description">The scale measures the damage, not the wind.</p>
+            <p class="project-detail">Build a tornado, run it across six landscapes, and watch the
+              same storm earn two different numbers &mdash; because the rating comes from what
+              broke, not from what you dialled in.</p>
           </div>
         </a>
 

@@ -1,16 +1,20 @@
 /* ═══════════════════════════════════════════════════════════════════════
    atlas.js — The Long Field
    ───────────────────────────────────────────────────────────────────────
-   Two scenes sharing one camera and one input model.
+   One galaxy scene, and any number of "system" scenes (orreries), sharing
+   one camera and one input model.
 
      GALAXY   world units are light-years. The Sun sits at (0, −26 700);
               the Galactic Centre is the origin. Markers are projected
               from catalogue (l, b, distance) at draw time.
 
-     SOLAR    world units are astronomical units, passed through a radial
-              compression so that Mercury at 0.39 au and the Oort Cloud at
-              100 000 au can share a screen. The compression is a display
-              choice, is labelled as one, and can be switched off.
+     SYSTEM   world units are astronomical units, passed through a radial
+              compression so that a system's innermost and outermost
+              bodies can share a screen. The compression is a display
+              choice, is labelled as one, and can be switched off. The
+              orbit solver takes the central body's GM, not just the
+              Sun's — see SYSTEMS below — so the same code draws the
+              Solar System, TRAPPIST-1, or any system added the same way.
 
    The painted galaxy is procedural — a seeded star field, not a
    photograph. Marker positions are catalogue data. Those are different
@@ -32,6 +36,15 @@
 
   var clamp = function (v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; };
   var lerp = function (a, b, t) { return a + (b - a) * t; };
+  var REDUCED_MOTION = window.matchMedia &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* Time slider → days per real second. Cubic so there is fine control
+     near zero. One function, so the slider and the per-system defaults
+     can never disagree about what a given position means. */
+  function rateFromSlider(v) {
+    return Math.sign(v) * Math.pow(Math.abs(v), 3) * 0.9;
+  }
   var ease = function (t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; };
 
   /* Deterministic PRNG — the same galaxy every visit. A field that
@@ -122,15 +135,19 @@
     return p;
   }
 
-  /* Everything else: osculating elements held fixed. */
-  function bodyPosition(poi, days) {
+  /* Everything else: osculating elements held fixed. `GM` is the central
+     body's gravitational parameter in au³/day² — defaults to the Sun's, so
+     every existing call site that doesn't pass one behaves exactly as
+     before. TRAPPIST-1's planets pass its (much smaller) stellar GM. */
+  function bodyPosition(poi, days, GM) {
     if (poi.elKey) return planetPosition(poi.elKey, days);
+    GM = GM || GM_SUN;
 
     var inc = (poi.i || 0) * DEG, om = (poi.om || 0) * DEG, w = (poi.w || 0) * DEG;
 
     if (poi.hyperbolic) {
       var ah = poi.q / (poi.e - 1);
-      var n = Math.sqrt(GM_SUN / (ah * ah * ah));
+      var n = Math.sqrt(GM / (ah * ah * ah));
       var dt = days - (poi.periJD - J2000);
       var M = n * dt;
       var H = solveHyperbolic(M, poi.e);
@@ -142,7 +159,7 @@
     }
 
     var a = poi.a, e = poi.e || 0;
-    var n2 = 0.9856076686 / (a * Math.sqrt(a));           // deg/day
+    var n2 = (180 / Math.PI) * Math.sqrt(GM / (a * a * a));  // deg/day, Kepler's third law
     var M2 = ((poi.M0 || 0) + n2 * days) * DEG;
     M2 = M2 - 2 * Math.PI * Math.floor((M2 + Math.PI) / (2 * Math.PI));
     var E2 = solveKepler(M2, e);
@@ -164,7 +181,7 @@
   var W = 0, H = 0, DPR = 1;
 
   var S = {
-    scene: 'galaxy',                 // 'galaxy' | 'solar'
+    scene: 'galaxy',                 // 'galaxy' | any key in SYSTEMS ('solar', 'trappist1', ...)
     cam: { x: 0, y: 0, s: 1 },       // world → screen: pixels per world unit
     target: null,                    // active flyTo animation
     hover: null,
@@ -175,14 +192,61 @@
     days: 0,                         // days from J2000
     rate: 4,                         // days per real second
     lastT: 0,
-    ready: false
+    ready: false,
+
+    /* Mission state. The atlas does not run the missions — it is told
+       what to aim at and what has been logged, and draws accordingly. */
+    mission: null,                   // { scene, id, p } | null
+    logged: {},                      // 'scene|id' → true
+    burst: null                      // { p, t } capture animation
   };
 
-  /* Camera limits per scene. */
-  var LIMITS = {
-    galaxy: { minSpan: 900, maxSpan: 600000, home: 132000 },
-    solar: { minSpan: 0.05, maxSpan: 130, home: 9.6 }
+  /* Registry of "system" scenes — anything that isn't the galaxy. The
+     galaxy view is unique (procedural field, no central body); every
+     orrery-style scene works the same way regardless of which star it
+     orbits, so adding one is adding an entry here, not new code. */
+  var SYSTEMS = {
+    solar: {
+      poi: SOLAR_POI,
+      GM: GM_SUN,
+      titleHTML: 'The <em>Solar System</em>',
+      searchLabel: 'solar system',
+      enterLabel: 'the Solar System',
+      centerLabel: 'the Sun',
+      veilIn: 'one star, two-thirds of the way out —',
+      /* Time slider position on arrival: ≈4 days a second, so Earth takes
+         about a minute and a half to go round. */
+      timeDefault: 1.7,
+      limits: { minSpan: 0.05, maxSpan: 130, homeCompressed: 9.6, homeTrue: 96 }
+    },
+    trappist1: {
+      poi: TRAPPIST1_POI,
+      GM: GM_SUN * 0.0898,        // the star's mass relative to the Sun's
+      titleHTML: '<em>TRAPPIST-1</em>',
+      searchLabel: 'TRAPPIST-1',
+      enterLabel: 'the TRAPPIST-1 system',
+      centerLabel: 'the star',
+      veilIn: 'forty light-years out, to a star seven worlds crowd around —',
+      /* The whole system fits inside 18.77 days, so the Sun's clock turns
+         it into a blur — the innermost planet would lap the star three
+         times a second. About 0.6 days a second instead: the outermost
+         takes half a minute, the innermost a couple of seconds, and the
+         resonance chain is actually watchable. */
+      timeDefault: 0.9,
+      limits: { minSpan: 0.02, maxSpan: 6, homeCompressed: 1.2, homeTrue: 0.18 }
+    }
   };
+
+  /* Camera limits per scene — kept as its own object since that's what
+     span()/setSpan()/zoomAt() already key off of. */
+  var LIMITS = { galaxy: { minSpan: 900, maxSpan: 600000, home: 132000 } };
+  Object.keys(SYSTEMS).forEach(function (key) {
+    var lim = SYSTEMS[key].limits;
+    LIMITS[key] = { minSpan: lim.minSpan, maxSpan: lim.maxSpan, home: lim.homeCompressed };
+  });
+
+  function curSys() { return SYSTEMS[S.scene]; }
+  function curGM() { return S.scene !== 'galaxy' && SYSTEMS[S.scene] ? SYSTEMS[S.scene].GM : GM_SUN; }
 
   function span() { return W / DPR / S.cam.s; }            // world units across viewport
   function setSpan(v) { S.cam.s = (W / DPR) / v; }
@@ -433,16 +497,15 @@
     exo: { label: 'Exoplanets', color: '#6ce0b0', scene: 'galaxy' },
     satellite: { label: 'Satellites', color: '#ff7f9a', scene: 'galaxy' },
     home: { label: 'The Sun', color: '#ffe89a', scene: 'galaxy' },
-    planet: { label: 'Planets', color: '#9fd4ff', scene: 'solar' },
-    dwarf: { label: 'Dwarf planets', color: '#c9a68a', scene: 'solar' },
-    smallbody: { label: 'Small bodies', color: '#b08d5e', scene: 'solar' },
-    region: { label: 'Regions', color: '#7fa8c8', scene: 'solar' },
-    interstellar: { label: 'Interstellar', color: '#5ce6c8', scene: 'solar' },
-    craft: { label: 'Spacecraft', color: '#f0e6c8', scene: 'solar' },
-    hypothetical: { label: 'Hypothetical', color: '#a08cd8', scene: 'solar' }
+    planet: { label: 'Planets', color: '#9fd4ff', scene: 'system' },
+    dwarf: { label: 'Dwarf planets', color: '#c9a68a', scene: 'system' },
+    smallbody: { label: 'Small bodies', color: '#b08d5e', scene: 'system' },
+    region: { label: 'Regions', color: '#7fa8c8', scene: 'system' },
+    interstellar: { label: 'Interstellar', color: '#5ce6c8', scene: 'system' },
+    craft: { label: 'Spacecraft', color: '#f0e6c8', scene: 'system' },
+    hypothetical: { label: 'Hypothetical', color: '#a08cd8', scene: 'system' }
   };
   Object.keys(CATS).forEach(function (k) { S.filters[k] = true; });
-  CATS.star.sceneBoth = true;   // 'star' appears in both scenes (the Sun)
 
   function catColor(c) { return (CATS[c] && CATS[c].color) || '#9fd4ff'; }
 
@@ -540,7 +603,8 @@
      RENDER — SOLAR SYSTEM
   ═══════════════════════════════════════════════════════════ */
 
-  function drawSolar() {
+  function drawSystem() {
+    var poi = curSys().poi;
     var vw = W / DPR, vh = H / DPR;
     var bg = ctx.createRadialGradient(vw / 2, vh / 2, 0, vw / 2, vh / 2, Math.max(vw, vh) * 0.8);
     bg.addColorStop(0, '#050912'); bg.addColorStop(1, '#01030a');
@@ -555,7 +619,7 @@
     }
 
     /* Regions first — annuli under everything else. */
-    SOLAR_POI.forEach(function (p) {
+    poi.forEach(function (p) {
       if (p.kind !== 'region' || !S.filters[p.cat]) return;
       var ri = compress(p.inner) * S.cam.s, ro = compress(p.outer) * S.cam.s;
       var o = w2s(0, 0);
@@ -572,22 +636,26 @@
 
     /* Orbit paths. Sampled through the compression, so a compressed
        ellipse is drawn as the curve it really becomes — never faked. */
-    SOLAR_POI.forEach(function (p) {
+    poi.forEach(function (p) {
       if (!S.filters[p.cat]) return;
       if (p.kind === 'region' || p.kind === 'star' || p.kind === 'craft') return;
       drawOrbit(p);
     });
 
-    /* Sun. */
+    /* The system's star. Position is always the origin; color and glow
+       size come from whichever POI carries kind:'star', so this reads
+       right for the Sun or for a dim red dwarf alike. */
+    var home = poi.filter(function (p) { return p.kind === 'star'; })[0];
+    var starCol = (home && home.color) || '#ffd27a';
     var sun = w2s(0, 0);
     var sg = ctx.createRadialGradient(sun.x, sun.y, 0, sun.x, sun.y, 26);
-    sg.addColorStop(0, 'rgba(255,240,198,0.92)');
-    sg.addColorStop(0.30, 'rgba(255,206,110,0.34)');
-    sg.addColorStop(1, 'rgba(255,170,60,0)');
+    sg.addColorStop(0, hexA(starCol, 0.92));
+    sg.addColorStop(0.30, hexA(starCol, 0.34));
+    sg.addColorStop(1, hexA(starCol, 0));
     ctx.fillStyle = sg;
     ctx.beginPath(); ctx.arc(sun.x, sun.y, 26, 0, 6.2832); ctx.fill();
 
-    drawMarkers(SOLAR_POI, span());
+    drawMarkers(poi, span());
   }
 
   function drawOrbit(p) {
@@ -659,7 +727,7 @@
       var rr = compress(p.dist);
       return { x: rr * Math.cos(lat) * Math.cos(lon), y: rr * Math.cos(lat) * Math.sin(lon) };
     }
-    return solarPoint(bodyPosition(p, S.days));
+    return solarPoint(bodyPosition(p, S.days, curGM()));
   }
 
   /* ═══════════════════════════════════════════════════════════
@@ -675,7 +743,7 @@
   }
 
   function markerRadius(p) {
-    if (S.scene === 'solar' && p.radiusKm) {
+    if (S.scene !== 'galaxy' && p.radiusKm) {
       /* Body sizes are compressed too — a literal scale would make every
          planet a sub-pixel dot next to the Sun. */
       var r = 2.4 + Math.log10(p.radiusKm) * 1.55;
@@ -748,6 +816,11 @@
         ctx.setLineDash([]);
       }
 
+      /* Anything logged on a mission keeps a mark, in its own category
+         colour, for as long as the progress survives. Nine of these
+         accumulating across three scenes is the point. */
+      if (S.logged[S.scene + '|' + p.id]) drawStamp(s.x, s.y, r, col);
+
       /* Label. */
       var wants = S.labelMode === 'all' ? true
         : S.labelMode === 'off' ? (isHov || isSel)
@@ -755,12 +828,49 @@
       if (wants) pending.push({ text: p.name, x: s.x + r + 7, y: s.y, anchorX: s.x, pad: r + 7, col: col, strong: isSel || isHov, rank: p.rank || 0 });
     }
 
+    drawBurst();
+
     /* Most important label first, so that when two collide the one that
        survives is the one worth reading. */
     pending.sort(function (a, b) { return (b.rank + (b.strong ? 10 : 0)) - (a.rank + (a.strong ? 10 : 0)); });
     for (var q = 0; q < pending.length; q++) {
       var L = pending[q];
       placeLabel(L.text, L.x, L.y, L.col, L.strong, L.anchorX, L.pad);
+    }
+  }
+
+  /* A logged objective: a small open ring with four ticks off it, in the
+     object's own colour. Reads as a surveyor's mark rather than a sticker,
+     which keeps it inside the atlas's own vocabulary. */
+  function drawStamp(x, y, r, col) {
+    var rr = r + 4.5;
+    ctx.strokeStyle = hexA(col, 0.95);
+    ctx.lineWidth = 1.3;
+    ctx.beginPath(); ctx.arc(x, y, rr, 0, 6.2832); ctx.stroke();
+    ctx.beginPath();
+    for (var k = 0; k < 4; k++) {
+      var a = Math.PI / 4 + k * Math.PI / 2;
+      var ca = Math.cos(a), sa = Math.sin(a);
+      ctx.moveTo(x + ca * (rr + 1.5), y + sa * (rr + 1.5));
+      ctx.lineTo(x + ca * (rr + 4), y + sa * (rr + 4));
+    }
+    ctx.stroke();
+  }
+
+  /* The capture animation — three rings going out in the object's colour.
+     Purely a reward; nothing reads its state. */
+  function drawBurst() {
+    if (!S.burst) return;
+    var b = S.burst;
+    if (b.scene !== S.scene) { S.burst = null; return; }
+    var s = markerScreen(b.p);
+    if (!s) return;
+    for (var i = 0; i < 3; i++) {
+      var k = b.t - i * 0.16;
+      if (k <= 0 || k >= 1) continue;
+      ctx.strokeStyle = hexA(b.col, (1 - k) * 0.75);
+      ctx.lineWidth = 2.2 * (1 - k) + 0.4;
+      ctx.beginPath(); ctx.arc(s.x, s.y, 6 + k * 62, 0, 6.2832); ctx.stroke();
     }
   }
 
@@ -813,7 +923,7 @@
   ═══════════════════════════════════════════════════════════ */
 
   function pick(mx, my) {
-    var list = S.scene === 'galaxy' ? GALAXY_POI : SOLAR_POI;
+    var list = S.scene === 'galaxy' ? GALAXY_POI : curSys().poi;
     var best = null, bestD = 22 * 22;
     for (var i = 0; i < list.length; i++) {
       var p = list[i];
@@ -828,11 +938,11 @@
     if (best) return best;
 
     /* Regions are picked by their outer ring, if nothing sharper is near. */
-    if (S.scene === 'solar') {
+    if (S.scene !== 'galaxy') {
       var o = w2s(0, 0);
       var rr = Math.hypot(mx - o.x, my - o.y);
-      for (var j = 0; j < SOLAR_POI.length; j++) {
-        var q = SOLAR_POI[j];
+      for (var j = 0; j < list.length; j++) {
+        var q = list[j];
         if (q.kind !== 'region' || !S.filters[q.cat]) continue;
         var ro = compress(q.outer) * S.cam.s;
         if (Math.abs(rr - ro) < 9) return q;
@@ -849,7 +959,7 @@
     var dt = S.lastT ? Math.min((t - S.lastT) / 1000, 0.12) : 0;
     S.lastT = t;
 
-    if (S.scene === 'solar' && S.rate !== 0) {
+    if (S.scene !== 'galaxy' && S.rate !== 0) {
       S.days += S.rate * dt;
       updateDateReadout();
     }
@@ -865,11 +975,66 @@
       if (S.target.t >= 1) S.target = null;
     }
 
+    if (S.burst) {
+      S.burst.t += dt / 1.1;
+      if (S.burst.t >= 1.5) S.burst = null;
+    }
+
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    if (S.scene === 'galaxy') drawGalaxy(); else drawSolar();
+    if (S.scene === 'galaxy') drawGalaxy(); else drawSystem();
     updateScaleReadout();
+    emitSignal(t);
 
     requestAnimationFrame(frame);
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     SIGNAL — how close the view is to the current objective
+
+     Two things have to be true at once, or the readout is trivial.
+
+     Centring: distance from the camera to the target measured in
+     half-screens, so it is scale-free.
+
+     Resolution: how far in the reader has zoomed, as a fraction of the
+     way from the scene's home view to the span at which this particular
+     object fills the screen. Without this term, everything near the Sun
+     reads hot the moment the galaxy loads — the whole neighbourhood is a
+     rounding error at a 132,000-light-year field of view.
+
+     Multiplied, a wide but perfectly centred view can only ever read
+     weak, and only closing in on the right object reads locked.
+
+     Six updates a second is plenty for a meter and a tick, and keeps
+     this off the critical path of the draw.
+  ═══════════════════════════════════════════════════════════ */
+
+  var lastSignalAt = 0;
+
+  function emitSignal(t) {
+    if (!S.mission || t - lastSignalAt < 160) return;
+    lastSignalAt = t;
+
+    var m = S.mission, sig = 0, same = m.scene === S.scene;
+    if (same) {
+      var w = targetWorld(m.p);
+      if (w) {
+        var sp = span();
+        var rel = Math.hypot(w.x - S.cam.x, w.y - S.cam.y) / (sp * 0.5);
+        var centred = Math.pow(clamp(1 - rel, 0, 1), 0.8);
+
+        var home = LIMITS[S.scene].home;
+        var arrive = clamp(arrivalSpan(m.p), LIMITS[S.scene].minSpan, home);
+        var depth = Math.log(home / arrive) > 0.01
+          ? clamp(Math.log(home / sp) / Math.log(home / arrive), 0, 1)
+          : 1;
+
+        sig = centred * (0.3 + 0.7 * depth);
+      }
+    }
+    document.dispatchEvent(new CustomEvent('atlas:signal', {
+      detail: { signal: sig, sameScene: same, scene: m.scene }
+    }));
   }
 
   function flyTo(x, y, targetSpan, dur) {
@@ -917,6 +1082,7 @@
 
   function openPanel(p) {
     S.selected = p;
+    document.dispatchEvent(new CustomEvent('atlas:select', { detail: { poi: p, scene: S.scene } }));
     var cat = CATS[p.cat] || { label: p.cat, color: '#9fd4ff' };
     var html = '';
 
@@ -932,11 +1098,11 @@
       pos.push(['Galactic coordinates',
         'l = ' + (p.l || 0).toFixed(2) + '°, b = ' + (p.b || 0).toFixed(2) + '°' + (p.lbApprox ? ' (approx.)' : '')]);
     }
-    if (S.scene === 'solar' && p.kind !== 'region' && p.kind !== 'star') {
+    if (S.scene !== 'galaxy' && p.kind !== 'region' && p.kind !== 'star') {
       var w = solarPos(p);
       if (w) {
-        var rTrue = p.kind === 'craft' ? p.dist : Math.hypot(bodyPosition(p, S.days).x, bodyPosition(p, S.days).y);
-        pos.push(['Current distance from Sun', rTrue.toFixed(rTrue < 10 ? 3 : 1) + ' au']);
+        var rTrue = p.kind === 'craft' ? p.dist : Math.hypot(bodyPosition(p, S.days, curGM()).x, bodyPosition(p, S.days, curGM()).y);
+        pos.push(['Current distance from ' + curSys().centerLabel, rTrue.toFixed(rTrue < 10 ? 3 : 1) + ' au']);
       }
     }
 
@@ -962,8 +1128,8 @@
       html += '</ul>';
     }
 
-    if (p.descend) {
-      html += '<button class="p-action" id="descend-btn">Descend into the Solar System →</button>';
+    if (p.enterSystem) {
+      html += '<button class="p-action" id="descend-btn">Descend into ' + esc(SYSTEMS[p.enterSystem].enterLabel) + ' →</button>';
     }
 
     if (p.cites && p.cites.length) {
@@ -975,7 +1141,7 @@
     if (p.lbApprox) notes.push('The galactic longitude and latitude here place the marker in the right part of the sky but are approximate; treat the distance, not the position on this map, as the measurement.');
     if (p.orbitApprox) notes.push('The orbit shape is drawn from published elements. The body’s position along that orbit is approximate — this atlas is not an ephemeris.');
     if (p.posApprox) notes.push('Position is plotted from the spacecraft’s reported distance and heading, rounded. Use NASA’s live trackers for a current fix.');
-    if (S.scene === 'solar' && S.solarScale === 'compressed' && p.kind !== 'star') notes.push('Radial distances on screen are compressed (r^0.34) so the whole system fits one view. Switch the scale control to “true” to see the real proportions.');
+    if (S.scene !== 'galaxy' && S.solarScale === 'compressed' && p.kind !== 'star') notes.push('Radial distances on screen are compressed (r^0.34) so the whole system fits one view. Switch the scale control to “true” to see the real proportions.');
     if (notes.length) html += '<div class="p-note">' + notes.map(esc).join('<br><br>') + '</div>';
 
     panelBody.innerHTML = html;
@@ -983,7 +1149,7 @@
     panel.scrollTop = 0;
 
     var db = document.getElementById('descend-btn');
-    if (db) db.addEventListener('click', function () { switchScene('solar'); });
+    if (db) db.addEventListener('click', function () { switchScene(p.enterSystem); });
   }
 
   function closePanel() {
@@ -998,21 +1164,59 @@
   var veil = document.getElementById('veil');
   var veilText = veil.querySelector('.veil-text');
 
-  function switchScene(to) {
-    if (to === S.scene) return;
-    closePanel();
-    veilText.textContent = to === 'solar'
-      ? 'one star, two-thirds of the way out —'
-      : 'back up, past the heliopause —';
-    veil.classList.add('on');
+  /* The veil used to lift the instant it had finished falling, which gave
+     its line about a third of a second on screen — long enough to notice,
+     nowhere near long enough to read. It now falls, holds while the scene
+     is swapped underneath it, and lifts. The hold is reading time, so it
+     scales with the length of the line, and anyone who already knows what
+     it says can click or press a key to go on. */
 
-    setTimeout(function () {
+  var VEIL_FADE = 500;                  // matches the CSS transition
+  var veilTimers = [];
+  var veilAfter = null;
+
+  function clearVeilTimers() {
+    veilTimers.forEach(clearTimeout);
+    veilTimers = [];
+  }
+
+  function liftVeil() {
+    clearVeilTimers();
+    veil.classList.remove('on', 'holding');
+    var fn = veilAfter; veilAfter = null;
+    if (fn) fn();
+  }
+
+  function switchScene(to, after) {
+    if (to === S.scene) { if (after) after(); return; }
+    closePanel();
+    veilText.textContent = to === 'galaxy'
+      ? 'back up, out past the edge —'
+      : SYSTEMS[to].veilIn;
+    veil.classList.add('on');
+    veilAfter = after || null;
+
+    var words = veilText.textContent.trim().split(/\s+/).length;
+    var hold = clamp(words * 250, 1100, 2400);
+
+    clearVeilTimers();
+    veilTimers.push(setTimeout(function () {
       S.scene = to;
       resetView(true);
       syncChrome();
-      veil.classList.remove('on');
-    }, 430);
+      /* Only skippable once the scene underneath is actually the new one,
+         so a skip can never reveal the old scene mid-swap. */
+      veil.classList.add('holding');
+    }, VEIL_FADE));
+    veilTimers.push(setTimeout(liftVeil, VEIL_FADE + hold));
   }
+
+  veil.addEventListener('click', function () {
+    if (veil.classList.contains('holding')) liftVeil();
+  });
+  document.addEventListener('keydown', function () {
+    if (veil.classList.contains('holding')) liftVeil();
+  });
 
   function resetView(instant) {
     var lim = LIMITS[S.scene];
@@ -1033,26 +1237,39 @@
   var btnScene = document.getElementById('btn-scene');
   var btnScale = document.getElementById('btn-scale');
   var timebar = document.getElementById('timebar');
+  var rateEl = document.getElementById('time-rate');
   var titleEl = document.getElementById('map-title');
   var scaleReadout = document.getElementById('scale-readout');
 
   function syncChrome() {
-    var isSolar = S.scene === 'solar';
-    btnScene.textContent = isSolar ? '↑ Back to the Galaxy' : '↓ Into the Solar System';
-    btnScale.classList.toggle('hidden', !isSolar);
-    timebar.classList.toggle('hidden', !isSolar);
-    titleEl.innerHTML = isSolar
-      ? 'The <em>Solar System</em>'
-      : 'The <em>Milky Way</em>';
+    var inSystem = S.scene !== 'galaxy';
+    btnScene.textContent = S.scene === 'galaxy' ? '↓ Into the Solar System' : '↑ Back to the Galaxy';
+    btnScale.classList.toggle('hidden', !inSystem);
+    timebar.classList.toggle('hidden', !inSystem);
+
+    /* Every system keeps its own clock. One global rate is wrong the
+       moment two systems differ in size by three orders of magnitude. */
+    if (inSystem) {
+      var t = curSys().timeDefault;
+      if (t !== undefined) {
+        rateEl.value = t;
+        /* Read the position back rather than trusting what was written —
+           the slider snaps to its own step, and the rate has to be the
+           rate of where the handle actually is. */
+        S.rate = rateFromSlider(parseFloat(rateEl.value));
+      }
+    }
+    titleEl.innerHTML = S.scene === 'galaxy' ? 'The <em>Milky Way</em>' : curSys().titleHTML;
     buildChips();
     updateDateReadout();
   }
 
   function buildChips() {
     chipsBox.innerHTML = '';
+    var inSystem = S.scene !== 'galaxy';
     Object.keys(CATS).forEach(function (k) {
       var c = CATS[k];
-      if (c.scene !== S.scene && !(k === 'star' && S.scene === 'galaxy')) return;
+      if (inSystem ? c.scene !== 'system' : c.scene !== 'galaxy') return;
       var b = document.createElement('button');
       b.className = 'chip';
       b.type = 'button';
@@ -1074,12 +1291,13 @@
       scaleReadout.innerHTML = 'field of view <b>' + fmtNum(sp) + ' light-years</b>' +
         (terse ? '' : ' · ' + GALAXY_POI.length + ' points of interest · sun at l 0° b 0°, 26,700 ly out');
     } else {
+      var sys = curSys();
       var edge = S.solarScale === 'true' ? sp / 2 : Math.pow(sp / 2, 1 / 0.34);
-      var reach = (edge < 10 ? edge.toFixed(2) : fmtNum(edge)) + ' au';
+      var reach = (edge < 10 ? edge.toFixed(3) : fmtNum(edge)) + ' au';
       scaleReadout.innerHTML = terse
         ? '<b>' + reach + '</b> to the edge · scale <b>' + S.solarScale + '</b>'
-        : 'field of view <b>' + reach + '</b> from the Sun to the edge · ' +
-          SOLAR_POI.length + ' points of interest · radial scale <b>' + S.solarScale + '</b>';
+        : 'field of view <b>' + reach + '</b> from ' + sys.centerLabel + ' to the edge · ' +
+          sys.poi.length + ' points of interest · radial scale <b>' + S.solarScale + '</b>';
     }
   }
 
@@ -1101,8 +1319,11 @@
   var suggestIdx = -1;
 
   function allPoi() {
-    return GALAXY_POI.map(function (p) { return { p: p, scene: 'galaxy' }; })
-      .concat(SOLAR_POI.map(function (p) { return { p: p, scene: 'solar' }; }));
+    var out = GALAXY_POI.map(function (p) { return { p: p, scene: 'galaxy' }; });
+    Object.keys(SYSTEMS).forEach(function (key) {
+      out = out.concat(SYSTEMS[key].poi.map(function (p) { return { p: p, scene: key }; }));
+    });
+    return out;
   }
 
   function runSearch(q) {
@@ -1118,12 +1339,35 @@
     hits.forEach(function (e) {
       var b = document.createElement('button');
       b.type = 'button';
-      b.innerHTML = esc(e.p.name) + '<span class="s-sub">' +
-        (e.scene === 'solar' ? 'solar system · ' : 'galaxy · ') + esc(e.p.type) + '</span>';
+      var scopeLabel = e.scene === 'galaxy' ? 'galaxy' : SYSTEMS[e.scene].searchLabel;
+      b.innerHTML = esc(e.p.name) + '<span class="s-sub">' + esc(scopeLabel) + ' · ' + esc(e.p.type) + '</span>';
       b.addEventListener('click', function () { goTo(e); });
       suggestEl.appendChild(b);
     });
     suggestEl.classList.remove('hidden');
+  }
+
+  /* Where a point of interest sits, and how wide the view should be to
+     count as having arrived at it. Both the fly-to and the signal readout
+     work off these, so "close enough to fly to" and "close enough to read
+     as a strong signal" can never drift apart. */
+
+  function targetWorld(p) {
+    if (S.scene === 'galaxy') return { x: p._x, y: p._y };
+    if (p.kind === 'region') return { x: 0, y: 0 };
+    return solarPos(p);
+  }
+
+  function arrivalSpan(p) {
+    if (S.scene === 'galaxy') {
+      var far = Math.max(Math.hypot(p._x, p._y) * 0.6, 900);
+      return p.dist > 90000 ? far * 2.4 : clamp(p.dist * 2.6, 1400, 130000);
+    }
+    if (p.kind === 'region') return compress(p.outer) * 2.6;
+    var w = solarPos(p);
+    if (!w) return LIMITS[S.scene].home;
+    var closeFloor = curSys().limits.homeCompressed * 0.12;
+    return Math.max(compress(Math.hypot(w.x, w.y) || 1) * 2.4, closeFloor);
   }
 
   function goTo(entry) {
@@ -1132,25 +1376,60 @@
     var p = entry.p;
 
     var arrive = function () {
-      if (S.scene === 'galaxy') {
-        var far = Math.max(Math.hypot(p._x, p._y) * 0.6, 900);
-        flyTo(p._x, p._y, p.dist > 90000 ? far * 2.4 : clamp(p.dist * 2.6, 1400, 130000), 1.15);
-      } else {
-        var w = solarPos(p);
-        if (p.kind === 'region') {
-          flyTo(0, 0, compress(p.outer) * 2.6, 1.15);
-        } else if (w) {
-          flyTo(w.x, w.y, Math.max(compress(Math.hypot(w.x, w.y) || 1) * 2.4, 1.1), 1.15);
-        }
-      }
+      var w = targetWorld(p);
+      if (w) flyTo(w.x, w.y, arrivalSpan(p), 1.15);
       openPanel(p);
     };
 
-    if (entry.scene !== S.scene) {
-      switchScene(entry.scene);
-      setTimeout(arrive, 480);
-    } else arrive();
+    /* Hand the arrival to switchScene rather than racing it on a timer —
+       it fires as the veil starts to lift, however long the hold ran. */
+    if (entry.scene !== S.scene) switchScene(entry.scene, arrive);
+    else arrive();
   }
+
+  /* Small public seam so an outside script (the mission module) can fly
+     the map to a point of interest, aim the signal readout, and mark what
+     has been logged — without knowing anything about scenes, cameras, or
+     the data files. The atlas still has no idea a mission exists; it only
+     draws what it is handed. */
+
+  function findPoi(scene, id) {
+    var list = scene === 'galaxy' ? GALAXY_POI : (SYSTEMS[scene] ? SYSTEMS[scene].poi : []);
+    return list.filter(function (x) { return x.id === id; })[0] || null;
+  }
+
+  window.AtlasBridge = {
+    goTo: function (scene, id) {
+      var p = findPoi(scene, id);
+      if (p) goTo({ p: p, scene: scene });
+    },
+
+    /* Name and colour for a point of interest, for chrome outside the map. */
+    lookup: function (scene, id) {
+      var p = findPoi(scene, id);
+      if (!p) return null;
+      return { name: p.name, color: p.color || catColor(p.cat), fresh: !!p.fresh };
+    },
+
+    /* Aim the signal readout, or pass null to stand it down. */
+    setObjective: function (scene, id) {
+      var p = scene && findPoi(scene, id);
+      S.mission = p ? { scene: scene, id: id, p: p } : null;
+    },
+
+    /* The full set of logged objectives, as 'scene|id' strings. */
+    setLogged: function (keys) {
+      S.logged = {};
+      (keys || []).forEach(function (k) { S.logged[k] = true; });
+    },
+
+    /* Rings going out from a marker that has just been logged. */
+    celebrate: function (scene, id) {
+      if (REDUCED_MOTION) return;
+      var p = findPoi(scene, id);
+      if (p) S.burst = { p: p, scene: scene, col: p.color || catColor(p.cat), t: 0 };
+    }
+  };
 
   searchEl.addEventListener('input', function () { runSearch(searchEl.value); });
   searchEl.addEventListener('keydown', function (ev) {
@@ -1210,7 +1489,7 @@
   }
 
   stage.addEventListener('pointerdown', function (ev) {
-    if (ev.target.closest('#rail, #panel, #masthead, #sources-overlay, #intro')) return;
+    if (ev.target.closest('#rail, #panel, #masthead, #sources-overlay, #intro, #mission-hud')) return;
     var p = localPt(ev);
     drag = { x: p.x, y: p.y, id: ev.pointerId };
     moved = 0;
@@ -1250,7 +1529,7 @@
   stage.addEventListener('pointercancel', function (ev) { drag = null; stage.classList.remove('dragging'); void ev; });
 
   stage.addEventListener('wheel', function (ev) {
-    if (ev.target.closest('#rail, #panel, #sources-overlay')) return;
+    if (ev.target.closest('#rail, #panel, #sources-overlay, #mission-hud')) return;
     ev.preventDefault();
     zoomAt(localPt(ev), Math.exp(-ev.deltaY * (ev.deltaMode === 1 ? 0.05 : 0.0016)));
   }, { passive: false });
@@ -1283,6 +1562,8 @@
 
   document.addEventListener('keydown', function (ev) {
     if (ev.target === searchEl) return;
+    /* While the veil is up a keypress means "go on", not "pan the map". */
+    if (veil.classList.contains('on')) return;
     var step = span() * 0.12;
     switch (ev.key) {
       case 'ArrowLeft': S.cam.x -= step; S.target = null; break;
@@ -1339,7 +1620,7 @@
   titleEl.addEventListener('click', function () {
     openPanel(S.scene === 'galaxy'
       ? GALAXY_OVERVIEW
-      : SOLAR_POI.filter(function (p) { return p.id === 'sun'; })[0]);
+      : curSys().poi.filter(function (p) { return p.kind === 'star'; })[0]);
   });
   btnScene.addEventListener('click', function () { switchScene(S.scene === 'galaxy' ? 'solar' : 'galaxy'); });
   document.getElementById('btn-reset').addEventListener('click', function () { resetView(false); });
@@ -1352,7 +1633,10 @@
   btnScale.addEventListener('click', function (ev) {
     S.solarScale = S.solarScale === 'compressed' ? 'true' : 'compressed';
     ev.currentTarget.textContent = 'Scale: ' + S.solarScale;
-    LIMITS.solar.home = S.solarScale === 'true' ? 96 : 9.6;
+    if (S.scene !== 'galaxy') {
+      var lim = curSys().limits;
+      LIMITS[S.scene].home = S.solarScale === 'true' ? lim.homeTrue : lim.homeCompressed;
+    }
     resetView(false);
     if (S.selected) openPanel(S.selected);
   });
@@ -1364,11 +1648,8 @@
     document.getElementById('sources-overlay').classList.add('hidden');
   });
 
-  var rateEl = document.getElementById('time-rate');
   rateEl.addEventListener('input', function () {
-    var v = parseFloat(rateEl.value);
-    /* Cubic response so the slider has fine control near zero. */
-    S.rate = Math.sign(v) * Math.pow(Math.abs(v), 3) * 0.9;
+    S.rate = rateFromSlider(parseFloat(rateEl.value));
   });
   document.getElementById('btn-now').addEventListener('click', function () {
     S.days = (Date.now() / 86400000) - 10957.5;

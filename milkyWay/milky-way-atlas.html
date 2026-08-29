@@ -37,7 +37,7 @@
        MASTHEAD
   ═══════════════════════════════════════════════════════════ -->
   <header id="masthead">
-    <p class="eyebrow"><span>+</span> The Long Field · an atlas in two scales</p>
+    <p class="eyebrow"><span>+</span> The Long Field · an atlas across scales</p>
     <h1><button id="map-title" type="button" title="Read the entry for this whole scene">The <em>Milky Way</em></button></h1>
     <p id="scale-readout">charting&hellip;</p>
     <a id="home-link" href="../index.html">← Garden of Keys</a>
@@ -62,6 +62,7 @@
     </div>
 
     <div class="rail-row">
+      <button class="chip primary-soft" type="button" id="btn-missions">🔭 Missions</button>
       <button class="chip" type="button" id="btn-labels">Labels: key</button>
       <button class="chip hidden" type="button" id="btn-scale">Scale: compressed</button>
       <button class="chip" type="button" id="btn-reset">Reset view</button>
@@ -70,7 +71,7 @@
 
     <div class="rail-row hidden" id="timebar">
       <label for="time-rate">Time</label>
-      <input id="time-rate" type="range" min="-8" max="8" step="0.1" value="1.65"
+      <input id="time-rate" type="range" min="-8" max="8" step="0.1" value="1.7"
         aria-label="Rate at which the orrery advances">
       <span id="date-readout">—</span>
       <button class="chip" type="button" id="btn-now">Now</button>
@@ -90,6 +91,49 @@
 
   <!-- Hover label -->
   <div id="tip" class="hidden" aria-hidden="true"></div>
+
+
+  <!-- ═══════════════════════════════════════════════════════════
+       MISSIONS — built and driven entirely by missions.js
+  ═══════════════════════════════════════════════════════════ -->
+  <div id="mission-hud" class="hidden">
+    <button id="mission-close" type="button" aria-label="End the mission">×</button>
+    <p class="m-eyebrow">Mission <span id="m-num">01</span> ·
+      objective <span id="m-n">1</span> of <span id="m-total">—</span></p>
+    <p id="m-brief" class="m-brief" role="status" aria-live="polite"></p>
+    <div id="m-dots" class="m-dots" aria-hidden="true"></div>
+
+    <!-- The signal readout: how close the view is to the objective.
+         Decorative for a screen reader — the briefing is the content. -->
+    <div class="m-signal" aria-hidden="true">
+      <span class="sig-label">signal</span>
+      <span class="sig-track"><span id="sig-fill"></span></span>
+      <span id="sig-word" class="sig-word">—</span>
+    </div>
+
+    <div class="m-actions">
+      <button class="chip" type="button" id="m-hint">Show me →</button>
+      <button class="chip primary hidden" type="button" id="m-next">Next objective →</button>
+      <button class="chip" type="button" id="m-board">Missions</button>
+      <button class="chip sound-toggle" type="button" id="m-mute"
+        aria-pressed="false" aria-label="Mute mission sound">♪</button>
+    </div>
+  </div>
+
+  <div id="mission-board" class="hidden" role="dialog" aria-modal="true" aria-label="Mission board">
+    <div id="board-inner">
+      <div id="board-log" class="hidden"></div>
+      <p class="eyebrow">+ Three missions across the field</p>
+      <h2>Something to <em>go and find</em>.</h2>
+      <p class="board-lede">
+        Each mission is a short ordered path through the atlas. The briefing describes the thing
+        without naming it; the signal readout tells you how warm you are; nothing is ever wrong,
+        and <b>Show me</b> is there the whole time. Everything you log stays marked on the map.
+      </p>
+      <div id="board-cards"><!-- built by missions.js --></div>
+      <button class="board-out" type="button" id="board-close">Just look around →</button>
+    </div>
+  </div>
 
 
   <!-- Scene-change veil -->
@@ -127,8 +171,10 @@
         <li><b>Planet positions are computed, not animated.</b>
           <span class="c-meta">The eight major planets use JPL's Keplerian elements for approximate
             positions (epoch J2000, rates per century, valid 1800–2050), solved through Kepler's equation
-            each frame. Dwarf planets, small bodies and 3I/ATLAS use published osculating elements; where
-            the phase along the orbit could not be verified, the entry says the position is approximate.</span>
+            each frame. Dwarf planets, small bodies, 3I/ATLAS, and the seven planets of TRAPPIST-1 use
+            published osculating elements; where the phase along the orbit could not be verified, the entry
+            says the position is approximate. TRAPPIST-1's planets orbit a star roughly a tenth the Sun's
+            mass, so the same equation is solved against that star's gravity instead — not just the Sun's.</span>
         </li>
         <li><b>Radial distance in the Solar System view is compressed by default.</b>
           <span class="c-meta">Screen radius is the real distance raised to the power 0.34, so Mercury at
@@ -161,7 +207,7 @@
   ═══════════════════════════════════════════════════════════ -->
   <div id="intro">
     <div id="intro-card">
-      <p class="eyebrow">+ Two scales, one map</p>
+      <p class="eyebrow">+ Many scales, one map</p>
       <h2>You are inside the <em>thing you are mapping</em>.</h2>
       <p>
         That is the whole difficulty. Everything on this map was measured from one moving point
@@ -171,18 +217,21 @@
       </p>
       <p>
         Forty points of interest at galactic scale. Thirty more inside the Solar System, on orbits solved
-        from published elements. Every claim carries its source.
+        from published elements — and eight more circling a star forty light-years out, packed tighter than
+        Mercury's orbit around the Sun. Every claim carries its source.
       </p>
       <ul class="keys">
         <li><b>Drag</b> pan the field</li>
         <li><b>Scroll / pinch</b> zoom</li>
         <li><b>Click a marker</b> open its entry</li>
         <li><b>Gold ring</b> a finding from the last two years</li>
+        <li><b>Missions</b> three guided paths through the field — the way in</li>
         <li><b>/</b> jump to search</li>
       </ul>
-      <button class="chip primary" type="button" id="intro-enter" style="padding:12px 20px;">
-        Open the field →
-      </button>
+      <div class="intro-actions">
+        <button class="chip primary" type="button" id="intro-mission">Fly a mission →</button>
+        <button class="chip quiet" type="button" id="intro-enter">Just explore the field</button>
+      </div>
     </div>
   </div>
 
@@ -194,7 +243,11 @@
   <script src="sources.js"></script>
   <script src="data-galaxy.js"></script>
   <script src="data-solar.js"></script>
+  <script src="data-trappist1.js"></script>
   <script src="atlas.js"></script>
+  <script src="data-missions.js"></script>
+  <script src="mission-sound.js"></script>
+  <script src="missions.js"></script>
 
 </body>
 

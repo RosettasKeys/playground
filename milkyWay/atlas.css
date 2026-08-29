@@ -351,6 +351,200 @@ a { color: var(--gold); }
 
 
 /* ═══════════════════════════════════════════════════════════
+   MISSIONS — the HUD, the signal readout, and the board
+═══════════════════════════════════════════════════════════ */
+
+#mission-hud {
+  position: fixed; top: 18px; left: 50%; transform: translateX(-50%);
+  z-index: 25; width: min(420px, calc(100vw - 44px));
+  padding: 14px 40px 13px 16px;
+  background: var(--panel-bg);
+  border: 1px solid var(--faint);
+  border-top: 1px solid var(--gold-dark);
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+}
+#mission-hud .m-eyebrow {
+  margin: 0 0 6px;
+  font-size: 9.5px; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--gold);
+}
+#mission-hud .m-eyebrow span { color: var(--ivory); }
+#mission-hud .m-brief {
+  margin: 0 0 10px;
+  font-family: 'EB Garamond', Georgia, serif; font-style: italic;
+  font-size: 15.5px; line-height: 1.5; color: var(--ivory);
+  transition: color .3s;
+}
+/* Objective logged: the confirmation holds until it is dismissed, so the
+   signal readout stands down rather than sitting there reading stale. */
+#mission-hud.caught .m-brief { color: var(--gold); }
+#mission-hud.caught .m-signal { display: none; }
+
+#mission-close {
+  position: absolute; top: 6px; right: 6px;
+  width: 26px; height: 26px; padding: 0;
+  background: none; border: 0;
+  color: var(--muted); cursor: pointer; line-height: 1; font-size: 16px;
+}
+#mission-close:hover { color: var(--gold); }
+
+/* ── Progress: one dot per objective, filled in the colour of whatever
+      was logged there. The row of colours is the progress bar. ── */
+
+.m-dots { display: flex; gap: 5px; margin: 0 0 11px; }
+.m-dots .dot, .mc-dots .dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  border: 1px solid rgba(205, 222, 255, 0.22);
+  background: transparent;
+  transition: background .35s, box-shadow .35s, border-color .35s;
+}
+.m-dots .dot.on, .mc-dots .dot.on {
+  background: var(--dc, var(--gold));
+  border-color: var(--dc, var(--gold));
+  box-shadow: 0 0 7px var(--dc, var(--gold));
+}
+.m-dots .dot.now { border-color: var(--gold); animation: dot-wait 1.9s ease-in-out infinite; }
+@keyframes dot-wait {
+  0%, 100% { box-shadow: 0 0 0 rgba(212, 175, 55, 0); }
+  50%      { box-shadow: 0 0 8px rgba(212, 175, 55, 0.8); }
+}
+
+/* ── The signal readout — how close the view is to the objective ── */
+
+.m-signal {
+  display: flex; align-items: center; gap: 9px;
+  margin: 0 0 11px;
+  font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+}
+.sig-label { color: var(--dim); flex: none; }
+.sig-track {
+  flex: 1 1 auto; height: 4px; min-width: 40px;
+  background: rgba(205, 222, 255, 0.09);
+  overflow: hidden;
+}
+#sig-fill {
+  display: block; height: 100%; width: 0;
+  /* The gradient is pinned to the track, not to the fill — so a weak
+     signal shows only the cold end, and a locked one reaches the gold. */
+  background: linear-gradient(90deg, var(--c-structure), var(--c-cluster) 62%, var(--gold));
+  background-size: 220px 100%;
+  transition: width .22s linear;
+}
+.sig-word { color: var(--muted); flex: none; white-space: nowrap; }
+#mission-hud.no-signal .sig-label,
+#mission-hud.no-signal .sig-track { display: none; }
+#mission-hud.no-signal .sig-word { color: var(--gold-dark); }
+
+.m-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip.sound-toggle { padding: 5px 9px; letter-spacing: 0; font-size: 12px; }
+.chip.primary-soft { color: var(--gold); border-color: rgba(170, 132, 28, 0.55); }
+.chip.primary-soft:hover { background: rgba(212, 175, 55, 0.12); }
+.chip.quiet { border-color: transparent; }
+
+
+/* ── The board ── */
+
+#mission-board {
+  position: fixed; inset: 0; z-index: 65;
+  background: rgba(1, 3, 10, 0.96);
+  overflow-y: auto;
+  padding: 60px 26px 80px;
+}
+#board-inner { max-width: 700px; margin: 0 auto; }
+#board-inner .eyebrow {
+  font-size: 9.5px; letter-spacing: 0.28em; text-transform: uppercase;
+  color: var(--gold-dark); margin: 0 0 12px;
+}
+#board-inner h2 {
+  margin: 0 0 14px;
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: clamp(26px, 4.4vw, 36px); font-weight: 400; line-height: 1.15;
+  color: var(--ivory);
+}
+#board-inner h2 em { font-style: italic; color: var(--gold); }
+.board-lede {
+  font-size: 12.5px; line-height: 1.75; color: var(--muted);
+  max-width: 60ch; margin: 0 0 28px;
+}
+.board-lede b { color: var(--ivory); font-weight: 400; }
+
+#board-cards { display: flex; flex-direction: column; gap: 10px; }
+
+.mission-card {
+  display: flex; flex-direction: column; gap: 7px;
+  width: 100%; padding: 16px 18px; text-align: left;
+  background: rgba(6, 11, 24, 0.8);
+  border: 1px solid var(--faint);
+  border-left: 2px solid var(--gold-dark);
+  cursor: pointer;
+  transition: border-color .18s, background .18s, transform .18s;
+}
+.mission-card:hover, .mission-card:focus-visible {
+  background: rgba(212, 175, 55, 0.07);
+  border-color: var(--gold-dark);
+  transform: translateX(2px);
+}
+.mc-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.mc-num { font-size: 9.5px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--gold); }
+.mc-level { font-size: 9.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--dim); }
+.mc-title {
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 22px; line-height: 1.1; color: var(--ivory);
+}
+.mc-blurb { font-size: 12px; line-height: 1.6; color: var(--body-text); }
+.mc-foot { display: flex; align-items: center; gap: 12px; margin-top: 3px; }
+.mc-dots { display: flex; gap: 4px; }
+.mc-count { font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dim); }
+.mission-card.done .mc-count { color: var(--gold); }
+.mission-card.done .mc-title::after {
+  content: ' ✓'; color: var(--gold); font-size: 15px; vertical-align: middle;
+}
+
+.board-out {
+  display: block; margin: 26px auto 0;
+  padding: 8px 16px; background: none; border: 0;
+  color: var(--muted); cursor: pointer;
+  font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+  border-bottom: 1px solid transparent;
+}
+.board-out:hover, .board-out:focus-visible { color: var(--gold); border-bottom-color: var(--gold-dark); }
+
+
+/* ── The mission log, shown on the board once a mission is flown ── */
+
+#board-log {
+  margin: 0 0 34px; padding: 20px 22px 22px;
+  background: rgba(212, 175, 55, 0.05);
+  border: 1px solid var(--gold-dark);
+}
+.lg-eyebrow {
+  margin: 0 0 6px;
+  font-size: 9.5px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--gold);
+}
+.lg-head {
+  margin: 0 0 16px;
+  font-family: 'EB Garamond', Georgia, serif; font-style: italic;
+  font-size: 22px; font-weight: 400; color: var(--ivory);
+}
+.lg-list { margin: 0; padding: 0; list-style: none; }
+.lg-list li {
+  display: flex; align-items: baseline; gap: 9px;
+  padding: 6px 0; border-bottom: 1px solid var(--fainter);
+  font-size: 12px; line-height: 1.55;
+}
+.lg-list li:last-child { border-bottom: 0; }
+.lg-dot {
+  flex: none; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--dc); box-shadow: 0 0 7px var(--dc);
+  transform: translateY(-1px);
+}
+.lg-list b { color: var(--ivory); font-weight: 400; flex: none; }
+.lg-note { color: var(--dim); }
+.lg-tail { margin: 16px 0 0; font-size: 12px; line-height: 1.7; color: var(--muted); }
+
+
+/* ═══════════════════════════════════════════════════════════
    SOURCES OVERLAY
 ═══════════════════════════════════════════════════════════ */
 
@@ -395,15 +589,27 @@ a { color: var(--gold); }
 #veil {
   position: fixed; inset: 0; z-index: 50; pointer-events: none;
   background: var(--deeper); opacity: 0;
-  transition: opacity .42s ease;
+  transition: opacity .5s ease;
 }
 #veil.on { opacity: 1; }
+/* Clickable only while it is holding — that is, once the scene beneath it
+   has already been swapped, so a skip can never flash the old one. */
+#veil.holding { pointer-events: auto; cursor: pointer; }
 #veil .veil-text {
   position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
   font-family: 'EB Garamond', Georgia, serif; font-style: italic;
   font-size: clamp(17px, 3vw, 25px); color: var(--gold);
-  letter-spacing: 0.04em; white-space: nowrap; text-align: center;
+  letter-spacing: 0.04em; text-align: center;
+  max-width: min(90vw, 30ch); line-height: 1.35;
 }
+/* A quiet way out, offered only once skipping is possible. */
+#veil::after {
+  content: 'click, or press any key';
+  position: absolute; left: 50%; bottom: 16%; transform: translateX(-50%);
+  font-size: 9.5px; letter-spacing: 0.24em; text-transform: uppercase;
+  color: var(--dim); opacity: 0; transition: opacity .45s ease .35s;
+}
+#veil.holding::after { opacity: 1; }
 
 
 /* ═══════════════════════════════════════════════════════════
@@ -436,6 +642,8 @@ a { color: var(--gold); }
   flex: none; min-width: 108px; color: var(--ivory); font-weight: 400;
   font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
 }
+.intro-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.intro-actions .chip { padding: 12px 20px; }
 
 
 /* ═══════════════════════════════════════════════════════════
@@ -458,6 +666,15 @@ a { color: var(--gold); }
   #panel h2 { font-size: 25px; }
   #intro-card { padding: 26px 22px; }
   #intro-card .keys b { min-width: 90px; }
+  #mission-hud { top: 10px; width: calc(100vw - 20px); padding: 12px 36px 11px 14px; }
+  #mission-hud .m-brief { font-size: 14.5px; }
+  /* The HUD lands on top of the masthead at this width, so step the
+     masthead down under it — the title is a control, not decoration. */
+  body.on-mission #masthead { padding-top: calc(var(--hud-h, 150px) + 20px); }
+  .sig-word { font-size: 8.5px; letter-spacing: 0.12em; }
+  #mission-board { padding: 44px 16px 70px; }
+  #board-log { padding: 16px 16px 18px; }
+  .mission-card { padding: 14px 15px; }
   /* The rail must not clip: an `overflow` here becomes a clipping ancestor
      for the search dropdown, which is positioned above its own row and so
      ends up half-hidden behind the canvas. Keep the rail short instead by
@@ -477,4 +694,7 @@ a { color: var(--gold); }
 
 @media (prefers-reduced-motion: reduce) {
   #panel, #veil { transition-duration: .01ms; }
+  /* The meter itself still moves — it is information, not decoration. */
+  .m-dots .dot.now { animation: none; }
+  .mission-card:hover, .mission-card:focus-visible { transform: none; }
 }

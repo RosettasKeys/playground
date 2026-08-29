@@ -430,6 +430,41 @@ const SOURCES = {
     when: 'continuously updated',
     url: 'https://www.minorplanetcenter.net/',
     kind: 'archive'
+  },
+
+  /* ── TRAPPIST-1 system ───────────────────────────────────────────── */
+
+  'trappist1-agol2021': {
+    who: 'Agol et al.',
+    what: 'Refining the Transit-timing and Photometric Analysis of TRAPPIST-1: Masses, Radii, Densities, Dynamics, and Ephemerides',
+    where: 'The Planetary Science Journal',
+    when: '2021',
+    url: 'https://arxiv.org/abs/2010.01074',
+    kind: 'paper'
+  },
+  'trappist-1b-thermal': {
+    who: 'Greene, Bell, Ducrot et al.',
+    what: 'Thermal Emission from the Earth-sized Exoplanet TRAPPIST-1 b Using JWST',
+    where: 'Nature',
+    when: '2023',
+    url: 'https://www.nature.com/articles/s41586-023-05951-7',
+    kind: 'paper'
+  },
+  'trappist-1c-no-co2': {
+    who: 'Zieba et al.',
+    what: 'No Thick Carbon Dioxide Atmosphere on the Rocky Exoplanet TRAPPIST-1 c',
+    where: 'Nature',
+    when: '2023',
+    url: 'https://www.nature.com/articles/s41586-023-06232-z',
+    kind: 'paper'
+  },
+  'trappist-1h-hst': {
+    who: 'Garcia et al.',
+    what: 'HST/WFC3 Transmission Spectroscopy of the Cold Rocky Planet TRAPPIST-1 h',
+    where: 'Astronomy & Astrophysics',
+    when: '2022',
+    url: 'https://arxiv.org/abs/2203.13698',
+    kind: 'paper'
   }
 };
 

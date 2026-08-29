@@ -543,7 +543,7 @@ const GALAXY_POI = [
     ],
     desc: 'One star among a few hundred billion, roughly two-thirds of the way out from the centre, currently passing through a cavity blown by supernovae that detonated before our genus existed. It has completed something like twenty circuits of the Galaxy since it formed.\n\nThe view from here is unusually good — the Local Bubble is nearly dust-free — which is a large part of why we were able to work out what the Milky Way looks like from inside it.',
     cites: ['local-bubble', 'gaia-dynamics'],
-    descend: true
+    enterSystem: 'solar'
   },
 
   {
@@ -639,7 +639,8 @@ const GALAXY_POI = [
       year: '2025',
       text: 'JWST spent 2025 on TRAPPIST-1e, the best habitable-zone candidate, and the honest answer is: not yet. Transmission spectra are contaminated by the star\'s own spots and faculae, which mimic planetary signals. The data rule out a hydrogen-rich atmosphere and disfavour Venus-like and Mars-like ones; a nitrogen-rich atmosphere with trace methane fits acceptably — but so does having no atmosphere at all. The null hypothesis has not been rejected.'
     },
-    cites: ['trappist-1e-dreams', 'trappist-1e-secondary', 'exo-6000']
+    cites: ['trappist-1e-dreams', 'trappist-1e-secondary', 'exo-6000'],
+    enterSystem: 'trappist1'
   },
 
   /* ════ SATELLITES AND HALO ════════════════════════════════════════ */

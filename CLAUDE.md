@@ -21,12 +21,23 @@ deploys to **GitHub Pages** (repo: `RosettasKeys/playground`).
 
 Each zone has its own landing page with a distinct voice:
 
-| Zone         | Nearest index                                | Vibe                               |
-| ------------ | -------------------------------------------- | ---------------------------------- |
-| root hub     | `index.html` (*Garden of Keys*)              | explorative, botanical, faint edge |
-| `ecards/`    | `card-index.html` (*Deck of Cards*)          | whimsical, Wonderland              |
-| `fidgetToy/` | `fidgetToy-index.html` (*Fidget Toy Garden*) | calm, sensory, soothing            |
-| `games/`     | `games-index.html` (*MISFIRE ARCADE*)        | unhinged, glitchy chaos            |
+| Zone                | Nearest index                                | Vibe                               |
+| ------------------- | -------------------------------------------- | ---------------------------------- |
+| root hub            | `index.html` (*Garden of Keys*)              | explorative, botanical, faint edge |
+| `ecards/`           | `card-index.html` (*Deck of Cards*)          | whimsical, Wonderland              |
+| `fidgetToy/`        | `fidgetToy-index.html` (*Fidget Toy Garden*) | calm, sensory, soothing            |
+| `games/`            | `games-index.html` (*MISFIRE ARCADE*)        | unhinged, glitchy chaos            |
+| `seasonal/`         | `seasonal-index.html` (*The Wandering Rose*) | seasonal, story-led, warm          |
+| `milkyWay/`         | *(none — linked straight from the hub)*      | instrument, sourced, exact         |
+| `semi-educational/` | *(none yet — linked straight from the hub)*  | instrument, plain-spoken, honest   |
+
+Two zones have no landing page of their own and are linked directly from
+the root hub: `milkyWay/` (The Long Field) and `semi-educational/`
+(currently just Tornado Lab). Both are instruments rather than toys, and a
+lobby for one room would be worse than no lobby. When a second piece lands
+in `semi-educational/`, give it a `semi-educational-index.html` in the
+established `<zone>-index.html` pattern and repoint the hub card at it. For
+egg purposes both currently vibe with the root hub.
 
 ## Easter-egg protocol → read `AGENTS.md`
 

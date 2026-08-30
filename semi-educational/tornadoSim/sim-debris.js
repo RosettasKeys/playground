@@ -28,7 +28,13 @@ window.TS = window.TS || {};
   const KINDS = {
     dust:       { follow: 3.2, lift: 1.00, fall: 0.35, size: [0.6, 2.2], life: [7, 15] },
     vegetation: { follow: 2.1, lift: 0.82, fall: 0.60, size: [1.0, 3.0], life: [6, 13] },
-    structure:  { follow: 1.2, lift: 0.55, fall: 1.00, size: [1.4, 4.5], life: [8, 18] }
+    structure:  { follow: 1.2, lift: 0.55, fall: 1.00, size: [1.4, 4.5], life: [8, 18] },
+    /* Tormato mode. Denser than leaf litter, far lighter than a roof
+       panel, and almost spherical, so it tracks the air closely and falls
+       fast once the updraft lets go of it — which is genuinely how a
+       tomato would fly. The mode is a costume, but the costume is at
+       least wearing the right aerodynamics.  [not remotely established] */
+    tomato:     { follow: 2.4, lift: 0.90, fall: 0.62, size: [1.1, 3.4], life: [7, 14] }
   };
 
   const _w = { u: 0, v: 0, w: 0, speed: 0, r: 0 };
@@ -37,6 +43,11 @@ window.TS = window.TS || {};
   TS.spawnDebris = function (sim, x, y, count, kind) {
     if (!sim.visual) return;
     const list = sim.debris || (sim.debris = []);
+    /* Everything upstream still asks for dust, vegetation or structure —
+       the damage pass has no idea what mode it is in and must not. The
+       substitution happens here, at the last possible moment, which is
+       what keeps the mode from reaching anything that matters. */
+    if (sim.mode === 'tormato') kind = 'tomato';
     const k = KINDS[kind] || KINDS.dust;
     const rng = sim.debrisRng;
     const load = sim.params.debrisLoading;
@@ -65,6 +76,7 @@ window.TS = window.TS || {};
       };
       // Recycle round-robin once full rather than shifting the array —
       // shift() is O(n) and this is called thousands of times per run.
+      if (kind === 'tomato') sim.tomatoCount = (sim.tomatoCount || 0) + 1;
       if (list.length >= MAX_PARTICLES) {
         sim._debrisCursor = (sim._debrisCursor || 0);
         list[sim._debrisCursor] = p;

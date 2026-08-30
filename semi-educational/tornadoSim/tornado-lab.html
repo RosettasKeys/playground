@@ -71,6 +71,12 @@
       <section class="tabpane" id="pane-storm" role="tabpanel" aria-labelledby="tab-storm">
 
         <div class="group">
+          <h3>Mode</h3>
+          <div class="chipgrid" id="sim-modes"></div>
+          <p id="simmode-note" style="font-size:10.5px;color:var(--muted);margin:.55rem 0 0;line-height:1.55"></p>
+        </div>
+
+        <div class="group">
           <h3>Landscape</h3>
           <select id="env-select" aria-label="Landscape"></select>
           <p id="env-blurb" style="font-size:10.5px;color:var(--muted);margin:.45rem 0 0;line-height:1.5"></p>
@@ -244,6 +250,7 @@
   <div id="inspector" class="hidden"></div>
   <div id="report" class="hidden"></div>
   <div id="ghost" class="hidden"><div class="paper"></div></div>
+  <div id="nix" class="hidden"><div class="paper"></div></div>
 
 
   <!-- ═══════════════════════════════════════════════════════════
@@ -260,6 +267,8 @@
   <script src="sim-env.js"></script>
   <script src="sim-damage.js"></script>
   <script src="sim-debris.js"></script>
+  <script src="sim-props.js"></script>
+  <script src="sim-fling.js"></script>
   <script src="data-terrain.js"></script>
   <script src="data-content.js"></script>
 

@@ -81,6 +81,150 @@ window.TS = window.TS || {};
   }
 
 
+  /* ── Props ───────────────────────────────────────────────────────────
+     Cars, trailers, fences, mailboxes, livestock. None of these is an EF
+     damage indicator and none of them reaches the rating — see the header
+     of sim-props.js for why that is a fact about the scale rather than a
+     shortcut here.
+
+     `quality` is a multiplier on the published-ours thresholds rather
+     than a position within a bound, because unlike a building there is no
+     published bound to sit inside. A car parked nose-in behind a garage
+     and one broadside on open gravel are not the same car. */
+
+  function makeProp(rng, kind, x, y, rot) {
+    const spec = TS.PROP_SPECS[kind];
+    return {
+      id: _nextId++,
+      kind,
+      x, y,
+      rot: rot != null ? rot : rng.range(0, TAU),
+      w: spec.w, h: spec.h, d: spec.d,
+      quality: clamp(rng.normal(1, 0.12), 0.7, 1.35),
+      dod: 0,
+      peakWind: 0,
+      pushX: 0, pushY: 0
+    };
+  }
+
+
+  /* Props are placed in a single pass over the FINISHED world rather than
+     inside the six builders. Two reasons, one of them load-bearing:
+
+     Coherence — a driveway only makes sense once you know where the house
+     ended up, and a pasture only has cattle in it once the fields exist.
+
+     Determinism — the builders' RNG stream is untouched, so every seed
+     that ever generated a particular farmyard still generates exactly
+     that farmyard. The fork is taken after the last existing draw. */
+
+  const RESIDENCE = { FR12: 1, MHSF: 1, MHDF: 1 };
+  const FARM = { SBO: 1, ESFR: 1, SILO: 1 };
+  const COMMERCIAL = { SM: 1, MBS: 1, CHBS: 1, LRB: 1, MRB: 1, HRB: 1 };
+
+  function placeProps(rng, w) {
+    const props = [];
+
+    for (const s of w.structures) {
+      const c = Math.cos(s.rot), sn = Math.sin(s.rot);
+      const off = Math.max(s.w, s.d) * 0.72 + 4;
+
+      if (RESIDENCE[s.di]) {
+        // A vehicle on the drive, roughly square to the house.
+        if (rng.chance(0.55)) {
+          props.push(makeProp(rng, rng.chance(0.62) ? 'car' : 'pickup',
+            s.x + c * off, s.y + sn * off, s.rot));
+        }
+        if (rng.chance(0.30)) {
+          props.push(makeProp(rng, 'car',
+            s.x + c * off + sn * 4, s.y + sn * off - c * 4, s.rot));
+        }
+        if (rng.chance(0.45)) {
+          props.push(makeProp(rng, 'mailbox',
+            s.x + c * (off + 9), s.y + sn * (off + 9), s.rot));
+        }
+        // Back fence, running across the lot rather than along the drive.
+        if (rng.chance(0.38)) {
+          props.push(makeProp(rng, 'fence',
+            s.x - c * off, s.y - sn * off, s.rot + Math.PI / 2));
+        }
+      } else if (FARM[s.di]) {
+        if (rng.chance(0.42)) {
+          props.push(makeProp(rng, 'tractor',
+            s.x + c * off, s.y + sn * off, s.rot + rng.range(-0.4, 0.4)));
+        }
+        if (rng.chance(0.26)) {
+          props.push(makeProp(rng, 'semi',
+            s.x - sn * off, s.y + c * off, s.rot));
+        }
+        if (rng.chance(0.5)) {
+          props.push(makeProp(rng, 'fence',
+            s.x + sn * (off + 14), s.y - c * (off + 14), s.rot));
+        }
+      } else if (COMMERCIAL[s.di] && rng.chance(0.7)) {
+        // A short rank of parked cars along the frontage.
+        const n = rng.int(2, 5);
+        for (let i = 0; i < n; i++) {
+          props.push(makeProp(rng, 'car',
+            s.x + c * off + sn * (i * 3 - n * 1.5),
+            s.y + sn * off - c * (i * 3 - n * 1.5), s.rot));
+        }
+        if (s.di === 'SM' && rng.chance(0.4)) {
+          props.push(makeProp(rng, 'semi',
+            s.x - c * off, s.y - sn * off, s.rot));
+        }
+      }
+    }
+
+    // Traffic. Sampled along the real road polylines so vehicles sit on
+    // the roads the ground texture actually painted.
+    for (const rd of w.roads) {
+      const pts = rd.pts;
+      for (let i = 1; i < pts.length; i++) {
+        const ax = pts[i - 1][0], ay = pts[i - 1][1];
+        const bx = pts[i][0], by = pts[i][1];
+        const len = Math.hypot(bx - ax, by - ay);
+        const n = Math.floor(len / 340);
+        for (let j = 0; j < n; j++) {
+          if (!rng.chance(rd.kind === 'street' ? 0.22 : 0.13)) continue;
+          const t = (j + rng.range(0.1, 0.9)) / Math.max(n, 1);
+          const ang = Math.atan2(by - ay, bx - ax);
+          props.push(makeProp(rng,
+            rng.chance(0.72) ? 'car' : (rng.chance(0.6) ? 'pickup' : 'semi'),
+            ax + (bx - ax) * t, ay + (by - ay) * t, ang));
+        }
+      }
+    }
+
+    // Cattle, only where there is pasture to put them in.
+    for (const f of w.fields) {
+      if (f.crop !== 'pasture' || !rng.chance(0.45)) continue;
+      const n = rng.int(3, 11);
+      const hx = f.x + rng.range(-f.w * 0.3, f.w * 0.3);
+      const hy = f.y + rng.range(-f.h * 0.3, f.h * 0.3);
+      for (let i = 0; i < n; i++) {
+        props.push(makeProp(rng, 'cow',
+          hx + rng.range(-38, 38), hy + rng.range(-38, 38)));
+      }
+    }
+
+    thinTo(props, 1100);
+
+    /* One salamander, placed after the cap so it can never be thinned
+       away. It is drawn only in Tormato mode and does nothing but notice
+       being run over. The ring keeps it clear of the map centre, where
+       towns tend to land, and clear of the rim, where nobody looks. */
+    const a = rng.range(0, TAU);
+    const r = rng.range(EXTENT * 0.30, EXTENT * 0.66);
+    const sal = makeProp(rng, 'salamander',
+      Math.cos(a) * r, Math.sin(a) * r, rng.range(0, TAU));
+    props.push(sal);
+    w.salamander = sal;
+
+    w.props = props;
+  }
+
+
   /* ── Road networks ───────────────────────────────────────────────────
      Rural is a section-line grid (the US survey grid, one mile apart);
      suburbs curve; towns are a tight grid. Roads matter beyond looks —
@@ -381,6 +525,7 @@ window.TS = window.TS || {};
       structures: [],
       trees: [],
       lines: [],
+      props: [],
       town: null
     };
 
@@ -396,6 +541,11 @@ window.TS = window.TS || {};
     // Poles go in after the cap so a dense city can never thin away the
     // power lines, which are among the most legible indicators there are.
     for (const line of w.lines) line.poles = powerline(rng, line.pts, w.structures);
+
+    // Last, and after the pole loop: placeProps forks the stream, and a
+    // fork taken any earlier would shift every draw downstream of it and
+    // silently change what every existing seed generates.
+    placeProps(rng.fork(), w);
 
     w.counts = countByDI(w.structures);
     return w;
@@ -423,6 +573,7 @@ window.TS = window.TS || {};
   TS.clearTerrainDamage = function (w) {
     for (const s of w.structures) { s.dod = 0; s.peakWind = 0; s.load = 0; }
     for (const t of w.trees) { t.dod = 0; t.peakWind = 0; t.bend = 0; t.bendX = 0; t.bendY = 0; }
+    for (const p of w.props) { p.dod = 0; p.peakWind = 0; p.pushX = 0; p.pushY = 0; }
   };
 
 })(window.TS);

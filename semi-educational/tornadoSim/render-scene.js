@@ -25,6 +25,13 @@ window.TS = window.TS || {};
   let structGroups = {}, treeGroups = {};
   let world = null, simRef = null;
   let clockT = 0;
+  /* 0 in standard mode, 1 in Tormato. Every costume decision in this file
+     reads this one number, so there is exactly one place to look when
+     asking what the absurd mode is allowed to touch. */
+  let tomatoMix = 0;
+
+  const RUBBLE = new THREE.Color(0x4a4238);
+  const PULP = new THREE.Color(0xb32d20);
 
   const V = new THREE.Vector3();
   const M = new THREE.Matrix4();
@@ -131,7 +138,12 @@ window.TS = window.TS || {};
     buildGround(w);
     buildStructures(w);
     buildTrees(w);
+    buildProps(w);
+    buildSalamander(w);
     buildScour();
+    if (!flingGroups.slab) buildFlung();
+    if (!splats) buildSplats();
+    R.resetSplats();
   };
 
   function disposeWorld() {
@@ -147,6 +159,18 @@ window.TS = window.TS || {};
       if (g.trunk) { scene.remove(g.trunk); g.trunk.geometry.dispose(); g.trunk.material.dispose(); }
     }
     treeGroups = {};
+    for (const k in propGroups) {
+      const g = propGroups[k];
+      scene.remove(g.mesh); g.mesh.geometry.dispose(); g.mesh.material.dispose();
+      if (g.cab) { scene.remove(g.cab); g.cab.geometry.dispose(); g.cab.material.dispose(); }
+    }
+    propGroups = {};
+    if (salamander) {
+      scene.remove(salamander.grp);
+      salamander.grp.traverse((o) => { if (o.geometry) o.geometry.dispose(); });
+      salamander.gold.dispose(); salamander.ink.dispose();
+      salamander = null;
+    }
     if (ground) { scene.remove(ground); ground.geometry.dispose(); ground.material.dispose(); ground = null; }
     if (outland) { scene.remove(outland); outland.geometry.dispose(); outland.material.dispose(); outland = null; }
     if (groundTex) { groundTex.dispose(); groundTex = null; }
@@ -228,17 +252,154 @@ window.TS = window.TS || {};
   }
 
 
-  /* Structures. Two instanced meshes per type where a separable roof makes
-     sense — losing the roof before the walls is the single most legible
-     damage step there is, and it happens to be a real DOD on most of the
-     indicator ladders. */
+  /* ── Structures ──────────────────────────────────────────────────────
+     Two instanced meshes per type where a separable roof makes sense —
+     losing the roof before the walls is the single most legible damage
+     step there is, and it happens to be a real DOD on most of the
+     indicator ladders.
 
-  const ROOFED = { FR12: 1, MHSF: 1, MHDF: 1, SBO: 1, ESFR: 1, SM: 1, CHBS: 1 };
+     Which types have a roof, what shape it is, and what the walls are
+     made of now come from TS.DI_SPECS rather than living here. That is
+     not tidying: those are facts about the damage indicator, and the sim
+     layer needs them to decide what physically comes off a building
+     without importing anything from a renderer. */
+
   const BASE_COLOR = {
     FR12: 0xa8a094, MHSF: 0xb9b6ad, MHDF: 0xb4b0a6, SBO: 0x8a6a52, SILO: 0xa8adb2,
     ESFR: 0x9a9689, SM: 0x8f8b84, MBS: 0x94897c, CHBS: 0xa39c8e, LRB: 0x8c9099,
     MRB: 0x7e848f, HRB: 0x767d8a, TWR: 0x9aa0a8, TP: 0x6b5a44
   };
+
+  /* Wall surfaces. Four canvases shared across fourteen building types,
+     drawn once at load. A texture is what stops five thousand boxes from
+     reading as five thousand boxes: at any distance where you can make
+     out a building at all, you can make out that it has windows. */
+
+  const facadeTex = {};
+
+  /* One tile is ONE STOREY. That constraint is the whole design of these
+     four canvases: the texture repeats vertically once per floor, so
+     anything drawn in the tile appears on every floor. A ground-floor
+     door drawn here would turn up halfway up the wall on the storey
+     above, which is exactly the bug the first version shipped with.
+     Windows are the only thing that is true of every storey, so windows
+     are the only thing in here. */
+
+  function facade(kind) {
+    if (facadeTex[kind]) return facadeTex[kind];
+    const SZ = 128;
+    const cv = document.createElement('canvas');
+    cv.width = cv.height = SZ;
+    const g = cv.getContext('2d');
+
+    g.fillStyle = '#ffffff';
+    g.fillRect(0, 0, SZ, SZ);
+
+    // A window, with a frame and a bright sill. The sill is what makes it
+    // read as a window rather than a hole at any distance worth drawing.
+    const win = (x, y, w, h) => {
+      g.fillStyle = 'rgba(255,255,255,0.22)';
+      g.fillRect(x - 2, y - 2, w + 4, h + 4);
+      g.fillStyle = 'rgba(26,32,42,0.72)';
+      g.fillRect(x, y, w, h);
+      g.fillStyle = 'rgba(255,255,255,0.30)';
+      g.fillRect(x, y + h, w, 2);
+      g.fillStyle = 'rgba(160,180,200,0.20)';
+      g.fillRect(x, y, w, Math.max(2, h * 0.22));
+    };
+
+    if (kind === 'siding') {
+      g.strokeStyle = 'rgba(0,0,0,0.10)';
+      g.lineWidth = 1;
+      for (let y = 6; y < SZ; y += 9) {
+        g.beginPath(); g.moveTo(0, y + 0.5); g.lineTo(SZ, y + 0.5); g.stroke();
+      }
+      win(24, 44, 22, 26);
+      win(82, 44, 22, 26);
+
+    } else if (kind === 'metal') {
+      g.strokeStyle = 'rgba(0,0,0,0.13)';
+      g.lineWidth = 1;
+      for (let x = 4; x < SZ; x += 7) {
+        g.beginPath(); g.moveTo(x + 0.5, 0); g.lineTo(x + 0.5, SZ); g.stroke();
+      }
+      g.strokeStyle = 'rgba(255,255,255,0.18)';
+      for (let x = 7; x < SZ; x += 7) {
+        g.beginPath(); g.moveTo(x + 0.5, 0); g.lineTo(x + 0.5, SZ); g.stroke();
+      }
+      // Barns and sheds are mostly blank wall. One high vent, no more.
+      win(52, 26, 24, 14);
+
+    } else if (kind === 'brick') {
+      g.fillStyle = 'rgba(0,0,0,0.08)';
+      for (let y = 0; y < SZ; y += 8) {
+        const off = (y / 8) % 2 ? 8 : 0;
+        for (let x = -16; x < SZ; x += 16) g.fillRect(x + off, y, 15, 7);
+      }
+      win(18, 40, 26, 30);
+      win(84, 40, 26, 30);
+
+    } else {                                      // curtainwall
+      g.fillStyle = 'rgba(20,27,38,0.70)';
+      g.fillRect(0, 0, SZ, SZ);
+      g.fillStyle = 'rgba(150,178,205,0.55)';
+      for (let y = 4; y < SZ; y += 16) {
+        for (let x = 4; x < SZ; x += 16) g.fillRect(x, y, 11, 11);
+      }
+      // A few panes catching the light differently, so the grid is not
+      // perfectly regular — regularity is what reads as a texture swatch.
+      g.fillStyle = 'rgba(210,226,240,0.55)';
+      const seed = TS.makeRNG(31337);
+      for (let i = 0; i < 22; i++) {
+        g.fillRect(4 + seed.int(0, 7) * 16, 4 + seed.int(0, 7) * 16, 11, 11);
+      }
+    }
+
+    const tex = new THREE.CanvasTexture(cv);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    facadeTex[kind] = tex;
+    return tex;
+  }
+
+  const WALL_KIND = {
+    wood: 'siding', metal: 'metal', masonry: 'brick', glass: 'curtainwall'
+  };
+
+  /* Roof geometries, unit-sized, sitting on y=0 so they can be dropped
+     onto the top of a scaled body. */
+
+  function gableGeo() {
+    // Ridge along Z. Six corners, eight triangles, flat shaded.
+    const A = [-0.5, 0, -0.5], B = [0.5, 0, -0.5], Cc = [0.5, 0, 0.5], D = [-0.5, 0, 0.5];
+    const E = [0, 1, -0.5], F = [0, 1, 0.5];
+    const tris = [A, D, F, A, F, E,      // left slope
+                  B, E, F, B, F, Cc,     // right slope
+                  A, E, B,               // gable end, -Z
+                  D, Cc, F];             // gable end, +Z
+    const pos = new Float32Array(tris.length * 3);
+    for (let i = 0; i < tris.length; i++) {
+      pos[i * 3] = tris[i][0]; pos[i * 3 + 1] = tris[i][1]; pos[i * 3 + 2] = tris[i][2];
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.computeVertexNormals();
+    return geo;
+  }
+
+  function roofGeo(style) {
+    if (style === 'gable') return gableGeo();
+    if (style === 'parapet') {
+      // A flat commercial cap. Reads as a roofline rather than a hat.
+      const g = new THREE.BoxGeometry(1, 1, 1);
+      g.translate(0, 0.5, 0);
+      return g;
+    }
+    const rg = new THREE.ConeGeometry(0.72, 1, 4, 1);   // hip
+    rg.rotateY(Math.PI / 4);
+    rg.translate(0, 0.5, 0);
+    return rg;
+  }
 
   function buildStructures(w) {
     const byType = {};
@@ -247,44 +408,69 @@ window.TS = window.TS || {};
     for (const di in byType) {
       const list = byType[di];
       const n = list.length;
+      const spec = TS.DI_SPECS[di];
       const col = new THREE.Color(BASE_COLOR[di] || 0x999999);
 
       const bodyGeo = new THREE.BoxGeometry(1, 1, 1);
       bodyGeo.translate(0, 0.5, 0);              // sit on the ground
+
+      // One repeat per storey and per bay, so the same 128px canvas reads
+      // at the right scale on a bungalow and on a warehouse.
+      const tex = facade(WALL_KIND[spec.mat] || 'siding');
+      const map = tex.clone();
+      map.needsUpdate = true;
+      map.wrapS = map.wrapT = THREE.RepeatWrapping;
+      map.repeat.set(Math.max(1, Math.round(spec.w / 6.5)),
+                     Math.max(1, Math.round(spec.h / 3.6)));
+
       const body = new THREE.InstancedMesh(bodyGeo,
-        new THREE.MeshLambertMaterial({ color: 0xffffff }), n);
+        new THREE.MeshLambertMaterial({ color: 0xffffff, map }), n);
       body.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
       body.frustumCulled = false;
       scene.add(body);
 
       let roof = null;
-      if (ROOFED[di]) {
-        const rg = new THREE.ConeGeometry(0.72, 1, 4, 1);
-        rg.rotateY(Math.PI / 4);
-        rg.translate(0, 0.5, 0);
-        roof = new THREE.InstancedMesh(rg,
-          new THREE.MeshLambertMaterial({ color: 0xffffff }), n);
+      if (spec.roofed) {
+        roof = new THREE.InstancedMesh(roofGeo(spec.roofStyle),
+          new THREE.MeshLambertMaterial({ color: 0xffffff, flatShading: spec.roofStyle === 'gable' }), n);
         roof.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
         roof.frustumCulled = false;
         scene.add(roof);
       }
 
-      structGroups[di] = { body, roof, list, col, lastDod: new Int8Array(n).fill(-1) };
+      structGroups[di] = {
+        body, roof, list, col, spec,
+        lastDod: new Int8Array(n).fill(-1)
+      };
       for (let i = 0; i < n; i++) setStructureInstance(di, i, true);
       body.instanceMatrix.needsUpdate = true;
       if (roof) roof.instanceMatrix.needsUpdate = true;
     }
   }
 
+  /* Per-building colour variation with no new random draws.
+
+     The obvious way to stop a street being fifty identical grey boxes is
+     to roll a tint per structure in the terrain generator. It is also the
+     wrong way: adding one draw inside makeStructure shifts every draw
+     downstream of it, and every seed anyone has ever looked at silently
+     generates a different world. The golden-ratio walk over the id gives
+     a well-spread sequence for free and touches no RNG stream at all. */
+
+  function toneOf(id) { return (id * 0.6180339887498949) % 1; }
+
   /* One structure's visual state, derived from its degree of damage.
      The thresholds are proportional to the length of each type's own
      ladder, so a barn (7 rungs) and a house (10) both lose their roof
-     around the same place in their own story. */
+     around the same place in their own story — and they are the same
+     fractions sim-damage.js uses to decide what physically flies off,
+     so the roof leaving the mesh and the roof appearing in the air are
+     one event rather than two that happen to agree. */
 
   function setStructureInstance(di, i, initial) {
     const grp = structGroups[di];
     const s = grp.list[i];
-    const spec = TS.DI_SPECS[di];
+    const spec = grp.spec;
     const maxDod = spec.ms.length;
     const f = s.dod / maxDod;
 
@@ -309,23 +495,43 @@ window.TS = window.TS || {};
     M.compose(V, Q, S);
     grp.body.setMatrixAt(i, M);
 
-    // Colour: darken and desaturate toward rubble.
-    C.copy(grp.col);
+    // Colour: a small per-building offset first, then darken and
+    // desaturate toward rubble as it comes apart.
+    const t = toneOf(s.id);
+    C.copy(grp.col).offsetHSL((t - 0.5) * 0.035, (t - 0.5) * 0.10, (t - 0.5) * 0.13);
     if (s.dod > 0) {
       const d = clamp(f * 1.15, 0, 1);
-      C.lerp(new THREE.Color(0x4a4238), d * 0.8);
+      C.lerp(RUBBLE, d * 0.8);
     }
+    if (tomatoMix > 0) C.lerp(PULP, tomatoMix * 0.30 * clamp(f * 1.4, 0, 1));
     grp.body.setColorAt(i, C);
 
     if (grp.roof) {
-      const rh = roofGone ? 0.0001 : s.h * 0.42;
-      const rw = roofGone ? 0.0001 : Math.max(s.w, s.d) * 0.98;
-      E.set(0, s.rot, 0); Q.setFromEuler(E);
-      S.set(rw, rh, rw);
+      const style = spec.roofStyle;
+      const parapet = style === 'parapet';
+      // A gable ridge runs along the building's long axis.
+      const acrossW = s.w >= s.d;
+      const rh = roofGone ? 0.0001
+        : parapet ? Math.max(0.5, s.h * 0.08)
+          : s.h * 0.42;
+      const rw = roofGone ? 0.0001 : Math.max(s.w, s.d) * (parapet ? 1.03 : 0.99);
+      const rd = roofGone ? 0.0001 : Math.min(s.w, s.d) * (parapet ? 1.03 : 0.99);
+
+      if (style === 'gable') {
+        E.set(0, s.rot + (acrossW ? Math.PI / 2 : 0), 0);
+        Q.setFromEuler(E);
+        S.set(roofGone ? 0.0001 : Math.min(s.w, s.d) * 0.99, rh,
+              roofGone ? 0.0001 : Math.max(s.w, s.d) * 0.99);
+      } else {
+        E.set(0, s.rot, 0);
+        Q.setFromEuler(E);
+        S.set(rw, rh, parapet ? rd : rw);
+      }
       V.set(s.x, roofGone ? 0 : h, -s.y);
       M.compose(V, Q, S);
       grp.roof.setMatrixAt(i, M);
-      C.copy(grp.col).multiplyScalar(0.72);
+      C.copy(grp.col).multiplyScalar(0.72).offsetHSL(0, 0, (t - 0.5) * 0.09);
+      if (tomatoMix > 0) C.lerp(PULP, tomatoMix * 0.30);
       grp.roof.setColorAt(i, C);
     }
 
@@ -474,6 +680,16 @@ window.TS = window.TS || {};
      ═══════════════════════════════════════════════════════════════════ */
 
   const FH = 64, FR = 44;             // height rings, radial segments
+
+  /* The funnel's profile, one entry per height ring, refreshed by
+     updateFunnel every frame. The tomato shell hangs off exactly this
+     data rather than recomputing the silhouette, which is what keeps the
+     shell nearly free and — more importantly — keeps it welded to the
+     same funnel the condensation model produced. */
+  const ringR = new Float32Array(FH);     // radius, metres
+  const ringX = new Float32Array(FH);     // downshear lean + wander, x
+  const ringZ = new Float32Array(FH);     // downshear lean, z
+  const ringV = new Float32Array(FH);     // visibility 0..1
 
   function buildFunnel() {
     const geo = new THREE.BufferGeometry();
@@ -660,6 +876,8 @@ window.TS = window.TS || {};
     funnel.frustumCulled = false;
     funnel.renderOrder = 6;
     scene.add(funnel);
+
+    buildTomatoShell();
   }
 
   /* ── The dust skirt ──────────────────────────────────────────────────
@@ -795,6 +1013,13 @@ window.TS = window.TS || {};
       // Soften the very top where it merges into the wall cloud.
       // All the way to zero: leaving 25% here left a hard circular rim at
       // cloud base, which was half of the "glass lampshade" look.
+      /* The lathe fades out well below cloud base, because leaving a
+         hard circular rim up there was half of the old glass-lampshade
+         look. The tomato shell wants the opposite: discrete objects that
+         stop early read as a clump floating in the sky rather than a
+         column hanging off the storm, so it keeps its own visibility and
+         tapers only at the very top. */
+      const visShell = vis * (1 - smoothstepf(0.93, 1.0, t));
       vis *= 1 - smoothstepf(0.72, 1.0, t);
 
       // Downshear tilt, plus a sinuous wander that grows as it ropes out.
@@ -809,11 +1034,231 @@ window.TS = window.TS || {};
         pos[i + 2] = cz - leanY + Math.sin(a) * r;
         fade[h * FR + s] = vis;
       }
+      ringR[h] = r; ringX[h] = leanX + wob; ringZ[h] = -leanY; ringV[h] = visShell;
     }
+    updateTomatoShell(sim, top);
     geo.attributes.position.needsUpdate = true;
     geo.attributes.aFade.needsUpdate = true;
     geo.computeBoundingSphere();
   }
+
+  /* ═══════════════════════════════════════════════════════════════════
+     THE TOMATO SHELL — Tormato only
+
+     A condensation funnel is water vapour, so the standard funnel is a
+     translucent surface. A Tormato is made of tomatoes, so it needs to be
+     made of *objects* — the thing that sells it is being able to pick out
+     one tomato among thousands.
+
+     Three thousand point sprites, shaded in the fragment shader as
+     spheres rather than drawn as discs: a normal is reconstructed from
+     gl_PointCoord, lit, and given a specular highlight. That highlight is
+     doing most of the work. Without it they read as red confetti; with it
+     they read as waxy fruit.
+
+     Cost is deliberately bounded. Positions come from the ring profile
+     updateFunnel has already computed, so this adds ~3000 sin/cos per
+     frame and one buffer upload — comparable to the debris system that
+     has always been here. In standard mode the object is simply not
+     visible and costs nothing at all.
+
+     The shell follows the SAME visibility profile as the condensation
+     funnel, so if the funnel is hanging aloft the tomatoes hang with it
+     and the gap above the ground stays visible. The costume does not get
+     to erase the thing the gap is teaching.
+     ═══════════════════════════════════════════════════════════════════ */
+
+  const TOMATO_MAX = 7000;
+  let shell = null, shellMat = null;
+  let shZ, shRad, shSize, shCos, shSin, shBand;
+
+  /* Rotating 7000 points per frame with a sin and a cos each is the one
+     part of this that could actually be felt. Instead every point stores
+     its FIXED unit vector, and its differential rate is quantised into a
+     handful of bands. Once per frame we take a sin and a cos per band,
+     then each point is rotated by angle addition — four multiplies, no
+     trig. Points inside a band turn together, but they start at different
+     angles, so the shear across the column still reads as continuous. */
+  const SPIN_BANDS = 16;
+  const bandCos = new Float32Array(SPIN_BANDS);
+  const bandSin = new Float32Array(SPIN_BANDS);
+  const BAND_LO = 0.49, BAND_HI = 1.16;
+
+  function buildTomatoShell() {
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(TOMATO_MAX * 3), 3)
+      .setUsage(THREE.DynamicDrawUsage));
+    geo.setAttribute('aSize', new THREE.BufferAttribute(new Float32Array(TOMATO_MAX), 1)
+      .setUsage(THREE.DynamicDrawUsage));
+    geo.setAttribute('aTint', new THREE.BufferAttribute(new Float32Array(TOMATO_MAX), 1));
+
+    /* Placement is fixed at build time and never re-rolled: the shell is
+       decoration, so it draws from its own stream and never touches the
+       sim's. */
+    const rng = TS.makeRNG(0x70A70);
+    shZ = new Float32Array(TOMATO_MAX);
+    shRad = new Float32Array(TOMATO_MAX);
+    shSize = new Float32Array(TOMATO_MAX);
+    shCos = new Float32Array(TOMATO_MAX);
+    shSin = new Float32Array(TOMATO_MAX);
+    shBand = new Uint8Array(TOMATO_MAX);
+    const tint = geo.attributes.aTint.array;
+
+    for (let i = 0; i < TOMATO_MAX; i++) {
+      // Biased up the cone: a cone's circumference grows with height, so
+      // uniform-in-z would leave the top looking bald.
+      shZ[i] = Math.pow(rng(), 0.72);
+      const ang = rng() * Math.PI * 2;
+      shCos[i] = Math.cos(ang);
+      shSin[i] = Math.sin(ang);
+      // A shell with thickness. Perfectly-on-surface reads as a decal.
+      shRad[i] = rng.range(0.90, 1.045);
+      /* Three spiral bands of fatter fruit. Modulating SIZE rather than
+         placement is what gets a legible corkscrew without punching
+         holes between the arms — the bands rotate with the shell
+         because they are baked out of the same fixed angle. */
+      const band = 0.70 + 0.52 * (0.5 + 0.5 * Math.cos(3 * (ang - 2.4 * shZ[i])));
+      shSize[i] = rng.range(0.78, 1.10) * band;
+      // Differential rotation: the lower core comes round faster than the
+      // flare, which is what makes the corkscrew legible.
+      const rate = rng.range(0.85, 1.15) * (1 - shZ[i] * 0.42);
+      shBand[i] = clamp(Math.round((rate - BAND_LO) / (BAND_HI - BAND_LO) * (SPIN_BANDS - 1)),
+                        0, SPIN_BANDS - 1);
+      // 0.00-0.72 ripe reds, 0.72-0.88 unripe, 0.88-1.0 vine and leaf.
+      const r = rng();
+      tint[i] = r < 0.72 ? rng.range(0.0, 0.55)
+        : r < 0.88 ? rng.range(0.56, 0.74)
+          : rng.range(0.80, 1.0);
+    }
+
+    shellMat = new THREE.ShaderMaterial({
+      transparent: false, depthWrite: true,
+      uniforms: {
+        uScale: { value: 620 },
+        uLight: { value: new THREE.Vector3(-0.42, 0.74, 0.52).normalize() }
+      },
+      vertexShader: `
+        attribute float aSize; attribute float aTint;
+        uniform float uScale;
+        varying float vTint; varying float vDepth;
+        void main(){
+          vTint = aTint;
+          vec4 mv = modelViewMatrix * vec4(position, 1.0);
+          vDepth = -mv.z;
+          // Clamped hard at the top end: an unclamped sprite becomes a
+          // screen-filling quad the moment the camera enters the funnel,
+          // and fill rate is the only thing that can actually hurt here.
+          gl_PointSize = clamp(aSize * uScale / max(vDepth, 1.0), 1.0, 58.0);
+          gl_Position = projectionMatrix * mv;
+        }`,
+      fragmentShader: `
+        uniform vec3 uLight;
+        varying float vTint; varying float vDepth;
+        void main(){
+          vec2 d = gl_PointCoord - 0.5;
+          float r2 = dot(d, d);
+          if (r2 > 0.25) discard;
+
+          // Reconstruct a sphere normal from the sprite coordinate. This
+          // is the whole trick — it turns a flat disc into fruit.
+          float nz = sqrt(max(0.0, 0.25 - r2)) * 2.0;
+          vec3 N = normalize(vec3(d.x * 2.0, -d.y * 2.0, nz));
+          float lam = max(0.0, dot(N, uLight));
+
+          vec3 ripe   = vec3(0.86, 0.11, 0.06);
+          vec3 deep   = vec3(0.48, 0.05, 0.04);
+          vec3 unripe = vec3(0.83, 0.55, 0.18);
+          vec3 leaf   = vec3(0.20, 0.42, 0.16);
+
+          vec3 base = vTint < 0.56 ? mix(ripe, deep, vTint / 0.56)
+                    : vTint < 0.78 ? mix(ripe, unripe, (vTint - 0.56) / 0.22)
+                                   : leaf;
+
+          vec3 c = base * (0.26 + 0.86 * lam);
+          // Waxy highlight. Suppressed on the leaves, which are matte.
+          float spec = pow(max(0.0, dot(N, normalize(uLight + vec3(0.0, 0.0, 1.0)))), 34.0);
+          c += vec3(1.0, 0.96, 0.90) * spec * (vTint < 0.78 ? 0.40 : 0.08);
+          // Let distance pull them into the storm rather than staying
+          // vivid to the horizon.
+          c = mix(c, vec3(0.42, 0.31, 0.30), clamp(vDepth / 9000.0, 0.0, 0.45));
+
+          gl_FragColor = vec4(c, 1.0);
+          #include <colorspace_fragment>
+        }`
+    });
+
+    shell = new THREE.Points(geo, shellMat);
+    shell.frustumCulled = false;
+    shell.renderOrder = 5;                 // before the translucent funnel
+    shell.visible = false;
+    scene.add(shell);
+  }
+
+  function updateTomatoShell(sim, top) {
+    if (!shell) return;
+    if (tomatoMix <= 0) { shell.visible = false; return; }
+
+    /* The same intensity fade the funnel surface uses. Without it the
+       shell draws at genesis, when there is no circulation yet and the
+       radius is near zero — and seven thousand tomatoes collapse onto
+       the axis as a solid pillar standing in the field before anything
+       has happened. The tomatoes arrive when the tornado does. */
+    const strength = clamp((sim.vmax - 10) / 30, 0, 1);
+    if (strength <= 0.01) { shell.visible = false; return; }
+    shell.visible = true;
+
+    const geo = shell.geometry;
+    const pos = geo.attributes.position.array;
+    const sz = geo.attributes.aSize.array;
+    const cx = sim.center.x, cz = -sim.center.y;
+
+    // One tomato is a chunk of the funnel's own width, so a rope is beaded
+    // and a wedge is a wall of fruit.
+    const world = clamp(sim.rmax * 0.105, 1, 32) * strength;
+    // The same accumulated angle the funnel surface turns by, which is the
+    // genuine tangential rate at Rmax. The fruit and the cloud it replaces
+    // rotate at one speed because they are one vortex.
+    const spin = funnelMat.uniforms.uSpin.value;
+
+    for (let b = 0; b < SPIN_BANDS; b++) {
+      const d = spin * (BAND_LO + (BAND_HI - BAND_LO) * (b / (SPIN_BANDS - 1)));
+      bandCos[b] = Math.cos(d);
+      bandSin[b] = Math.sin(d);
+    }
+
+    for (let i = 0; i < TOMATO_MAX; i++) {
+      const t = shZ[i];
+      const f = t * (FH - 1);
+      const h0 = f | 0;
+      const h1 = h0 + 1 < FH ? h0 + 1 : h0;
+      const k = f - h0;
+
+      const vis = ringV[h0] + (ringV[h1] - ringV[h0]) * k;
+      if (vis <= 0.02) { sz[i] = 0; continue; }
+
+      const r = (ringR[h0] + (ringR[h1] - ringR[h0]) * k) * shRad[i];
+      const ox = ringX[h0] + (ringX[h1] - ringX[h0]) * k;
+      const oz = ringZ[h0] + (ringZ[h1] - ringZ[h0]) * k;
+
+      // Angle addition against this point's band. Slower aloft, so the
+      // column shears into a corkscrew rather than turning rigidly.
+      const b = shBand[i], bc = bandCos[b], bs = bandSin[b];
+      const ca = shCos[i], sa = shSin[i];
+
+      const j = i * 3;
+      pos[j] = cx + ox + (ca * bc - sa * bs) * r;
+      pos[j + 1] = t * top;
+      pos[j + 2] = cz + oz + (sa * bc + ca * bs) * r;
+      // Fading by size rather than alpha keeps the shell opaque, which is
+      // what lets tomatoes occlude each other and read as a packed mass.
+      sz[i] = world * shSize[i] * Math.min(1, vis * 2.2);
+    }
+
+    geo.attributes.position.needsUpdate = true;
+    geo.attributes.aSize.needsUpdate = true;
+    geo.computeBoundingSphere();
+  }
+
 
   /* How nearly the camera is looking straight down the vortex axis. Every
      wall of a surface of revolution turns edge-on at once from up there,
@@ -864,12 +1309,16 @@ window.TS = window.TS || {};
           float r = dot(d, d);
           if (r > 0.25) discard;
           float a = (1.0 - r * 4.0);
-          // 0 = soil dust, 0.5 = vegetation, 1 = structural debris
+          // 0 = soil dust, 0.5 = vegetation, 1 = structural debris,
+          // 1.5 = Tormato. The ramp gained a stop rather than being
+          // rescaled, so the three real materials keep their exact colours.
           vec3 dust = vec3(0.45, 0.38, 0.29);
           vec3 veg  = vec3(0.28, 0.36, 0.21);
           vec3 str  = vec3(0.55, 0.51, 0.47);
-          vec3 c = vTint < 0.5 ? mix(dust, veg, vTint * 2.0)
-                               : mix(veg, str, (vTint - 0.5) * 2.0);
+          vec3 tom  = vec3(0.74, 0.13, 0.10);
+          vec3 c = vTint < 0.5  ? mix(dust, veg, vTint * 2.0)
+                 : vTint < 1.0  ? mix(veg, str, (vTint - 0.5) * 2.0)
+                                : mix(str, tom, clamp((vTint - 1.0) * 2.0, 0.0, 1.0));
           gl_FragColor = vec4(c, a * 0.72);
           #include <colorspace_fragment>
         }`
@@ -880,7 +1329,7 @@ window.TS = window.TS || {};
     scene.add(debrisPts);
   }
 
-  const TINT = { dust: 0.0, vegetation: 0.5, structure: 1.0 };
+  const TINT = { dust: 0.0, vegetation: 0.5, structure: 1.0, tomato: 1.5 };
 
   function updateDebris(sim) {
     const list = sim.debris || [];
@@ -900,6 +1349,387 @@ window.TS = window.TS || {};
     geo.attributes.aSize.needsUpdate = true;
     geo.attributes.aTint.needsUpdate = true;
   }
+
+
+  /* ═══════════════════════════════════════════════════════════════════
+     FLUNG WRECKAGE
+
+     sim-fling.js decides what leaves the ground and where it lands. This
+     draws it, and does nothing else — five instanced meshes keyed by the
+     shape class the sim already assigned, so a roof panel, a pickup and
+     a tomato are three sizes of the same two draw calls.
+
+     A settled body stays in the list forever, which means the ground
+     behind the tornado keeps its wreckage. That is the point: the swath
+     is supposed to be readable afterwards.
+     ═══════════════════════════════════════════════════════════════════ */
+
+  const FLING_MAX = 300;
+  const MAT_COLOR = {
+    wood: 0x9c8e7a, metal: 0x9aa1a8, masonry: 0x8e8477, glass: 0x8fa4b5,
+    vegetation: 0x4a6b38, vehicle: 0x7e8894, livestock: 0xb9ac9c, tomato: 0xc2301f
+  };
+  let flingGroups = {};
+
+  function flingGeoFor(shape) {
+    if (shape === 'slab') { const g = new THREE.BoxGeometry(1, 1, 1); return g; }
+    if (shape === 'block') return new THREE.BoxGeometry(1, 1, 1);
+    if (shape === 'stick') return new THREE.BoxGeometry(1, 1, 1);
+    if (shape === 'orb') return new THREE.SphereGeometry(0.5, 8, 6);
+    return new THREE.SphereGeometry(0.5, 6, 4);              // crown
+  }
+
+  function buildFlung() {
+    for (const shape of ['slab', 'block', 'stick', 'crown', 'orb']) {
+      const mesh = new THREE.InstancedMesh(flingGeoFor(shape),
+        new THREE.MeshLambertMaterial({ color: 0xffffff, flatShading: true }), FLING_MAX);
+      mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      mesh.frustumCulled = false;
+      mesh.count = 0;
+      scene.add(mesh);
+      flingGroups[shape] = { mesh, n: 0 };
+    }
+  }
+
+  const AX = new THREE.Vector3();
+
+  function updateFlungRender(sim) {
+    const list = sim.flung;
+    for (const k in flingGroups) flingGroups[k].n = 0;
+    if (!list || !list.length) {
+      for (const k in flingGroups) flingGroups[k].mesh.count = 0;
+      return;
+    }
+
+    for (let i = 0; i < list.length; i++) {
+      const b = list[i];
+      const grp = flingGroups[b.k.shape];
+      if (!grp || grp.n >= FLING_MAX) continue;
+      const j = grp.n++;
+
+      AX.set(b.ax, b.ay, b.az);
+      if (AX.lengthSq() < 1e-6) AX.set(0, 1, 0);
+      AX.normalize();
+      Q.setFromAxisAngle(AX, b.ang);
+      S.set(b.sx, b.sy, b.sz);
+      V.set(b.x, b.z, -b.y);
+      M.compose(V, Q, S);
+      grp.mesh.setMatrixAt(j, M);
+
+      C.setHex(MAT_COLOR[b.mat] || 0x8e8477);
+      // Wreckage on the ground has been through a great deal; dull it a
+      // little so the eye separates it from what is still in the air.
+      if (b.settled) C.multiplyScalar(0.78);
+      grp.mesh.setColorAt(j, C);
+    }
+
+    for (const k in flingGroups) {
+      const g = flingGroups[k];
+      g.mesh.count = g.n;
+      g.mesh.instanceMatrix.needsUpdate = true;
+      if (g.mesh.instanceColor) g.mesh.instanceColor.needsUpdate = true;
+    }
+  }
+
+
+  /* ═══════════════════════════════════════════════════════════════════
+     PROPS
+
+     Cars, semis, tractors, fences, mailboxes, livestock. None of them is
+     a damage indicator and none of them touches the rating — see the
+     header of sim-props.js. They are here because a landscape with no
+     vehicles in it does not read as a place where anyone lives, and
+     because watching a pickup go end over end is how a ten-year-old
+     learns what 130 mph means.
+     ═══════════════════════════════════════════════════════════════════ */
+
+  const PROP_COLOR = {
+    car: [0x9b3f3a, 0x3f5a86, 0xb0b3b6, 0x2f3438, 0x6d7d5c, 0xc4b48a],
+    pickup: [0x2f4356, 0x7a3730, 0x6f7378, 0x2d3a2f],
+    semi: [0xd3d6d9, 0xa8adb2, 0x8a9299],
+    tractor: [0x2f6b32, 0xa8391f, 0xc9a227],
+    fence: [0x8a7a5e],
+    mailbox: [0x6f6a60],
+    cow: [0x6b5c50, 0xd9d2c6, 0x2e2a26]
+  };
+
+  let propGroups = {};
+
+  function buildProps(w) {
+    if (!w.props || !w.props.length) return;
+    const byKind = {};
+    for (const pr of w.props) {
+      if (pr.kind === 'salamander') continue;         // drawn separately
+      (byKind[pr.kind] || (byKind[pr.kind] = [])).push(pr);
+    }
+
+    for (const kind in byKind) {
+      const list = byKind[kind];
+      const n = list.length;
+
+      const geo = new THREE.BoxGeometry(1, 1, 1);
+      geo.translate(0, 0.5, 0);
+      const mesh = new THREE.InstancedMesh(geo,
+        new THREE.MeshLambertMaterial({ color: 0xffffff }), n);
+      mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+      mesh.frustumCulled = false;
+      scene.add(mesh);
+
+      // Everything with a driver gets a second box on top. It is the
+      // difference between reading as a vehicle and reading as a crate.
+      let cab = null;
+      if (kind === 'car' || kind === 'pickup' || kind === 'semi' || kind === 'tractor') {
+        const cg = new THREE.BoxGeometry(1, 1, 1);
+        cg.translate(0, 0.5, 0);
+        cab = new THREE.InstancedMesh(cg,
+          new THREE.MeshLambertMaterial({ color: 0xffffff }), n);
+        cab.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+        cab.frustumCulled = false;
+        scene.add(cab);
+      }
+
+      propGroups[kind] = { mesh, cab, list, lastDod: new Int8Array(n).fill(-1) };
+      for (let i = 0; i < n; i++) setPropInstance(kind, i);
+      mesh.instanceMatrix.needsUpdate = true;
+      if (cab) cab.instanceMatrix.needsUpdate = true;
+    }
+  }
+
+  function setPropInstance(kind, i) {
+    const grp = propGroups[kind];
+    const pr = grp.list[i];
+
+    /* dod 2 means sim-props.js already handed this object to the fling
+       system. The static copy has to vanish at exactly that moment, or
+       the car is briefly in two places at once. */
+    const gone = pr.dod >= 2;
+    const tipped = pr.dod === 1;
+
+    let lean = 0;
+    if (tipped) {
+      // Shoved over in the direction the sim recorded the wind pushing.
+      lean = kind === 'semi' ? 1.35 : kind === 'fence' ? 1.1 : 0.45;
+    }
+
+    if (lean > 0.001 && (pr.pushX || pr.pushY)) {
+      V.set(-pr.pushY, 0, -pr.pushX).normalize();
+      Q.setFromAxisAngle(V, lean);
+    } else {
+      E.set(0, pr.rot, 0);
+      Q.setFromEuler(E);
+    }
+
+    S.set(gone ? 0.0001 : pr.w, gone ? 0.0001 : pr.h, gone ? 0.0001 : pr.d);
+    V.set(pr.x, 0, -pr.y);
+    M.compose(V, Q, S);
+    grp.mesh.setMatrixAt(i, M);
+
+    const pal = PROP_COLOR[kind] || [0x8e8477];
+    C.setHex(pal[pr.id % pal.length]);
+    if (pr.dod > 0) C.lerp(RUBBLE, 0.35);
+    if (tomatoMix > 0 && pr.dod > 0) C.lerp(PULP, tomatoMix * 0.4);
+    grp.mesh.setColorAt(i, C);
+
+    if (grp.cab) {
+      const ch = gone ? 0.0001 : pr.h * 0.55;
+      const cw = gone ? 0.0001 : pr.w * 0.92;
+      const cd = gone ? 0.0001 : pr.d * (kind === 'semi' ? 0.26 : 0.5);
+      S.set(cw, ch, cd);
+      V.set(pr.x, gone ? 0 : pr.h * 0.85, -pr.y);
+      M.compose(V, Q, S);
+      grp.cab.setMatrixAt(i, M);
+      C.multiplyScalar(0.62);
+      grp.cab.setColorAt(i, C);
+    }
+  }
+
+
+  /* ═══════════════════════════════════════════════════════════════════
+     SPLATS — Tormato only
+
+     Where a tomato came to rest. Which is, underneath the joke, the one
+     thing a damage survey actually walks the ground to record: not where
+     debris was lofted, but where it landed.
+     ═══════════════════════════════════════════════════════════════════ */
+
+  const SPLAT_MAX = 400;
+  let splats = null, splatN = 0;
+
+  function buildSplats() {
+    const geo = new THREE.CircleGeometry(0.5, 9);
+    geo.rotateX(-Math.PI / 2);
+    splats = new THREE.InstancedMesh(geo,
+      new THREE.MeshBasicMaterial({
+        color: 0xffffff, transparent: true, opacity: 0.82, depthWrite: false
+      }), SPLAT_MAX);
+    splats.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    splats.frustumCulled = false;
+    splats.renderOrder = -1;
+    splats.count = 0;
+    scene.add(splats);
+  }
+
+  function updateSplats(sim) {
+    if (!splats) return;
+    if (tomatoMix <= 0) { splats.count = 0; return; }
+    const list = sim.flung || [];
+    let changed = false;
+    for (let i = 0; i < list.length; i++) {
+      const b = list[i];
+      if (b.kind !== 'tomato' || !b.settled || b._splat) continue;
+      b._splat = true;
+      if (splatN >= SPLAT_MAX) continue;
+      const j = splatN++;
+      const r = 2.2 + (j % 5) * 0.9;
+      E.set(0, j * 1.7, 0); Q.setFromEuler(E);
+      S.set(r, 1, r * 0.86);
+      V.set(b.x, 0.12, -b.y);
+      M.compose(V, Q, S);
+      splats.setMatrixAt(j, M);
+      C.setHex(0xa8241a).offsetHSL(0, 0, ((j * 0.618) % 1 - 0.5) * 0.12);
+      splats.setColorAt(j, C);
+      changed = true;
+    }
+    if (changed) {
+      splats.count = splatN;
+      splats.instanceMatrix.needsUpdate = true;
+      if (splats.instanceColor) splats.instanceColor.needsUpdate = true;
+    }
+  }
+
+  R.resetSplats = function () {
+    splatN = 0;
+    if (splats) splats.count = 0;
+    if (simRef && simRef.flung) for (const b of simRef.flung) b._splat = false;
+  };
+
+
+  /* ═══════════════════════════════════════════════════════════════════
+     THE SALAMANDER
+
+     Traced block for block from ../../salamander/salamander2.svg — the
+     same creature that swims in the gravity harp, signs the glass in
+     pressure-fracture, and sleeps curled in the compass rose on the
+     Wandering Rose. Twenty-two rectangles in the original; twenty-two
+     boxes here.
+
+     It is drawn only in Tormato mode, it flickers, and it does nothing
+     whatsoever except notice being run over. See ui.js.
+     ═══════════════════════════════════════════════════════════════════ */
+
+  // [x, y, w, h] in the SVG's own units, origin top-left, y down.
+  const SAL_RECTS = [
+    [66, 63.15, 47.72, 13.53], [74.07, 75.02, 6.17, 7.83],
+    [98.05, 75.50, 6.36, 8.31], [75.12, 64.30, 3.27, 4.62],
+    [76.67, 76.73, 1.51, 2.43], [99.28, 79.09, 1.51, 2.43],
+    [84.72, 68.59, 2.77, 4.28], [92.85, 63.26, 3.19, 5.29],
+    [100.39, 66.07, 1.59, 5.79], [104.49, 64.05, 4.11, 2.27],
+    [110.80, 60.77, 7.72, 5.96], [55.67, 68.01, 14.82, 2.99],
+    [55.47, 58.17, 15.13, 11.75], [115.41, 58.34, 7.05, 5.88],
+    [118.69, 53.97, 4.70, 6.80], [117.09, 43.31, 3.69, 3.69],
+    [119.53, 48.94, 3.95, 6.13], [118.85, 45.07, 3.69, 5.54],
+    [117.60, 59.26, 1.01, 1.93], [121.18, 55.64, 0.84, 2.10],
+    [120.62, 46.77, 1.01, 1.85], [112.36, 62.78, 2.10, 2.43]
+  ];
+  // The dark blocks in the source: eye and tail spots.
+  const SAL_DARK = { 3: 1, 4: 1, 5: 1, 18: 1, 19: 1, 20: 1, 21: 1 };
+  const SAL_GOLD = 0xfcc732, SAL_INK = 0x212121;
+
+  let salamander = null;
+
+  function buildSalamander(w) {
+    if (!w.salamander) return;
+    const pr = w.salamander;
+    const grp = new THREE.Group();
+
+    // The SVG is ~70 x 34 units; scale it to the prop's footprint.
+    const SCALE = pr.d / 70;
+    const gold = new THREE.MeshLambertMaterial({
+      color: SAL_GOLD, transparent: true, opacity: 1, emissive: 0x6b5200
+    });
+    const ink = new THREE.MeshLambertMaterial({
+      color: SAL_INK, transparent: true, opacity: 1
+    });
+
+    for (let i = 0; i < SAL_RECTS.length; i++) {
+      const r = SAL_RECTS[i];
+      const g = new THREE.BoxGeometry(r[2] * SCALE, pr.h * 0.7, r[3] * SCALE);
+      const m = new THREE.Mesh(g, SAL_DARK[i] ? ink : gold);
+      // SVG y runs down; the world's z runs the other way.
+      m.position.set((r[0] + r[2] / 2 - 89.4) * SCALE, pr.h * 0.4,
+                     (r[1] + r[3] / 2 - 63.5) * SCALE);
+      grp.add(m);
+    }
+
+    grp.position.set(pr.x, 0, -pr.y);
+    grp.rotation.y = pr.rot;
+    grp.visible = false;
+    scene.add(grp);
+    salamander = { grp, gold, ink };
+  }
+
+  function updateSalamander(dt) {
+    if (!salamander) return;
+    salamander.grp.visible = tomatoMix > 0;
+    if (tomatoMix <= 0) return;
+    /* Slow breath with an occasional stutter. The first version dipped to
+       6% opacity, which meant that for much of every cycle there was
+       genuinely nothing on screen to find — hidden had turned into
+       absent. It now never drops below a third, so a careful look at the
+       right patch of ground always rewards you; the pulse is what makes
+       it catch the eye rather than what conceals it. */
+    const t = clockT;
+    const breath = 0.62 + 0.30 * Math.sin(t * 0.85);
+    const stutter = Math.sin(t * 6.1) > 0.955 ? 0.55 : 1;
+    const o = clamp(breath * stutter, 0.32, 1.0);
+    salamander.gold.opacity = o;
+    salamander.ink.opacity = o;
+  }
+
+
+  /* ═══════════════════════════════════════════════════════════════════
+     MODE
+
+     Everything the costume is allowed to touch, in one function. Nothing
+     below this line reads a wind, a threshold or a rating — verify.js §14
+     is what keeps that true.
+     ═══════════════════════════════════════════════════════════════════ */
+
+  R.setMode = function (mode) {
+    const next = mode === 'tormato' ? 1 : 0;
+    if (next === tomatoMix) return;
+    tomatoMix = next;
+
+    if (funnelMat) {
+      funnelMat.uniforms.uDust.value.copy(FUNNEL_DUST);
+      funnelMat.uniforms.uCloud.value.copy(FUNNEL_CLOUD);
+      if (tomatoMix > 0) {
+        // Pushed much further than a tint: with the shell in front of it,
+        // this surface is no longer "the funnel" but the pulp behind the
+        // fruit, and it has to read as a dark gap rather than as cloud.
+        funnelMat.uniforms.uDust.value.copy(PULP).multiplyScalar(0.42);
+        funnelMat.uniforms.uCloud.value.copy(PULP).multiplyScalar(0.46);
+      }
+    }
+    if (skirtMat) {
+      skirtMat.uniforms.uColor.value.copy(SKIRT_BASE);
+      if (tomatoMix > 0) skirtMat.uniforms.uColor.value.lerp(PULP, 0.66);
+    }
+
+    // Buildings carry a faint pulp wash once damaged, so force a rewrite.
+    for (const di in structGroups) {
+      const grp = structGroups[di];
+      grp.lastDod.fill(-1);
+    }
+    for (const kind in propGroups) propGroups[kind].lastDod.fill(-1);
+
+    R.resetSplats();
+    updateSalamander(0);
+  };
+
+  const FUNNEL_DUST = new THREE.Color(0x6d6152);
+  const FUNNEL_CLOUD = new THREE.Color(0xbcc4d2);
+  const SKIRT_BASE = new THREE.Color(0x6b5c47);
 
 
   /* ── The parent storm ────────────────────────────────────────────────
@@ -1225,6 +2055,9 @@ window.TS = window.TS || {};
     updateFunnel(sim, dt);
     updateSkirt(sim, dt);
     updateDebris(sim);
+    updateFlungRender(sim);
+    updateSplats(sim);
+    updateSalamander(dt);
     updateStorm(sim, dt);
     updateCamera(sim, dt);
 
@@ -1269,6 +2102,27 @@ window.TS = window.TS || {};
       if (dirty) {
         grp.mesh.instanceMatrix.needsUpdate = true;
         if (grp.mesh.instanceColor) grp.mesh.instanceColor.needsUpdate = true;
+      }
+    }
+
+    for (const kind in propGroups) {
+      const grp = propGroups[kind];
+      const list = grp.list;
+      let dirty = false;
+      for (let i = 0; i < list.length; i++) {
+        if (grp.lastDod[i] !== list[i].dod) {
+          grp.lastDod[i] = list[i].dod;
+          setPropInstance(kind, i);
+          dirty = true;
+        }
+      }
+      if (dirty) {
+        grp.mesh.instanceMatrix.needsUpdate = true;
+        if (grp.mesh.instanceColor) grp.mesh.instanceColor.needsUpdate = true;
+        if (grp.cab) {
+          grp.cab.instanceMatrix.needsUpdate = true;
+          if (grp.cab.instanceColor) grp.cab.instanceColor.needsUpdate = true;
+        }
       }
     }
 
@@ -1342,6 +2196,17 @@ window.TS = window.TS || {};
     }
     for (const kind in treeGroups) {
       const grp = treeGroups[kind];
+      const hits = _ray.intersectObject(grp.mesh, false);
+      if (hits.length && hits[0].distance < bestD) {
+        bestD = hits[0].distance;
+        best = grp.list[hits[0].instanceId];
+      }
+    }
+    // Props are pickable too. Clicking a rolled pickup and being told, in
+    // the same panel that rates houses, that this one does not count is
+    // the shortest route to the point the whole piece is making.
+    for (const kind in propGroups) {
+      const grp = propGroups[kind];
       const hits = _ray.intersectObject(grp.mesh, false);
       if (hits.length && hits[0].distance < bestD) {
         bestD = hits[0].distance;

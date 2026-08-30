@@ -34,6 +34,9 @@
   --tag-established: #58e08a;
   --tag-simplified:  #f0b429;
   --tag-open:        #b18cff;
+  --tag-absurd:      #ff4d6d;
+  --tomato:          #c2301f;
+  --tomato-lit:      #e8563f;
 
   --ef0: #7fb8d8; --ef1: #6ee0b8; --ef2: #ffd166;
   --ef3: #ff9f45; --ef4: #ff6f4a; --ef5: #ff4d6d;
@@ -261,6 +264,9 @@ select option { background: var(--panel-solid); }
 .tag.established { color: var(--tag-established); }
 .tag.simplified  { color: var(--tag-simplified); }
 .tag.open        { color: var(--tag-open); }
+/* Fourth tag, reachable only from Tormato. The scale of honesty needed a
+   rung below "open question" and this is it. */
+.tag.absurd      { color: var(--tag-absurd); }
 
 /* ── Tooltip ───────────────────────────────────────────────────────── */
 
@@ -461,6 +467,110 @@ select option { background: var(--panel-solid); }
 @keyframes blink { 50% { opacity: 0; } }
 #ghost.out { animation: ghostout .8s ease forwards; }
 @keyframes ghostout { to { opacity: 0; } }
+
+/* ── The salamander's card ─────────────────────────────────────────── */
+
+#nix {
+  position: fixed; z-index: 71; inset: 0; display: grid; place-items: center;
+  background: rgba(2,4,10,.66); cursor: pointer;
+  opacity: 0; transition: opacity .5s ease;
+}
+#nix.in { opacity: 1; }
+#nix .paper {
+  width: min(30rem, 88vw); padding: 1.5rem 1.7rem 1.2rem;
+  background: #f4efe2; color: #23201a;
+  border: 1px solid #c9bda1;
+  box-shadow: 0 24px 70px rgba(0,0,0,.65), 0 0 0 6px rgba(244,239,226,.06);
+  font-family: 'EB Garamond', Georgia, serif;
+  font-size: 13.5px; line-height: 1.62;
+  transform: translateY(14px) rotate(-.4deg);
+  transition: transform .55s cubic-bezier(.2,.9,.25,1);
+}
+#nix.in .paper { transform: translateY(0) rotate(-.4deg); }
+#nix h4 {
+  margin: 0; font-size: 20px; font-weight: 500; letter-spacing: .01em;
+}
+#nix h4 em { font-style: italic; opacity: .7; }
+#nix .cite {
+  margin: .1rem 0 0; font-family: 'Space Mono', monospace;
+  font-size: 9.5px; letter-spacing: .08em; text-transform: uppercase;
+  color: #7a6f58;
+}
+#nix hr {
+  border: 0; border-top: 1px solid #d6cbb2; margin: .85rem 0;
+}
+#nix p { margin: .5rem 0; }
+#nix strong { font-variant: small-caps; letter-spacing: .03em; }
+#nix .found {
+  font-size: 12px; color: #5c5445; font-style: italic;
+}
+#nix .sig {
+  margin: .9rem 0 0; font-family: 'Space Mono', monospace;
+  font-size: 9px; letter-spacing: .04em; color: #8a7f68;
+}
+
+/* ── Tormato ───────────────────────────────────────────────────────── */
+
+body.tormato #radarwrap .rhead span,
+body.tormato #transport #phase { color: var(--tomato-lit); }
+
+body.tormato .chip[data-mode="tormato"][aria-pressed="true"] {
+  border-color: var(--tomato-lit);
+  color: var(--tomato-lit);
+}
+
+/* The grading certificate. Same report, different stationery — every
+   figure on it is the one Standard mode would have printed. */
+#report .cert {
+  background: #f6f1e4; color: #24201a; padding: 1.1rem 1.2rem;
+  border: 1px double #b9a97f; margin: 0 0 .9rem;
+  font-family: 'EB Garamond', Georgia, serif;
+}
+#report .cert h3 {
+  margin: 0 0 .1rem; font-size: 15px; letter-spacing: .12em;
+  text-transform: uppercase; text-align: center; color: #2c2718;
+}
+#report .cert .auth {
+  margin: 0 0 .7rem; text-align: center;
+  font-family: 'Space Mono', monospace; font-size: 8.5px;
+  letter-spacing: .14em; text-transform: uppercase; color: #8a7c58;
+}
+#report .cert dl { margin: 0; display: grid; grid-template-columns: 1fr auto; gap: .18rem .8rem; }
+#report .cert dt { font-size: 12px; color: #56503f; }
+#report .cert dd {
+  margin: 0; text-align: right; font-family: 'Space Mono', monospace;
+  font-size: 12px; color: #24201a;
+}
+#report .cert .grade {
+  margin: .7rem 0 .1rem; text-align: center;
+  font-family: 'Space Mono', monospace; font-weight: 700;
+  font-size: 26px; letter-spacing: .08em; color: #8f2010;
+}
+#report .cert .gradenote {
+  margin: 0 0 .3rem; text-align: center; font-size: 11px; color: #6b6350;
+}
+#report .cert .lot {
+  margin: .9rem 0 0; padding: 0;
+}
+#report .cert .lot img {
+  display: block; width: 100%; height: auto;
+  border: 1px solid #c3b590;
+  /* Knocked back a little so a vivid illustration does not outshout the
+     measurements it sits underneath. */
+  filter: saturate(.92) contrast(.97);
+}
+#report .cert .lot figcaption {
+  margin: .45rem 0 0; font-size: 10.5px; line-height: 1.55; color: #6b6350;
+}
+#report .cert .lot figcaption b {
+  display: block; font-family: 'Space Mono', monospace;
+  font-size: 8.5px; letter-spacing: .12em; text-transform: uppercase;
+  color: #8a7c58; margin-bottom: .15rem;
+}
+#report .cert .foot {
+  margin: .8rem 0 0; padding-top: .6rem; border-top: 1px solid #ded2b4;
+  font-size: 11px; line-height: 1.55; color: #5c5445;
+}
 
 /* ── Responsive ────────────────────────────────────────────────────── */
 

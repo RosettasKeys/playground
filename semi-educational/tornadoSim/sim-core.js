@@ -219,6 +219,11 @@ window.TS = window.TS || {};
        verification) switches it off entirely and gets an identical damage
        swath for a fraction of the cost. */
     this.visual = opts.visual !== false;
+    /* Presentation mode. Deliberately NOT a parameter: params feed the
+       What-If comparison, and "what if it had been tomatoes" is not a
+       question that instrument should be able to be asked. The physics
+       is identical in every mode — verify.js §14 proves it. */
+    this.mode = opts.mode || 'standard';
     this.params = Object.assign(TS.defaultParams(), opts.params || {});
     this.env = Object.assign(TS.defaultEnv ? TS.defaultEnv() : {}, opts.env || {});
     this.terrain = opts.terrain || null;
@@ -238,17 +243,36 @@ window.TS = window.TS || {};
     this.wobbleT = TS.makeWobble(r.fork(), 3);   // tilt / lean wander
     this.subRng = r.fork();
     this.debrisRng = r.fork();
+    // Appended last on purpose: a new fork placed anywhere earlier would
+    // shift every downstream stream and silently change what every saved
+    // seed generates.
+    this.flingRng = r.fork();
+    this.flung = [];
+    this.flungAir = 0;
 
     this.t = 0;
     this.alive = true;
     this.phase = 'genesis';
 
-    // Start far enough back that the tornado enters the scene under its
-    // own motion rather than popping into existence mid-field.
+    /* Start far enough back that the tornado enters the scene under its
+       own motion rather than popping into existence mid-field — but no
+       further back than that needs.
+
+       Half the total travel was unbounded, and a fast, long-lived storm
+       has an enormous total travel: 32 m/s for 600 s is a 19 km path, so
+       it started 9.6 km out from the centre of a world only 6.4 km wide.
+       The chaser camera then sat on blank outland for three minutes
+       before any terrain came into view, which reads for all the world
+       like the landscape has failed to load. Clamping the run-up to a
+       little over the mapped radius keeps the original intent and bounds
+       the waiting. Nothing about the wind field depends on where the
+       track happens to begin. */
     const hdg = p.heading * Math.PI / 180;
     this.dir = { x: Math.sin(hdg), y: Math.cos(hdg) };
     const travel = p.forwardSpeed * p.lifespan;
-    this.origin = { x: -this.dir.x * travel * 0.5, y: -this.dir.y * travel * 0.5 };
+    const extent = (this.terrain && this.terrain.extent) || TS.EXTENT || 3200;
+    const lead = Math.min(travel * 0.5, extent * 1.25);
+    this.origin = { x: -this.dir.x * lead, y: -this.dir.y * lead };
     this.center = { x: this.origin.x, y: this.origin.y };
     this.heading = p.heading;
 
@@ -293,6 +317,13 @@ window.TS = window.TS || {};
   TS.Sim.prototype.setParams = function (patch) {
     Object.assign(this.params, patch);
     this.recalcEnvironment();
+  };
+
+  /* Costume only. Nothing downstream of this is allowed to change a
+     wind, a threshold, or a rating — only what the material is made of
+     and what the console calls it. */
+  TS.Sim.prototype.setMode = function (m) {
+    this.mode = m || 'standard';
   };
 
   TS.Sim.prototype.setEnv = function (patch) {
@@ -474,6 +505,7 @@ window.TS = window.TS || {};
       if (this._debTick >= DEBRIS_EVERY) {
         this._debTick = 0;
         TS.updateDebris(this, dt * DEBRIS_EVERY);
+        if (TS.updateFlung) TS.updateFlung(this, dt * DEBRIS_EVERY);
       }
     }
 
@@ -655,6 +687,7 @@ window.TS = window.TS || {};
     const hdg = this.heading * Math.PI / 180;
     this.dir.x = Math.sin(hdg); this.dir.y = Math.cos(hdg);
     if (TS.rewindDamageTo) TS.rewindDamageTo(this, h.journalLen);
+    if (TS.rewindFlung) TS.rewindFlung(this, h.t);
     return h;
   };
 

@@ -33,7 +33,7 @@ window.TS = window.TS || {};
   const DI = {
     FR12: {
       name: 'One- or two-family residence', short: 'House',
-      w: 13, d: 10, h: 6, indicator: true, ef5capable: true,
+      w: 13, d: 10, h: 6, roofed: true, roofStyle: 'gable', mat: 'wood', indicator: true, ef5capable: true,
       dods: [
         ['Threshold of visible damage', 65, 53, 80],
         ['Loss of roof covering, gutters or siding', 79, 63, 97],
@@ -49,7 +49,7 @@ window.TS = window.TS || {};
     },
     MHSF: {
       name: 'Single-wide mobile home', short: 'Mobile home',
-      w: 4, d: 16, h: 3.2, indicator: true, ef5capable: false,
+      w: 4, d: 16, h: 3.2, roofed: true, roofStyle: 'gable', mat: 'metal', indicator: true, ef5capable: false,
       dods: [
         ['Threshold of visible damage', 59, 49, 71],
         ['Loss of roof covering or awnings', 68, 56, 82],
@@ -63,7 +63,7 @@ window.TS = window.TS || {};
     },
     MHDF: {
       name: 'Double-wide mobile home', short: 'Double-wide',
-      w: 8, d: 18, h: 3.4, indicator: true, ef5capable: false,
+      w: 8, d: 18, h: 3.4, roofed: true, roofStyle: 'gable', mat: 'metal', indicator: true, ef5capable: false,
       dods: [
         ['Threshold of visible damage', 63, 52, 76],
         ['Loss of roof covering or skirting', 74, 61, 89],
@@ -77,7 +77,7 @@ window.TS = window.TS || {};
     },
     SBO: {
       name: 'Small barn or farm outbuilding', short: 'Barn',
-      w: 12, d: 20, h: 7, indicator: true, ef5capable: false,
+      w: 12, d: 20, h: 7, roofed: true, roofStyle: 'hip', mat: 'wood', indicator: true, ef5capable: false,
       dods: [
         ['Threshold of visible damage', 64, 53, 78],
         ['Loss of metal roof or wall cladding', 73, 60, 88],
@@ -90,7 +90,7 @@ window.TS = window.TS || {};
     },
     SILO: {
       name: 'Grain bin or silo', short: 'Silo',
-      w: 9, d: 9, h: 13, indicator: false, ef5capable: false,
+      w: 9, d: 9, h: 13, roofed: false, roofStyle: null, mat: 'metal', indicator: false, ef5capable: false,
       dods: [
         ['Denting of the shell', 75, 62, 90],
         ['Roof or cap removed', 90, 74, 108],
@@ -100,7 +100,7 @@ window.TS = window.TS || {};
     },
     ESFR: {
       name: 'Elementary school, masonry', short: 'School',
-      w: 60, d: 34, h: 7, indicator: true, ef5capable: true,
+      w: 60, d: 34, h: 7, roofed: true, roofStyle: 'hip', mat: 'metal', indicator: true, ef5capable: true,
       dods: [
         ['Threshold of visible damage', 67, 54, 81],
         ['Loss of roof covering, less than 20 percent', 75, 61, 91],
@@ -116,7 +116,7 @@ window.TS = window.TS || {};
     },
     SM: {
       name: 'Strip mall', short: 'Strip mall',
-      w: 55, d: 20, h: 6, indicator: true, ef5capable: false,
+      w: 55, d: 20, h: 6, roofed: true, roofStyle: 'parapet', mat: 'masonry', indicator: true, ef5capable: false,
       dods: [
         ['Threshold of visible damage', 70, 58, 85],
         ['Loss of roof covering, less than 20 percent', 78, 64, 94],
@@ -130,7 +130,7 @@ window.TS = window.TS || {};
     },
     MBS: {
       name: 'Masonry apartment or small retail', short: 'Masonry block',
-      w: 26, d: 16, h: 9, indicator: true, ef5capable: true,
+      w: 26, d: 16, h: 9, roofed: false, roofStyle: null, mat: 'masonry', indicator: true, ef5capable: true,
       dods: [
         ['Threshold of visible damage', 71, 59, 86],
         ['Loss of roof covering', 82, 68, 99],
@@ -144,7 +144,7 @@ window.TS = window.TS || {};
     },
     CHBS: {
       name: 'Church or institutional masonry', short: 'Church',
-      w: 24, d: 34, h: 11, indicator: true, ef5capable: true,
+      w: 24, d: 34, h: 11, roofed: true, roofStyle: 'parapet', mat: 'masonry', indicator: true, ef5capable: true,
       dods: [
         ['Threshold of visible damage', 71, 59, 86],
         ['Loss of roof covering', 83, 69, 100],
@@ -157,7 +157,7 @@ window.TS = window.TS || {};
     },
     LRB: {
       name: 'Low-rise building, one to four storeys', short: 'Low-rise',
-      w: 30, d: 24, h: 13, indicator: true, ef5capable: true,
+      w: 30, d: 24, h: 13, roofed: false, roofStyle: null, mat: 'masonry', indicator: true, ef5capable: true,
       dods: [
         ['Threshold of visible damage', 75, 62, 91],
         ['Windows broken on one face', 88, 73, 106],
@@ -170,7 +170,7 @@ window.TS = window.TS || {};
     },
     MRB: {
       name: 'Mid-rise building, five to twenty storeys', short: 'Mid-rise',
-      w: 34, d: 28, h: 34, indicator: true, ef5capable: false,
+      w: 34, d: 28, h: 34, roofed: false, roofStyle: null, mat: 'glass', indicator: true, ef5capable: false,
       dods: [
         ['Threshold of visible damage', 80, 66, 96],
         ['Windows broken on one or more faces', 95, 79, 115],
@@ -182,7 +182,7 @@ window.TS = window.TS || {};
     },
     HRB: {
       name: 'High-rise building, over twenty storeys', short: 'High-rise',
-      w: 40, d: 34, h: 78, indicator: true, ef5capable: false,
+      w: 40, d: 34, h: 78, roofed: false, roofStyle: null, mat: 'glass', indicator: true, ef5capable: false,
       dods: [
         ['Threshold of visible damage', 85, 70, 102],
         ['Scattered window glass broken', 100, 83, 121],
@@ -193,7 +193,7 @@ window.TS = window.TS || {};
     },
     TWR: {
       name: 'Water or communications tower', short: 'Tower',
-      w: 12, d: 12, h: 32, indicator: true, ef5capable: false,
+      w: 12, d: 12, h: 32, roofed: false, roofStyle: null, mat: 'metal', indicator: true, ef5capable: false,
       dods: [
         ['Visible deflection or panel loss', 80, 66, 96],
         ['Bracing members buckled', 95, 79, 115],
@@ -204,7 +204,7 @@ window.TS = window.TS || {};
     },
     TP: {
       name: 'Distribution pole line', short: 'Power pole',
-      w: 0.5, d: 0.5, h: 11, indicator: true, ef5capable: false,
+      w: 0.5, d: 0.5, h: 11, roofed: false, roofStyle: null, mat: 'wood', indicator: true, ef5capable: false,
       dods: [
         ['Conductors down; poles leaning', 70, 58, 85],
         ['Poles snapped or uprooted', 85, 70, 103],
@@ -328,6 +328,7 @@ window.TS = window.TS || {};
     if (!w._idxS || w._idxSeedKey !== w.key) {
       w._idxS = buildIndex(w.structures, w.extent);
       w._idxT = buildIndex(w.trees, w.extent);
+      w._idxP = buildIndex(w.props || [], w.extent);
       w._idxSeedKey = w.key;
     }
     TS.clearTerrainDamage(w);
@@ -337,6 +338,9 @@ window.TS = window.TS || {};
     sim.scour = [];
     sim._hitS = [];
     sim._hitT = [];
+    sim._hitP = [];
+    sim.flung = [];
+    sim.salamanderHit = false;
   };
 
 
@@ -421,6 +425,50 @@ window.TS = window.TS || {};
      Called from sim-core. Reads the wind field, writes DOD state and the
      monotone journal. Never invents a number. */
 
+  /* ── What comes off, and when ────────────────────────────────────────
+     The renderer already decides what a damaged building LOOKS like from
+     fractions of its own ladder length (a barn with 7 rungs and a house
+     with 10 both lose their roof around the same point in their own
+     story). Those same fractions decide what physically departs, so the
+     roof leaving the mesh and the roof appearing in the air are the same
+     event rather than two effects that happen to agree.
+
+     Note this fires on the CROSSING, not on the state. A structure that
+     jumps three rungs in one step still sheds its roof exactly once. */
+
+  const F_ROOF = 0.40, F_WALLS = 0.62;
+
+  function flingStructure(sim, s, spec, from, nd) {
+    const maxDod = spec.ms.length;
+    const fFrom = from / maxDod, fTo = nd / maxDod;
+    const mat = spec.mat || 'wood';
+
+    if (spec.roofed && fFrom < F_ROOF && fTo >= F_ROOF) {
+      TS.flingFrom(sim, {
+        x: s.x, y: s.y, z: s.h,
+        w: s.w, h: s.h * 0.42, d: s.d,
+        kind: 'roof', count: 3, mat: mat
+      });
+    }
+    if (fFrom < F_WALLS && fTo >= F_WALLS) {
+      TS.flingFrom(sim, {
+        x: s.x, y: s.y, z: s.h * 0.55,
+        w: s.w, h: s.h * 0.7, d: s.d,
+        kind: 'wall', count: 4, mat: mat
+      });
+    }
+    // The last rung on every ladder is some form of "swept away". When a
+    // structure reaches it, the structure itself is what leaves.
+    if (nd >= maxDod && from < maxDod) {
+      TS.flingFrom(sim, {
+        x: s.x, y: s.y, z: s.h * 0.5,
+        w: s.w * 0.8, h: s.h * 0.6, d: s.d * 0.8,
+        kind: 'whole', count: 1, mat: mat
+      });
+    }
+  }
+
+
   const _wv = { u: 0, v: 0, w: 0, speed: 0, r: 0 };
 
   TS.applyDamage = function (sim, dt) {
@@ -454,6 +502,7 @@ window.TS = window.TS || {};
         // Failing structures are where debris comes from. Not decoration:
         // the radar debris signature downstream is driven by this.
         if (TS.spawnDebris) TS.spawnDebris(sim, s.x, s.y, (nd - from) * 3 + 2, 'structure');
+        if (TS.flingFrom) flingStructure(sim, s, spec, from, nd);
       }
     }
 
@@ -478,8 +527,22 @@ window.TS = window.TS || {};
           from, to: nd, wind: sp, eff: sp, dwell: 0
         });
         if (nd >= 3 && TS.spawnDebris) TS.spawnDebris(sim, tr.x, tr.y, 3, 'vegetation');
+        // Uprooted is the rung at which a tree stops being scenery and
+        // starts being a projectile. The crown goes; the stump does not.
+        if (nd >= 3 && from < 3 && TS.flingFrom) {
+          TS.flingFrom(sim, {
+            x: tr.x, y: tr.y, z: tr.h * 0.7,
+            w: tr.r * 1.7, h: tr.h * 0.55, d: tr.r * 1.7,
+            kind: 'crown', count: 1, mat: 'vegetation'
+          });
+        }
       }
     }
+
+    // Props are damaged on the same pass but kept in their own list, and
+    // TS.assessDamage never walks that list. That separation is the whole
+    // guarantee that a flying pickup cannot move the EF rating.
+    if (TS.applyPropDamage) TS.applyPropDamage(sim, dt);
 
     // Ground scour: bare soil lifts once surface winds get high enough.
     // This is what makes the dust cloud appear before anything breaks.

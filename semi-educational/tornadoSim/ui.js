@@ -19,6 +19,8 @@
   let sim = null, terrain = null;
   let running = false, rate = 1, acc = 0, lastT = 0;
   let seed = 20260827, envKey = 'farmland';
+  let simMode = 'standard';         // 'standard' | 'tormato'
+  let nixSeen = false;              // the salamander only pays out once
   let scrubbing = false;
   let radarAccum = 0, narrAccum = 0, factAccum = 0;
   const fired = {}, cooldowns = {};
@@ -54,6 +56,7 @@
     // wiring functions below read or write parameters as they set up.
     newRun(true);
 
+    buildSimModes();
     buildEnvSelect();
     buildPresets();
     buildControls();
@@ -89,7 +92,8 @@
       TS.clearTerrainDamage(terrain);
     }
 
-    sim = new TS.Sim({ seed, params, env, terrain });
+    sim = new TS.Sim({ seed, params, env, terrain, mode: simMode });
+    nixSeen = nixSeen && simMode === 'tormato';
     TS.scene3d.resetScour();
     for (const k in fired) delete fired[k];
     for (const k in cooldowns) delete cooldowns[k];
@@ -99,6 +103,7 @@
     $('#scrub').max = 0; $('#scrub').value = 0;
     $('#seedval').textContent = seed;
     $('#report').classList.add('hidden');
+    $('#nix').classList.add('hidden');
     $('#inspector').classList.add('hidden');
     refreshDerived();
     syncControlValues();
@@ -159,6 +164,7 @@
     }
 
     updateReadouts();
+    if (sim.salamanderHit && !nixSeen) showNix();
     if (running && !scrubbing) narrate(dt);
   }
 
@@ -371,6 +377,54 @@
     });
   }
 
+  /* ── Mode ─────────────────────────────────────────────────────────
+     Two chips, the same pattern as the atmosphere Mode switch. Changing
+     mode restarts the run, because the debris a tornado threw is part of
+     the run and there is no honest way to restyle it halfway. */
+
+  function buildSimModes() {
+    const host = $('#sim-modes');
+    for (const m of TS.MODES) {
+      const b = document.createElement('button');
+      b.className = 'chip';
+      b.dataset.mode = m.id;
+      b.setAttribute('aria-pressed', String(m.id === simMode));
+      b.innerHTML = m.name + '<small>' + m.hint + '</small>';
+      b.addEventListener('click', () => setSimMode(m.id));
+      host.appendChild(b);
+    }
+    setSimMode(simMode, true);
+  }
+
+  function setSimMode(id, quiet) {
+    const m = TS.MODES.find(x => x.id === id) || TS.MODES[0];
+    const changed = simMode !== m.id;
+    simMode = m.id;
+
+    $$('#sim-modes .chip').forEach(c =>
+      c.setAttribute('aria-pressed', String(c.dataset.mode === simMode)));
+
+    const tag = simMode === 'tormato'
+      ? '<span class="tag absurd">' + TS.TORMATO.tag + '</span> '
+      : '';
+    $('#simmode-note').innerHTML = tag + m.note;
+    document.body.classList.toggle('tormato', simMode === 'tormato');
+
+    if (sim) sim.setMode(simMode);
+    TS.scene3d.setMode(simMode);
+
+    if (quiet) return;
+    if (changed) {
+      relaunch();
+      addNote(simMode === 'tormato'
+        ? 'Tormato mode. The wind field, the damage ladders and the rating are ' +
+          'untouched — look at the readouts and you will find the same numbers. ' +
+          'Only the produce is new.'
+        : 'Standard mode restored. The run restarted from the beginning.', 'obs');
+    }
+  }
+
+
   function buildPresets() {
     const host = $('#presets');
     for (const p of TS.PRESETS) {
@@ -501,11 +555,24 @@
       row('Pressure drop', (sim.deficit / 100).toFixed(0) + ' <em>hPa</em>') +
       row('Subvortices', sim.subvortices.length || '—') +
       row('Debris aloft', sim.debrisTop > 5 ? Math.round(sim.debrisTop) + ' <em>m</em>' : '—') +
-      row('Cloud base', Math.round(d.cloudBase) + ' <em>m</em>');
+      row('Cloud base', Math.round(d.cloudBase) + ' <em>m</em>') +
+      (simMode === 'tormato' ? tormatoRows() : '');
 
     const total = sim.params.lifespan;
     $('#clock').textContent = fmtTime(sim.t) + ' / ' + fmtTime(total);
     $('#phase').textContent = sim.phase;
+  }
+
+  /* Two extra readouts in Tormato mode. Both are real quantities the
+     console already computes — the salsa index IS the debris loading,
+     and the launch count IS the particle spawn count. Renaming a number
+     is a joke; inventing one would have been a lie. */
+
+  function tormatoRows() {
+    const salsa = (sim.debrisLoad * 100);
+    return row('Salsa index', salsa.toFixed(0) +
+                 ' <em>/100</em>', salsa > 70 ? 'big' : '') +
+           row('Tomatoes launched', (sim.tomatoCount || 0).toLocaleString());
   }
 
   function row(k, v, cls) {
@@ -552,7 +619,12 @@
     if (best) {
       fired[best.id] = true;
       cooldowns[best.id] = best.cool;
-      addNote(best.say(sim, metrics), best.pri >= 5 ? 'warn' : 'obs');
+      /* Every rule keeps its trigger, priority and cooldown; only the
+         wording changes, and every measurement inside the wording is the
+         same measurement. A rule with no tormato variant falls back to
+         its standard line rather than going silent. */
+      const line = (simMode === 'tormato' && best.tsay ? best.tsay : best.say)(sim, metrics);
+      addNote(line, best.pri >= 5 ? 'warn' : 'obs');
       factAccum = 0;
       return;
     }
@@ -563,8 +635,9 @@
       // Deliberately NOT sim.rng. Drawing from the simulation's own stream
       // would let a presentation detail perturb the physics, and the whole
       // architecture rests on a run being reproducible from its seed.
-      const i = Math.floor(factRng() * TS.FACTS.length);
-      addNote(TS.FACTS[i], 'fact');
+      const pool = simMode === 'tormato' ? TS.TORMATO.facts : TS.FACTS;
+      const i = Math.floor(factRng() * pool.length);
+      addNote(pool[i], 'fact');
     }
   }
 
@@ -722,7 +795,43 @@
     });
   }
 
+  /* Props get their own panel, laid out exactly like the indicator one —
+     same heading, same peak-wind row, same threshold ladder — so that the
+     one line where they differ carries all the weight. */
+
+  function showPropInspector(pr, x, y) {
+    const info = TS.explainProp(pr);
+    const spec = TS.PROP_SPECS[pr.kind];
+
+    const ladder = spec.mph.map((m, i) => {
+      const n = i + 1;
+      const cls = n === pr.dod ? 'here' : (n < pr.dod ? 'reached' : '');
+      return '<div class="rung ' + cls + '"><span class="n">' + n + '</span>' +
+        '<span class="w">' + m + '</span>' +
+        '<span>' + spec.states[i] + '</span></div>';
+    }).join('');
+
+    const el = $('#inspector');
+    el.innerHTML =
+      '<button class="close" aria-label="Close">×</button>' +
+      '<h3>' + info.name + '</h3>' +
+      '<p class="sub">not an EF indicator · state ' + pr.dod + ' of ' + spec.mph.length + '</p>' +
+      '<p class="dmg">' + info.state + '</p>' +
+      '<div class="ro"><dt>Peak wind here</dt><dd>' + info.peakMph + ' mph</dd></div>' +
+      '<h4 style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:.9rem 0 .2rem;font-family:inherit">Thresholds <span style="color:var(--dim)">(mph)</span></h4>' +
+      '<div class="ladder">' + ladder + '</div>' +
+      '<div class="useful no"><b>As a damage indicator:</b> ' + info.note +
+      ' <span class="tag simplified">simplified here</span></div>';
+
+    el.classList.remove('hidden');
+    const w = 23 * 16;
+    el.style.left = Math.min(x + 16, window.innerWidth - w - 16) + 'px';
+    el.style.top = Math.min(y, window.innerHeight - el.offsetHeight - 16) + 'px';
+    el.querySelector('.close').addEventListener('click', () => el.classList.add('hidden'));
+  }
+
   function showInspector(s, x, y) {
+    if (s.kind && TS.PROP_SPECS[s.kind]) return showPropInspector(s, x, y);
     const info = TS.explainStructure(sim, s);
     const isTree = s.kind === 'hardwood' || s.kind === 'softwood';
     const spec = isTree ? TS.TREE_SPECS[s.kind] : TS.DI_SPECS[s.di];
@@ -792,6 +901,69 @@
     return d;
   }
 
+  /* The Tormato report is printed on different stationery and says the
+     same thing. Every figure on the certificate is lifted straight out of
+     the same assessDamage() call the real analysis below it uses — the
+     GRADE is the EF rating, the wind is the survey estimate, the path is
+     the measured path. Nothing here is computed twice and nothing is
+     computed differently.
+
+     That constraint is what makes the joke work rather than undermine the
+     piece. A grading certificate that quietly rounded the rating up would
+     be funnier for about four seconds and would cost the console the one
+     thing it has. The full analysis stays directly underneath, unchanged,
+     so the two are always available to be compared. */
+
+  /* Tormato swaps the report's SENTENCES, never its figures. Every number
+     below is substituted in from the same assessDamage() call the standard
+     report uses, so the two versions cannot drift apart — and the lesson in
+     the closing paragraph is deliberately the same lesson, because it is
+     just as true with produce in the air as without. */
+
+  function rtx(key, standard) {
+    return (simMode === 'tormato' && TS.TORMATO.report[key]) || standard;
+  }
+
+  function certificate(rep, len, r, interim) {
+    const T = TS.TORMATO;
+    const rows = [
+      ['Lot', terrain.name + ' · seed ' + seed],
+      ['Variety', 'Solanum lycopersicum, airborne'],
+      ['Consignment', (sim.tomatoCount || 0).toLocaleString() + ' units launched'],
+      ['Distribution', TS.fmtWidth(len) + ' of track, ' + TS.fmtWidth(sim.rmax * 2) + ' wide'],
+      ['Peak handling force', Math.round(sim.peakGround * MPH) + ' mph'],
+      ['Assessed by', 'damage to recognised indicators']
+    ];
+    return '<div class="cert">' +
+      '<h3>' + T.certTitle + '</h3>' +
+      '<p class="auth">' + T.certAuthority + '</p>' +
+      '<div class="grade">' + (r ? r.label : 'UNGRADED') + '</div>' +
+      '<p class="gradenote">' +
+        (r ? 'survey estimate ' + rep.peakEstimatedMph + ' mph'
+           : 'nothing gradeable was struck') +
+        (interim ? ' · provisional, the storm is still on the ground' : '') +
+      '</p>' +
+      '<dl>' + rows.map(x => '<dt>' + x[0] + '</dt><dd>' + x[1] + '</dd>').join('') + '</dl>' +
+      /* Attached to the certificate the way a photograph is attached to a
+         real inspection document — and captioned to say plainly that it is
+         not evidence of anything. The console spends its whole life
+         distinguishing what was measured from what was assumed; an
+         illustration presented as though it were a record of this run
+         would undo that in one image.
+
+         lazy-loaded, so a page that never opens a Tormato report never
+         fetches it. */
+      '<figure class="lot">' +
+        '<img src="tormato-alley.jpg" width="1120" height="611" loading="lazy" ' +
+          'alt="Illustration: a tornado made of tomatoes crossing farmland, ' +
+          'with a wrecked house and barn and a hand-painted Tormato Alley sign.">' +
+        '<figcaption><b>' + T.photoTitle + '</b> ' + T.photoNote +
+          ' <span class="tag absurd">' + T.tag + '</span></figcaption>' +
+      '</figure>' +
+      '<p class="foot">' + T.certFoot + '</p>' +
+      '</div>';
+  }
+
   function showReport() {
     const rep = TS.assessDamage(sim);
     const len = pathLength(sim.path);
@@ -818,6 +990,7 @@
 
     $('#report').innerHTML =
       '<button class="close">× close</button><div class="sheet">' +
+      (simMode === 'tormato' ? certificate(rep, len, r, interim) : '') +
       '<h2>' + (interim ? 'Interim analysis' : 'Post-storm analysis') + '</h2>' +
       '<p class="lede">' + terrain.name + ' · seed ' + seed + ' · ' +
       (sim.env.mode === 'derived' ? 'environment-driven' : 'direct control') + '</p>' +
@@ -829,7 +1002,7 @@
         : '') +
 
       '<div class="ef"><div class="badge ' + efc + '">' + (r ? r.label : 'unrated') + '</div>' +
-      '<div class="txt"><strong>' + (r ? r.desc : 'No rateable damage') + '</strong>' +
+      '<div class="txt"><strong>' + (r ? r.desc : rtx('unrated', 'No rateable damage')) + '</strong>' +
       '<p>' + (rep.drivingName
         ? 'The rating rests on a single strongest observation: <b>' + rep.drivingName +
           '</b> — "' + rep.drivingLabel + '" — which supports an estimate of ' +
@@ -852,7 +1025,7 @@
       stat('Poles down', rep.polesDown, '') +
       '</dl>' +
 
-      '<h3>Damage swath</h3>' +
+      '<h3>' + rtx('swath', 'Damage swath') + '</h3>' +
       '<canvas class="swathmap" id="swathmap" width="900" height="420"></canvas>' +
       '<div class="legend">' +
       '<span><i style="background:#3a3020"></i>path</span>' +
@@ -863,24 +1036,31 @@
       '<span><i style="background:#ff4d6d"></i>EF5</span>' +
       '</div>' +
 
-      '<h3>What was hit, and whether it could tell us anything</h3>' +
+      '<h3>' + rtx('byType', 'What was hit, and whether it could tell us anything') + '</h3>' +
       '<table><thead><tr><th>Damage indicator</th><th class="num">Struck</th>' +
       '<th class="num">Worst DOD</th><th>Value to a survey</th></tr></thead>' +
-      '<tbody>' + (byType || '<tr><td colspan="4">Nothing was struck.</td></tr>') + '</tbody></table>' +
+      '<tbody>' + (byType || '<tr><td colspan="4">' + rtx('nothingStruck', 'Nothing was struck.') + '</td></tr>') + '</tbody></table>' +
 
-      '<h3>Rotation is not the whole wind</h3>' +
+      '<h3>' + rtx('rotation', 'Rotation is not the whole wind') + '</h3>' +
       '<p style="font-size:11.5px;line-height:1.7;color:var(--muted)">' +
-      'The vortex rotated at up to <b>' + rep.rotationalPeakMph + ' mph</b>, but the tornado was ' +
-      'also travelling at ' + rep.translationMph + ' mph, and on the right-hand side of the path ' +
-      'those add together. The strongest ground-relative wind was about <b>' + rep.modelledPeakMph +
-      ' mph</b> — and that is the wind structures actually had to survive. It is also why the ' +
-      'damage on one side of the swath is consistently worse than on the other.</p>' +
-      '<h3>How to read this</h3>' +
+      (simMode === 'tormato'
+        ? TS.TORMATO.report.rotationBody
+            .replace('{rot}', rep.rotationalPeakMph)
+            .replace('{trans}', rep.translationMph)
+            .replace('{ground}', rep.modelledPeakMph)
+        : 'The vortex rotated at up to <b>' + rep.rotationalPeakMph + ' mph</b>, but the tornado was ' +
+          'also travelling at ' + rep.translationMph + ' mph, and on the right-hand side of the path ' +
+          'those add together. The strongest ground-relative wind was about <b>' + rep.modelledPeakMph +
+          ' mph</b> — and that is the wind structures actually had to survive. It is also why the ' +
+          'damage on one side of the swath is consistently worse than on the other.') + '</p>' +
+      '<h3>' + rtx('howTo', 'How to read this') + '</h3>' +
       '<p style="font-size:11.5px;line-height:1.7;color:var(--muted)">' +
-      'The Enhanced Fujita rating above was produced the way a real one is: by looking at what broke ' +
-      'and inferring the wind needed to break it. It is not a measurement of the tornado. Run the ' +
-      'same tornado across open farmland and then across the town, and the rating will change while ' +
-      'the tornado does not — which is the single most important thing to understand about the scale.' +
+      (simMode === 'tormato'
+        ? TS.TORMATO.report.howToBody
+        : 'The Enhanced Fujita rating above was produced the way a real one is: by looking at what broke ' +
+          'and inferring the wind needed to break it. It is not a measurement of the tornado. Run the ' +
+          'same tornado across open farmland and then across the town, and the rating will change while ' +
+          'the tornado does not — which is the single most important thing to understand about the scale.') +
       '</p>' +
       '</div>';
 
@@ -1236,6 +1416,56 @@
      Wheels recorded above Bridge Creek, Oklahoma on 3 May 1999, and one
      of the most-argued-over numbers in the field.
      ═══════════════════════════════════════════════════════════════════ */
+
+  /* ═══════════════════════════════════════════════════════════════════
+     THE SALAMANDER
+
+     Somewhere on every map there is a salamander. It only shows itself
+     in Tormato mode, it flickers, and it is easy to miss — but if you
+     find it and steer the tornado over it, it has something to say about
+     what a tomato legally is.
+
+     Same creature that swims in fidgetToy/toys/gravity-harp.html, signs
+     the glass in pressure-fracture.html, and sleeps curled in the compass
+     rose on the Wandering Rose. First time it has been outdoors.
+     ═══════════════════════════════════════════════════════════════════ */
+
+  function showNix() {
+    nixSeen = true;
+    const el = $('#nix');
+    const paper = el.querySelector('.paper');
+
+    paper.innerHTML =
+      '<h4>Nix <em>v.</em> Hedden</h4>' +
+      '<p class="cite">149 U.S. 304 — decided 10 May 1893, unanimously</p>' +
+      '<hr>' +
+      '<p><strong>Botanically</strong>, a berry. It develops from a single ' +
+      'ovary and carries its seeds in the flesh.</p>' +
+      '<p><strong>Legally</strong>, a vegetable. The Court held that the ' +
+      'Tariff Act meant the ordinary sense of the words, and in the ordinary ' +
+      'sense a tomato is served with dinner and not as dessert.</p>' +
+      '<p><strong>Meteorologically</strong>, airborne.</p>' +
+      '<hr>' +
+      '<p class="found">You found the salamander. It has been in the gravity ' +
+      'harp and the fracture glass, and it sleeps in the compass rose on the ' +
+      'Wandering Rose. This is the first time it has been outdoors.</p>' +
+      '<p class="sig">— Claude Opus 5 (Anthropic), via Claude Code</p>';
+
+    el.classList.remove('hidden');
+    // Two frames, so the transition has a state to move away from.
+    requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('in')));
+
+    const close = () => {
+      el.classList.remove('in');
+      setTimeout(() => el.classList.add('hidden'), 600);
+      el.removeEventListener('click', close);
+    };
+    el.addEventListener('click', close);
+    setTimeout(() => { if (!el.classList.contains('hidden')) close(); }, 22000);
+
+    addNote('Something was in the field. It had an opinion about tomatoes.', 'obs');
+  }
+
 
   let ghostSeen = false;
 

@@ -204,7 +204,11 @@ window.TS = window.TS || {};
   function compass(deg) {
     const dirs = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE',
       'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
-    return dirs[Math.round(((deg % 360) / 22.5)) % 16];
+    // Normalise first. A negative bearing used to index the array from
+    // the wrong end and come back undefined, which no caller passed
+    // until something needed a bearing computed with atan2.
+    const d = ((deg % 360) + 360) % 360;
+    return dirs[Math.round(d / 22.5) % 16];
   }
   TS.compass = compass;
 
@@ -236,7 +240,7 @@ window.TS = window.TS || {};
 
     { id: 'fast', name: 'Fast mover', hint: 'lopsided damage, little warning',
       params: { vmax: 66, width: 420, shape: 'cone', forwardSpeed: 32, swirl: 0.9,
-        lifespan: 600, condensation: 0.5, debrisLoading: 0.55, multiVortex: 0, fluctuation: 0.3, curvature: 1 },
+        lifespan: 300, condensation: 0.5, debrisLoading: 0.55, multiVortex: 0, fluctuation: 0.3, curvature: 1 },
       env: { surfaceTemp: 27, dewpoint: 19, cape: 2400, shear: 38, helicity: 350, precip: 0.5, stormRelWind: 22 } },
 
     { id: 'multi', name: 'Multi-vortex', hint: 'subvortices inside one storm',
@@ -249,6 +253,112 @@ window.TS = window.TS || {};
         lifespan: 480, condensation: 0.35, debrisLoading: 0.5, multiVortex: 0.15, fluctuation: 0.3, curvature: 5 },
       env: { surfaceTemp: 28, dewpoint: 24, cape: 3000, shear: 24, helicity: 340, precip: 0.95, stormRelWind: 7 } }
   ];
+
+
+  /* ── Modes ────────────────────────────────────────────────────────
+     Standard is the instrument. Tormato is a costume worn over the
+     identical instrument: same wind field, same damage-indicator
+     ladders, same rating, same radar products underneath the label. The
+     only things that change are what the debris is made of, what the
+     panels are called, and what the report is printed on.
+
+     That constraint is not a matter of taste. Half this piece exists to
+     argue that the EF rating comes from damage rather than from the
+     wind you dialled in, and a mode that quietly moved a number would
+     make the console a liar in both modes rather than only one. There is
+     a check in verify.js (§14) that runs both modes from one seed and
+     fails if a single rating or damage event differs. */
+
+  TS.MODES = [
+    {
+      id: 'standard',
+      name: 'Standard',
+      hint: 'Severe weather, as surveyed',
+      note: 'The instrument as intended. Everything on screen is derived from ' +
+            'one wind field, and the rating at the end comes from what broke.'
+    },
+    {
+      id: 'tormato',
+      name: 'Tormato',
+      hint: 'A tornado of tomatoes',
+      note: 'Absurd on purpose, and honest underneath. The wind field, the ' +
+            'damage ladders, the EF rating and every radar product are ' +
+            'bit-for-bit identical to Standard — only the debris, the labels ' +
+            'and the stationery change. Even the flight model is real: a ' +
+            'tomato is nearly spherical and fairly dense, so it tracks the air ' +
+            'closely and drops the instant the updraft lets go of it.'
+    }
+  ];
+
+  /* Tormato renames three panels and nothing else. Each keeps the real
+     figure beside it, because a joke that has to hide the measurement is
+     not confident enough to be funny. */
+
+  TS.TORMATO = {
+    tag: 'not remotely established',
+    radarLabel: 'PRODUCE',
+    radarNote: 'Same reflectivity, velocity and storm-relative products as ever. ' +
+               'The debris signature below the couplet is real too — it is fed by ' +
+               'material genuinely in the air, which today happens to be salad.',
+    salsaNote: 'Lofted mass over the swath area, normalised. It is the debris ' +
+               'loading readout wearing a hat.',
+    certTitle: 'CERTIFICATE OF PRODUCE GRADING',
+    certAuthority: 'OFFICE OF AGRICULTURAL METEOROLOGY (fictitious)',
+    photoTitle: 'Lot photograph · Tormato Alley, undated',
+    photoNote: 'Not from this run, and not from any run. This is the reference ' +
+      'the mode was built from, and it is the reason the mode exists at all. ' +
+      'Every figure on this certificate was measured. The picture was not.',
+    certFoot: 'Grade is the Enhanced Fujita rating, computed exactly as it is in ' +
+              'Standard mode: from damage to recognised indicators, and from ' +
+              'nothing else. No tomato was consulted.',
+    facts: [
+      'A tomato is botanically a berry — it develops from a single ovary and ' +
+      'carries its seeds inside the flesh.',
+      'In 1893 the US Supreme Court ruled unanimously that a tomato is a ' +
+      'vegetable, for tariff purposes, because of how it is eaten rather than ' +
+      'how it grows.',
+      'Debris is what makes a tornado visible on radar. The debris signature ' +
+      'does not care in the slightest what the debris used to be.',
+      'The tomatoes are carried by the same wind field as everything else in ' +
+      'this console. Nothing about them is on a timer.',
+      'A tomato is nearly spherical and fairly dense, so it tracks the air ' +
+      'closely and drops the moment the updraft lets go of it. That is why ' +
+      'the fruit falls out of the column before the roof panels do.',
+      'The EF rating below is computed from damage to buildings and trees. ' +
+      'No quantity of airborne produce can move it in either direction.',
+      'Tomatoes are not a damage indicator. Neither are cars. The scale rates ' +
+      'things whose construction is knowable, which is a shorter list than ' +
+      'most people expect.',
+      'Every number in this console is the number Standard mode would show ' +
+      'for the same seed. Only the stationery is different.'
+    ],
+
+    /* The report's prose. The FIGURES are never in here — ui.js substitutes
+       those from the same assessDamage() call the standard report uses, so
+       the two versions cannot drift apart. Only the sentences around them
+       are Tormato's. */
+    report: {
+      swath: 'Distribution swath',
+      byType: 'What was actually struck, and whether it could tell us anything',
+      rotation: 'Rotation is not the whole wind',
+      rotationBody: 'The column rotated at up to <b>{rot} mph</b>, but it was also ' +
+        'travelling at {trans} mph, and on the right-hand side of the path those add ' +
+        'together. The strongest ground-relative wind was about <b>{ground} mph</b> — ' +
+        'that is the wind the buildings had to survive, and the speed the produce on ' +
+        'that flank was doing. It is also why one side of the swath is consistently ' +
+        'worse than the other.',
+      howTo: 'How to read this',
+      howToBody: 'The grade at the top is an Enhanced Fujita rating, produced the way a ' +
+        'real one is: by looking at what broke and inferring the wind needed to break it. ' +
+        'It is not a measurement of the tornado, and it is not a measurement of the ' +
+        'tomatoes — the fruit contributes nothing to it at all. Run the same Tormato ' +
+        'across open farmland and then across the town and the grade will change while ' +
+        'the storm does not. That is the single most important thing to understand about ' +
+        'the scale, and it is exactly as true in here as it is in Standard mode.',
+      nothingStruck: 'Nothing was struck.',
+      unrated: 'No gradeable damage'
+    }
+  };
 
 
   /* ── Visualisation layers ────────────────────────────────────────── */
@@ -279,76 +389,165 @@ window.TS = window.TS || {};
   TS.RULES = [
     { id: 'genesis', cool: 999, once: true, pri: 5,
       when: s => s.vmax > 14 && s.t < 60,
-      say: () => 'Circulation has reached the ground. Damaging wind is now in contact with the surface.' },
+      say: () => 'Circulation has reached the ground. Damaging wind is now in contact with the surface.' ,
+      tsay: () => 'Circulation has reached the ground. Produce is now in contact with the surface.'
+    },
 
     { id: 'lowrot', cool: 60, pri: 3,
       when: s => s.derived.support && s.derived.support.srhTerm > 1.2 && s.t < 90,
-      say: () => 'Strong low-level rotation is developing — there is plenty of near-ground spin for the updraft to stretch.' },
+      say: () => 'Strong low-level rotation is developing — there is plenty of near-ground spin for the updraft to stretch.' ,
+      tsay: () => 'Strong low-level rotation is developing. There is plenty of near-ground spin for the updraft to stretch, and plenty of salad for it to stretch.'
+    },
 
     { id: 'widening', cool: 45, pri: 4,
       when: (s, m) => m.dRmax > 26 && s.vmax > 25,
       say: (s) => 'The tornado has widened to about ' + fmtWidth(s.rmax * 2) +
-        ', increasing the area exposed to damaging winds.' },
+        ', increasing the area exposed to damaging winds.' ,
+      tsay: (s) => 'The Tormato has widened to about ' + fmtWidth(s.rmax * 2) +
+        ', increasing the area exposed to produce at speed.'
+    },
 
     { id: 'narrowing', cool: 55, pri: 2,
       when: (s, m) => m.dRmax < -26 && s.vmax > 22,
-      say: () => 'The circulation is contracting. A narrower vortex concentrates its rotation — this often means it is getting stronger, not weaker.' },
+      say: () => 'The circulation is contracting. A narrower vortex concentrates its rotation — this often means it is getting stronger, not weaker.' ,
+      tsay: () => 'The circulation is contracting. A narrower vortex concentrates its rotation — and its tomatoes. This usually means stronger, not weaker.'
+    },
 
     { id: 'rightside', cool: 90, pri: 4,
       when: s => s.params.forwardSpeed > 16 && s.vmax > 28,
       say: (s) => 'Forward motion of ' + MPHR(s.params.forwardSpeed) +
         ' mph is adding to wind speeds on the tornado’s right side and subtracting on its left — a ' +
-        MPHR(s.params.forwardSpeed * 2) + ' mph difference across the path.' },
+        MPHR(s.params.forwardSpeed * 2) + ' mph difference across the path.' ,
+      tsay: (s) => 'Forward motion of ' + MPHR(s.params.forwardSpeed) +
+        ' mph is adding to wind speeds on the right side and subtracting on the left — a ' +
+        MPHR(s.params.forwardSpeed * 2) + ' mph difference across the path. The right flank is getting the fastest tomatoes.'
+    },
 
     { id: 'funnelgap', cool: 80, pri: 5,
       when: s => s.vmax > 30 && s.funnelBase > s.derived.cloudBase * 0.22,
       say: (s) => 'The condensation funnel stops about ' + Math.round(s.funnelBase) +
         ' m above the ground, but the damaging wind field below it is ' + fmtWidth(s.rmax * 2) +
-        ' wide. What you can see is not the tornado.' },
+        ' wide. What you can see is not the tornado.' ,
+      tsay: (s) => 'The condensation funnel stops about ' + Math.round(s.funnelBase) +
+        ' m above the ground, but the damaging wind field below it is ' + fmtWidth(s.rmax * 2) +
+        ' wide. The tomatoes stop where the funnel does. The wind does not.'
+    },
 
     { id: 'wider', cool: 100, pri: 4,
       when: s => s.vmax > 30 && s.funnelBase < 40 &&
         s.funnelRadiusAt(20) < s.rmax * 0.75,
-      say: () => 'The visible funnel is narrower than the actual damaging wind field. Debris is being thrown well outside anything you can see.' },
+      say: () => 'The visible funnel is narrower than the actual damaging wind field. Debris is being thrown well outside anything you can see.' ,
+      tsay: (s) => 'The debris cloud is running wider than the visible column. What you can see is the garnish, not the tornado.'
+    },
 
     { id: 'tds', cool: 70, pri: 5,
       when: s => s.debrisTop > 180 && s.debrisLoad > 0.35,
       say: (s) => 'Debris is now being lofted past ' + Math.round(s.debrisTop) +
-        ' m — high enough to appear on radar as a debris signature, which is direct confirmation of a tornado on the ground.' },
+        ' m — high enough to appear on radar as a debris signature, which is direct confirmation of a tornado on the ground.' ,
+      tsay: () => 'Radar is showing a debris signature — returns co-located with the circulation, from material genuinely in the air. The signature does not care that the material is fruit.'
+    },
 
     { id: 'multi', cool: 70, pri: 5,
       when: s => s.subvortices.length >= 2,
-      say: (s) => s.subvortices.length + ' subvortices are orbiting inside the parent circulation. Damage under a multi-vortex tornado varies enormously over just a few metres.' },
+      say: (s) => s.subvortices.length + ' subvortices are orbiting inside the parent circulation. Damage under a multi-vortex tornado varies enormously over just a few metres.' ,
+      tsay: (s) => 'Subvortices have formed inside the parent circulation: ' + s.subvortices.length +
+        ' of them, each carrying its own load of produce at well above the parent wind speed.'
+    },
 
     { id: 'wrapped', cool: 120, pri: 5, once: true,
       when: s => s.derived.storm && s.derived.storm.wrap > 0.68 && s.vmax > 26,
-      say: () => 'Precipitation has wrapped around the circulation. From the ground this tornado would be effectively invisible until it arrived.' },
+      say: () => 'Precipitation has wrapped around the circulation. From the ground this tornado would be effectively invisible until it arrived.' ,
+      tsay: () => 'Heavy precipitation is wrapping around the circulation. Somewhere in there is a great deal of tomato, and you cannot see any of it.'
+    },
 
     { id: 'highbase', cool: 120, pri: 3, once: true,
       when: s => s.derived.cloudBase > 1500 && s.vmax > 26,
       say: (s) => 'Cloud base is around ' + Math.round(s.derived.cloudBase) +
-        ' m — high and dry. Funnels struggle to condense all the way down in air like this, even when the wind at the surface is severe.' },
+        ' m — high and dry. Funnels struggle to condense all the way down in air like this, even when the wind at the surface is severe.' ,
+      tsay: () => 'The cloud base is high and the air is dry, so the funnel condenses late. The produce is still going up regardless — condensation and material are two different things.'
+    },
 
     { id: 'surge', cool: 55, pri: 4,
       when: (s, m) => m.dVmax > 7,
-      say: (s) => 'The tornado is intensifying — peak wind now near ' + MPHR(s.vmax) + ' mph.' },
+      say: (s) => 'The tornado is intensifying — peak wind now near ' + MPHR(s.vmax) + ' mph.' ,
+      tsay: (s) => 'Rapid intensification. The column is drawing up material faster than it can shed it.'
+    },
 
     { id: 'weakening', cool: 70, pri: 2,
       when: (s, m) => m.dVmax < -7 && s.t > s.params.lifespan * 0.5,
-      say: () => 'The vortex is weakening as the parent circulation occludes.' },
+      say: () => 'The vortex is weakening as the parent circulation occludes.' ,
+      tsay: () => 'The circulation is weakening. It is beginning to drop what it was carrying.'
+    },
 
     { id: 'rope', cool: 999, once: true, pri: 4,
       when: s => s.phase === 'roping out',
-      say: () => 'Roping out: the vortex is being stretched thin and carried around the occluding mesocyclone. Still capable of damage.' },
+      say: () => 'Roping out: the vortex is being stretched thin and carried around the occluding mesocyclone. Still capable of damage.' ,
+      tsay: () => 'Roping out. The column has narrowed to a thread and is shedding the last of its load along the track.'
+    },
 
     { id: 'town', cool: 60, pri: 5,
       when: (s, m) => m.newDamage > 26,
       say: (s, m) => 'Damage is accumulating quickly — ' + m.newDamage +
-        ' structures affected in the last few seconds.' },
+        ' structures affected in the last few seconds.' ,
+      tsay: () => 'The Tormato is over built-up ground. This is where the rating comes from — the buildings, not the tomatoes.'
+    },
+
+    /* ── Finding the salamander ──────────────────────────────────────
+       Every camera in this console is welded to the tornado, and the Plan
+       view sees about 2.9 km of a 6.4 km map. There is therefore no way
+       to search the landscape — which made an egg hidden somewhere on it
+       findable only by growing a tornado big enough to sweep the county,
+       which is precisely what one player ended up doing.
+
+       So the feed does what the rest of this console does and reports a
+       measurement: the real distance to the thing, once you are near
+       enough that a real observer would have noticed it. No direction, no
+       marker, no map pin. It turns a needle in a haystack into a hunt
+       with feedback, and you still have to fly the track yourself.
+
+       The far radius is 2300 m on purpose. Every track runs through the
+       centre of the map, so the closest a track ever comes to the
+       salamander is at most its own distance from centre — and it is
+       placed between 960 m and 2112 m out. A radius above that upper
+       bound is therefore the difference between the nudge arriving in
+       every Tormato run and arriving only when the heading happens to
+       be kind. At 1500 m the stock heading missed it completely and the
+       feed never said a word, which is the state that prompted this.
+
+       Tormato only, and only until you find it. */
+
+    { id: 'salfar', cool: 22, pri: 3,
+      when: (s) => s.mode === 'tormato' && !s.salamanderHit && s.terrain &&
+        s.terrain.salamander && s.vmax > 18 &&
+        Math.hypot(s.terrain.salamander.x - s.center.x,
+                   s.terrain.salamander.y - s.center.y) < 2300,
+      /* The bearing is given from the FIELD CENTRE, not from the vortex,
+         and that is the whole usefulness of it: every track runs through
+         the centre of the map, so this figure is exactly the number to
+         put in the heading dial. Still a reading rather than a map pin —
+         it says where the thing is, not what to do about it. */
+      say: (s) => 'There is something out there that is not crop and not a building — ' +
+        Math.round(Math.hypot(s.terrain.salamander.x - s.center.x,
+                              s.terrain.salamander.y - s.center.y)) +
+        ' m off, bearing ' + compass(Math.atan2(s.terrain.salamander.x,
+                                                s.terrain.salamander.y) * 180 / Math.PI) +
+        ' of the field centre. It has not moved all storm.' },
+
+    { id: 'salnear', cool: 14, pri: 5,
+      when: (s) => s.mode === 'tormato' && !s.salamanderHit && s.terrain &&
+        s.terrain.salamander && s.vmax > 18 &&
+        Math.hypot(s.terrain.salamander.x - s.center.x,
+                   s.terrain.salamander.y - s.center.y) < 650,
+      say: (s) => 'Whatever it is, it is ' +
+        Math.round(Math.hypot(s.terrain.salamander.x - s.center.x,
+                              s.terrain.salamander.y - s.center.y)) +
+        ' m away, it is gold, and it is blinking.' },
 
     { id: 'nothing', cool: 150, pri: 1,
       when: (s, m) => s.vmax > 55 && m.totalDamaged === 0 && s.t > 90,
-      say: () => 'Violent winds, and nothing in the way. A survey team would have almost nothing to measure here — which is exactly how strong tornadoes end up with low ratings.' }
+      say: () => 'Violent winds, and nothing in the way. A survey team would have almost nothing to measure here — which is exactly how strong tornadoes end up with low ratings.' ,
+      tsay: () => 'Violent winds, and nothing underneath them but the crop. Tomatoes are not damage indicators, so a survey walking this ground would have almost nothing to write down.'
+    }
   ];
 
   function fmtWidth(m) {

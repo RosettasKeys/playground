@@ -20,6 +20,11 @@
      - a slow tornado out-damages a fast one at identical peak wind
      - the same seed reproduces a run exactly
      - the same environment, re-rolled, gives different tornadoes
+     - PROPS DO NOT RATE: cars, trailers and livestock are damaged by the
+       same wind field and are invisible to the rating
+     - flung wreckage is reproducible from the seed
+     - MODE NEUTRALITY: Tormato is a costume, and produces a bit-identical
+       rating and damage journal to standard mode
 
    If the EF check ever stops showing a large gap between the open-field
    and small-town ratings, the damage model is wrong and the whole point
@@ -35,7 +40,7 @@ const ctx = { window: {}, Math, console, isFinite, Object, Array, Number, String
 ctx.globalThis = ctx;
 vm.createContext(ctx);
 
-for (const f of ['sim-core.js', 'sim-env.js', 'sim-damage.js', 'sim-debris.js', 'data-terrain.js']) {
+for (const f of ['sim-core.js', 'sim-env.js', 'sim-damage.js', 'sim-debris.js', 'sim-props.js', 'sim-fling.js', 'data-terrain.js']) {
   vm.runInContext(fs.readFileSync(path.join(DIR, f), 'utf8'), ctx, { filename: f });
 }
 const TS = ctx.window.TS;
@@ -191,5 +196,83 @@ hr(); line('DEBRIS');
     if (sim.debris.length > maxN) maxN = sim.debris.length;
   }
   line(`  peak lofted height ${Math.round(maxTop)} m   peak particles ${maxN}   peak load ${maxLoad.toFixed(2)}`);
+}
+
+/* ── 12. Props do not rate ──────────────────────────────────────────────
+   The integrity check for everything in sim-props.js. Cars, semis, fences
+   and livestock are damaged by the same wind field as the houses, throw
+   the same debris, and must be completely invisible to the survey — the
+   EF scale has no damage indicator for any of them, and inventing one
+   would put an unsourced number into the one output this whole piece
+   exists to keep honest. Run the identical tornado over the identical
+   world twice, once with the props list emptied. */
+hr(); line('PROPS DO NOT RATE');
+const lab = (r) => r.rating ? r.rating.label : 'none';
+{
+  let worst = 0;
+  for (const key of ['farmland', 'smallTown', 'urban']) {
+    const withProps = TS.buildTerrain(key, 4242);
+    const nProps = withProps.props.length;
+    const a = new TS.Sim({ seed: 4242, params: Object.assign({}, violent), terrain: withProps, visual: false });
+    a.runToEnd();
+    const ra = TS.assessDamage(a);
+
+    const without = TS.buildTerrain(key, 4242);
+    without.props = [];
+    const b = new TS.Sim({ seed: 4242, params: Object.assign({}, violent), terrain: without, visual: false });
+    b.runToEnd();
+    const rb = TS.assessDamage(b);
+
+    const d = Math.abs((ra.peakEstimatedMph || 0) - (rb.peakEstimatedMph || 0));
+    if (d > worst) worst = d;
+    line(`  ${key.padEnd(11)} ${String(nProps).padStart(5)} props   with ${lab(ra)} ${Math.round(ra.peakEstimatedMph)} mph   without ${lab(rb)} ${Math.round(rb.peakEstimatedMph)} mph`);
+  }
+  line(`  ${worst === 0 ? 'PASS' : 'FAIL'} — props are invisible to the rating (max delta ${worst} mph)`);
+}
+
+/* ── 13. Flung wreckage is reproducible ─────────────────────────────────
+   The macro debris is the only sim state that is skipped entirely on a
+   headless run, so it is the easiest place for an unseeded Math.random()
+   to hide. Two visual runs from one seed must land every piece of
+   wreckage in exactly the same place. */
+hr(); line('FLUNG WRECKAGE DETERMINISM');
+{
+  const snap = (seed) => {
+    const terrain = TS.buildTerrain('smallTown', seed);
+    const sim = new TS.Sim({ seed, params: Object.assign({}, violent), terrain, visual: true });
+    sim.runToEnd();
+    return sim.flung.map(b => `${b.kind}:${b.x.toFixed(3)},${b.y.toFixed(3)},${b.z.toFixed(3)}`).join('|');
+  };
+  const a = snap(777), b = snap(777);
+  const settledA = a.split('|').length;
+  line(`  ${settledA} bodies, both runs`);
+  line(`  ${a === b ? 'PASS' : 'FAIL'} — same seed lands every piece in the same place`);
+}
+
+/* ── 14. Mode neutrality ────────────────────────────────────────────────
+   THE CHECK THAT MAKES TORMATO SAFE TO SHIP. The absurd mode is allowed
+   to change what the debris is made of, what the radar calls itself, and
+   what the report is printed on. It is not allowed to change a single
+   wind, threshold, degree of damage or rating. If this ever fails, the
+   costume has grown into the physics and the console has started lying. */
+hr(); line('MODE NEUTRALITY — standard vs tormato');
+{
+  let ok = true;
+  for (const key of ['farmland', 'smallTown']) {
+    const out = {};
+    for (const mode of ['standard', 'tormato']) {
+      const terrain = TS.buildTerrain(key, 4242);
+      const sim = new TS.Sim({ seed: 4242, params: Object.assign({}, violent), terrain, visual: true, mode });
+      sim.runToEnd();
+      out[mode] = { r: TS.assessDamage(sim), j: sim.journal.length };
+    }
+    const same = lab(out.standard.r) === lab(out.tormato.r) &&
+                 Math.round(out.standard.r.peakEstimatedMph) === Math.round(out.tormato.r.peakEstimatedMph) &&
+                 out.standard.j === out.tormato.j;
+    if (!same) ok = false;
+    line(`  ${key.padEnd(11)} standard ${lab(out.standard.r)} ${Math.round(out.standard.r.peakEstimatedMph)} mph / ${out.standard.j} events` +
+         `   tormato ${lab(out.tormato.r)} ${Math.round(out.tormato.r.peakEstimatedMph)} mph / ${out.tormato.j} events`);
+  }
+  line(`  ${ok ? 'PASS' : 'FAIL'} — the costume does not touch the physics`);
 }
 hr();

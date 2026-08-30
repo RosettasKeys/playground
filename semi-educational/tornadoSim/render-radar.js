@@ -284,7 +284,13 @@ window.TS = window.TS || {};
     g.fillStyle = 'rgba(0,0,0,0.45)';
     g.fillRect(4, 3, 130, 14);
     g.fillStyle = 'rgba(207,217,234,0.85)';
-    g.fillText(PRODUCT_LABEL[RD.product] || RD.product, 8, 13);
+    /* Tormato renames the banner and leaves every product beneath it
+       exactly as it was — same reflectivity, same velocity couplet, same
+       debris signature, still fed by material genuinely in the air. */
+    const label = PRODUCT_LABEL[RD.product] || RD.product;
+    g.fillText(sim && sim.mode === 'tormato'
+      ? TS.TORMATO.radarLabel + ' · ' + label
+      : label, 8, 13);
 
     const beamM = Math.round(RD.couplet.beamM || RD.rangeKm * 1000 * 0.0175);
     g.fillStyle = RD.couplet.resolved ? 'rgba(207,217,234,0.55)' : 'rgba(255,111,74,0.95)';

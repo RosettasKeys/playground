@@ -773,6 +773,13 @@
       right: 16px;
       display: flex;
       justify-content: space-between;
+      /* Wrap, because the status is no longer always the word "Live". The
+         longer compatibility notes leave a card only ~330px wide with
+         nothing between the number and the status, and on a phone the two
+         met and printed on top of each other. Wrapping drops the status
+         onto its own line instead. */
+      flex-wrap: wrap;
+      gap: 2px 12px;
       z-index: 2;
     }
 
@@ -782,6 +789,9 @@
     }
 
     .project-status {
+      /* Keeps it hard right on its own line once .card-meta wraps. */
+      margin-left: auto;
+      text-align: right;
       color: #8fa0c7;
       text-transform: uppercase;
       letter-spacing: 0.12em;
@@ -2030,6 +2040,14 @@
     }
 
     @media (max-width: 720px) {
+      /* The project number is aria-hidden ornament; the status now carries
+         a real compatibility note. On a narrow card there is not room for
+         both, and of the two it is the note that a phone visitor actually
+         needs — so the ornament stands down and the note gets the row. */
+      .project-number {
+        display: none;
+      }
+
       .site-header {
         margin: 0 18px;
       }
@@ -2338,7 +2356,7 @@
         <a class="project-card accent-atlas" href="milkyWay/milky-way-atlas.html">
           <div class="card-meta">
             <span class="project-number" aria-hidden="true">V · 26,700 ly</span>
-            <span class="project-status"><i></i>Live</span>
+            <span class="project-status"><i></i>Live &middot; Wide screen helps</span>
           </div>
           <div class="project-visual visual-atlas" aria-hidden="true">
             <span class="orrery-ring ring-a"></span>
@@ -2366,7 +2384,7 @@
         <a class="project-card accent-storm" href="semi-educational/tornadoSim/tornado-lab.html">
           <div class="card-meta">
             <span class="project-number" aria-hidden="true">VI &middot; 65&ndash;200 mph</span>
-            <span class="project-status"><i></i>Live</span>
+            <span class="project-status"><i></i>Live &middot; Desktop recommended</span>
           </div>
           <div class="project-visual visual-storm" aria-hidden="true">
             <span class="scope-ring ring-1"></span>

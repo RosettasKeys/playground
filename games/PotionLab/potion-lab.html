@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#100d19">
+  <meta name="description" content="A tactile color-mixing game from the Misfire Arcade. Drop questionable ingredients into a magical potion and match the target color.">
+  <title>The Questionable Potion Laboratory — Misfire Arcade</title>
+  <link rel="icon" type="image/png" href="../../favicon/RosettasKeysLogoFavi2-512x402.png">
+  <link rel="stylesheet" href="./potion-lab.css">
+</head>
+<body>
+  <div class="lab-atmosphere" aria-hidden="true"></div>
+
+  <header class="lab-header">
+    <a class="arcade-return" href="../games-index.html">&larr; Misfire Arcade</a>
+    <div class="lab-mark" aria-label="The Questionable Potion Laboratory">
+      <span class="lab-mark__seal" aria-hidden="true">QPL</span>
+      <span>
+        <strong>QUESTIONABLE POTION LAB</strong>
+        <small>Chromatic Compliance Annex</small>
+      </span>
+    </div>
+    <div class="header-actions">
+      <button class="icon-button" id="records-button" type="button" aria-label="Open laboratory records" title="Laboratory records">▤</button>
+      <button class="icon-button" id="sound-button" type="button" aria-pressed="true" aria-label="Mute sound" title="Sound on">♪</button>
+      <button class="icon-button" id="restart-button" type="button" aria-label="Restart round" title="Restart round">↻</button>
+    </div>
+  </header>
+
+  <main class="lab-shell">
+    <section class="cabinet-heading" aria-labelledby="game-title">
+      <div>
+        <p class="eyebrow">MISFIRE ARCADE · CABINET 06</p>
+        <h1 id="game-title">THE CHROMATIC<br><span>CAULDRON</span></h1>
+      </div>
+      <p class="cabinet-heading__notice">UNLICENSED COLOR THEORY<br><span>staff supervision: presumed</span></p>
+    </section>
+
+    <section class="control-deck" aria-label="Game setup">
+      <fieldset class="segment-group" id="mode-controls">
+        <legend>Mode</legend>
+        <button type="button" class="segment is-active" data-mode="classic" aria-pressed="true" title="A flexible target round with no countdown">Classic</button>
+        <button type="button" class="segment" data-mode="ladder" aria-pressed="false" title="Clear increasingly difficult target rungs">Challenge Ladder</button>
+        <button type="button" class="segment" data-mode="speed" aria-pressed="false" title="Qualify before the short timer expires">Speed Mix</button>
+      </fieldset>
+      <fieldset class="segment-group" id="difficulty-controls">
+        <legend>Difficulty</legend>
+        <button type="button" class="segment is-active" data-difficulty="easy" aria-pressed="true">Easy</button>
+        <button type="button" class="segment" data-difficulty="medium" aria-pressed="false">Medium</button>
+        <button type="button" class="segment" data-difficulty="hard" aria-pressed="false">Hard</button>
+      </fieldset>
+      <div class="round-id" aria-label="Current laboratory filing number">
+        <span>Filing</span>
+        <strong id="round-id">QPL-0000</strong>
+      </div>
+    </section>
+
+    <section class="briefing-panel" aria-label="Potion target and current mixture">
+      <article class="swatch-card swatch-card--target">
+        <div class="swatch" id="target-swatch" aria-hidden="true"><span class="swatch-glint"></span></div>
+        <div class="swatch-copy">
+          <span class="panel-label">Target color</span>
+          <h2 id="target-name">Awaiting paperwork</h2>
+          <p id="target-description">No target has been issued.</p>
+        </div>
+      </article>
+
+      <div class="similarity-instrument">
+        <div class="grade-orb" id="grade-orb" role="status" aria-label="Current grade: not graded"><span id="grade-letter">—</span></div>
+        <div class="similarity-copy">
+          <span class="panel-label">Current grade</span>
+          <strong id="similarity-text">0% similarity</strong>
+          <div class="meter" role="progressbar" aria-label="Color similarity" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="similarity-meter">
+            <span id="similarity-fill"></span>
+            <i class="threshold-mark" id="threshold-mark" aria-hidden="true"></i>
+          </div>
+          <small id="clear-requirement">B · 74% required</small>
+        </div>
+      </div>
+
+      <article class="swatch-card swatch-card--current">
+        <div class="swatch is-empty" id="current-swatch" aria-hidden="true"><span class="swatch-glint"></span></div>
+        <div class="swatch-copy">
+          <span class="panel-label">Current mixture</span>
+          <h2 id="current-name">Uncommitted Water</h2>
+          <p id="current-description">empty vessel · add an ingredient</p>
+        </div>
+      </article>
+    </section>
+
+    <section class="game-layout">
+      <div class="playfield-frame" id="playfield-frame">
+        <div class="playfield-status">
+          <span id="stage-message">Drag to aim · release to drop</span>
+          <span class="status-lamp" id="status-lamp" aria-hidden="true"></span>
+        </div>
+        <canvas id="potion-canvas" tabindex="0" aria-label="Potion playfield. Choose an ingredient from the three color options, drag left and right to aim it, then release to drop it into the cauldron. Use the arrow keys to aim and Space to drop."></canvas>
+        <div class="canvas-vignette" aria-hidden="true"></div>
+        <div class="salamander-egg" id="salamander-egg" role="status" aria-live="polite" aria-hidden="true">
+          <img src="../../salamander/salamander2-animated.svg" alt="">
+          <div class="salamander-plaque">
+            <strong id="salamander-caption">OBSERVING.</strong>
+            <span>OPENAI GPT-5.6 SOL · CODEX</span>
+          </div>
+        </div>
+        <div class="keyboard-hint" aria-hidden="true">← → AIM · SPACE DROP</div>
+      </div>
+
+      <aside class="lab-console" aria-label="Round controls and readouts">
+        <section class="console-section next-section">
+          <div class="console-heading">
+            <span class="panel-label">Choose an ingredient</span>
+            <span id="queue-note">pick 1 of 3</span>
+          </div>
+          <div class="ingredient-queue" id="ingredient-queue" role="group" aria-label="Choose one of three available ingredient colors"></div>
+        </section>
+
+        <section class="readout-grid" aria-label="Round statistics">
+          <div class="readout">
+            <span>Drops left</span>
+            <strong id="drops-left">—</strong>
+          </div>
+          <div class="readout">
+            <span id="timer-label">Elapsed</span>
+            <strong id="timer-readout">00:00</strong>
+          </div>
+          <div class="readout">
+            <span>Undo</span>
+            <strong id="undo-count">∞</strong>
+          </div>
+          <div class="readout">
+            <span id="level-label">Recipe</span>
+            <strong id="level-readout">hidden</strong>
+          </div>
+        </section>
+
+        <section class="console-actions" aria-label="Potion actions">
+          <button class="lab-button lab-button--secondary" id="undo-button" type="button">↶ Undo drop</button>
+          <button class="lab-button lab-button--primary" id="submit-button" type="button">Seal this potion</button>
+        </section>
+
+        <section class="field-log" aria-live="polite" aria-atomic="true">
+          <span class="panel-label">Wizard oversight log</span>
+          <p id="field-log">Vessel rinsed. Expectations lowered.</p>
+        </section>
+      </aside>
+    </section>
+
+    <aside class="onboarding" id="onboarding" aria-label="How to play">
+      <span aria-hidden="true">✦</span>
+      <p><strong>Choose one of three colors, then drop it into the potion.</strong> Miss the pot, waste the drop. Match the target before the wizard notices.</p>
+      <button type="button" id="onboarding-dismiss">Understood-ish</button>
+    </aside>
+  </main>
+
+  <dialog class="result-dialog" id="result-dialog" aria-labelledby="result-title">
+    <div class="result-burst" aria-hidden="true"></div>
+    <p class="eyebrow" id="result-kicker">POTION ADJUDICATED</p>
+    <div class="result-grade" id="result-grade">A</div>
+    <h2 id="result-title">Suspiciously legitimate wizardry.</h2>
+    <p id="result-summary">Your filing has been accepted under protest.</p>
+    <dl class="result-metrics">
+      <div><dt>Color</dt><dd id="result-accuracy">0%</dd></div>
+      <div><dt>Time</dt><dd id="result-time">0:00</dd></div>
+      <div><dt>Efficiency</dt><dd id="result-efficiency">0%</dd></div>
+    </dl>
+    <div class="result-actions">
+      <button class="lab-button lab-button--secondary" id="result-close" type="button">Inspect vessel</button>
+      <button class="lab-button lab-button--primary" id="result-next" type="button">Mix another</button>
+    </div>
+  </dialog>
+
+  <dialog class="records-dialog" id="records-dialog" aria-labelledby="records-title">
+    <div class="records-head">
+      <div>
+        <p class="eyebrow">LOCAL, POSSIBLY ACCURATE</p>
+        <h2 id="records-title">Laboratory records</h2>
+      </div>
+      <button class="icon-button" id="records-close" type="button" aria-label="Close records">×</button>
+    </div>
+    <div class="records-grid" id="records-grid"></div>
+  </dialog>
+
+  <footer class="lab-footer">
+    <span>THE GARDEN · MISFIRE ARCADE</span>
+    <span>Color theory permit: pending since 1683</span>
+  </footer>
+
+  <script src="./color-engine.js" defer></script>
+  <script src="./round-engine.js" defer></script>
+  <script src="./potion-lab.js" defer></script>
+</body>
+</html>

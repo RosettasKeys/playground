@@ -621,6 +621,85 @@
             }
         }
 
+        /* ---------- CHROMATIC CAULDRON preview: one ingredient, dubious vessel ---------- */
+        .potion-preview {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background:
+                linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px),
+                #090812;
+            background-size: 18px 18px;
+        }
+
+        .potion-pebble {
+            position: absolute;
+            top: 13px;
+            left: calc(50% - 9px);
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 2px solid rgba(255,255,255,.35);
+            background: #ff6338;
+            box-shadow: inset -4px -5px 5px rgba(0,0,0,.25), 0 0 12px rgba(255,99,56,.45);
+            animation: potion-drop-preview 2.8s cubic-bezier(.44,.06,.75,.28) infinite;
+        }
+
+        .potion-pot {
+            position: absolute;
+            left: 50%;
+            bottom: 8px;
+            width: 112px;
+            height: 48px;
+            transform: translateX(-50%);
+            border: 2px solid #d8a84b;
+            border-radius: 12px 12px 48px 48px;
+            background: linear-gradient(90deg, #17131c, #39313e 48%, #17131c);
+        }
+
+        .potion-pot::before {
+            content: "";
+            position: absolute;
+            left: -7px;
+            right: -7px;
+            top: -8px;
+            height: 17px;
+            border: 2px solid #d8a84b;
+            border-radius: 50%;
+            background: #8d50c7;
+            box-shadow: 0 0 14px rgba(168,117,255,.48), inset 0 3px 5px rgba(255,255,255,.2);
+            animation: potion-liquid-preview 2.8s ease-in-out infinite;
+        }
+
+        .potion-spark {
+            position: absolute;
+            left: 50%;
+            bottom: 54px;
+            color: #58e8da;
+            font-size: .8rem;
+            opacity: 0;
+            animation: potion-spark-preview 2.8s ease-out infinite;
+        }
+
+        @keyframes potion-drop-preview {
+            0%, 12% { transform: translateY(0); opacity: 1; }
+            60% { transform: translateY(55px); opacity: 1; }
+            66%, 100% { transform: translateY(58px) scale(.45); opacity: 0; }
+        }
+
+        @keyframes potion-liquid-preview {
+            0%, 55%, 100% { transform: scaleY(1); filter: brightness(1); }
+            67% { transform: scaleY(1.18); filter: brightness(1.35); }
+        }
+
+        @keyframes potion-spark-preview {
+            0%, 58% { transform: translate(-50%, 8px) scale(.3); opacity: 0; }
+            68% { transform: translate(-50%, 0) scale(1); opacity: 1; }
+            86%, 100% { transform: translate(-50%, -19px) scale(.7); opacity: 0; }
+        }
+
         /* ---------- FEED THE MOUNTAIN card preview: things drift up and vanish ---------- */
         .mountain-preview {
             position: relative;
@@ -955,6 +1034,12 @@
                 animation: none !important;
             }
 
+            .potion-pebble,
+            .potion-pot::before,
+            .potion-spark {
+                animation: none !important;
+            }
+
             .itops-led {
                 animation: none !important;
             }
@@ -1095,6 +1180,27 @@
                     <div class="itops-preview">
                         <span class="itops-led" aria-hidden="true"></span>
                         <span>INC-0447 &middot; queue: reopened (again)</span>
+                    </div>
+                </div>
+            </a>
+
+            <a class="card" id="card-potion" href="./PotionLab/potion-lab.html">
+                <span class="card-index">06</span>
+                <span class="play-badge">Play Now</span>
+                <span class="badge compatibility-tag">Touch friendly</span>
+                <h2>The Chromatic Cauldron</h2>
+                <p>
+                    An unlicensed wizard has turned color theory into a fruit-drop
+                    incident. Aim enchanted ingredients, miss the grievance gutters,
+                    and mix target potions before the chromatic compliance office
+                    notices. Includes three modes, real pigment-ish mixing, and a
+                    cauldron with no respect for your credentials.
+                </p>
+                <div class="card-preview">
+                    <div class="potion-preview" aria-label="A colored ingredient dropping into a glowing potion cauldron">
+                        <span class="potion-pebble" aria-hidden="true"></span>
+                        <span class="potion-spark" aria-hidden="true">✦</span>
+                        <span class="potion-pot" aria-hidden="true"></span>
                     </div>
                 </div>
             </a>
